@@ -1,0 +1,96 @@
+Konfigurationsanleitung 
+LD_G_34
+Ah CV  Beschreibung                                               S    Bereich Bemerkung 
+00|001 Lokadresse (standard kurz)   Tams                          3   1...127 Wertebereich im DCC Formet: 1 ... 127 
+00|002 Anfahrspannung (in Fahrstufe 1)                            5   1...255 Spannung, die bei Fahrstufe 1 an den Motor ausgegeben 
+00|003 Anfahrverzögerung                                         16   1...255 Wartezeit = CV 3 x 9ms / Anzahl der Fahrstufen
+00|004 Bremsverzögerung                                          16   1...255 Wartezeit = CV 4 x 9ms / Anzahl der Fahrstufen
+00|005 Maximale Fahrgeschwindigkeit                               0   1...255 Der Wert "2" entspricht 0,8 %, der Wert "255" 100 %
+00|007 Software Versionsnummer                                  ---   ------  nur lesbar / Programmierung SUSI-Modul
+00|008 Herstellerkennung                                        62    ------  nur lesbar / auch Reset
+00|009 Motorfrequenz                                              0   0...  1 Motorfrequenz (0= 31,5 kHz/ 1= 17 kHz )
+00|012 Analogmodus                                                0   0...  1 im Analogb.Richtungswechsel auslöst Überspannungsimpuls(Wechselstromanlagen) 0 Polaritätswechsel
+00|013 im Analogbetrieb aktive Funktionen (F1 - F8)               0   0...255 F1 = 1, F2 = 2, F3 = 4 ....F7 = 64, F8=128
+00|017 Lange Lokadresse (hohes Byte)                            192 192...255 wenn CV 29, Bit 5 = 1
+00|018 Lange Lokadresse (tiefes Byte) 				255   0...255 	
+00|019 Consistadresse     				          0   0...127 = 2. Adresse Nur im DCC- Format	
+00|027 Bremsverhalten bei Gleichspannung                          0   4 -Bits 0 keine Bremsen bi2 Gleichsp. 16 =+ 32=- 
+00|029 NMRAKonfiguration                                          4           bitweise Programmierung 
+00|033 F0 vorwärts an                                             1   0...  3 AUX1 = 1 
+00|034 F0 rückwärts an                                            2   0...  3 AUX2 = 2 
+00|035 F1                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|036 F2                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|037 F3                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|038 F4                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|039 F5                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|040 F6                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|041 F7                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|042 F8                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|043 F9                                                         0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|044 F10                                                        0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|045 F11                                                        0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|046 F12                                                        0   0...  3 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|047 Erweiterte Kickfunktion Zum Entkupplen                     0   0... 63 AUX1=1, Aux2=2, Aux3=4, Aux4=8, Aux5=16, Aux6=32
+00|048 Spannung bei erweiterter Kickfunktion                      0   0...255 = Spannung, die beim Schalten mit der erweiterten Kickfunktion an dem Motor ausgegeben wird.
+00|049 Tams - Konfiguration Daten 2                              73   0...255 bitweise Programmierung 
+00|050 Lastregel - parameter KP                                  80   0...255 = Proportionaler Anteil der Lastregelung
+00|051 Lastregel - parameter KI                                  45   0...255 = Integraler Anteil der Lastregelung
+00|052 Lastregel - parameter KD                                  50   0...255 = Differentieller Anteil der Lastregelung
+00|053 Effekte der Ausgänge AUX1                                  0   0...255 siehe Anhang X 
+00|054 Effekte der Ausgänge AUX2                                  0   0...255 siehe Anhang X 
+00|055 Effekte der Ausgänge AUX3                                  0   0...255 siehe Anhang X 
+00|056 Effekte der Ausgänge AUX4                                  0   0...255 siehe Anhang X 
+00|057 Effekte der Ausgänge AUX5                                  0   0...255 siehe Anhang X 
+00|058 Effekte der Ausgänge AUX6                                  0   0...255 siehe Anhang X 
+00|056 Kickzeit bei den Ausgängen AUX1,Aux2                       0   0...255 siehe Anhang X 
+00|057 Kickzeit bei den Ausgängen AUX3,Aux4                       0   0...255 siehe Anhang X 
+00|058 Kickzeit bei den Ausgängen AUX5,Aux6                       0   0...255 siehe Anhang X 
+00|059 AUX1, AUX2                                                 0   0...255 Zeitdauer, in der die volle Spannung anliegen, bevor sie reduziert wird 
+00|060 AUX3, AUX4                                                 0   0...255 Zeitdauer, in der die volle Spannung anliegen, bevor sie reduziert wird  
+00|061 AUX5, AUX6                                                 0   0...255 Zeitdauer, in der die volle Spannung anliegen, bevor sie reduziert wird  
+00|062 Dimmen der Ausgänge AUX1 / AUX2                          255   1...255 1= der kleinsten, 15= der maximalen Spannung
+00|063 Dimmen der Ausgänge AUX3 / AUX4                          255   1...255 1= der kleinsten, 15= der maximalen Spannung
+00|064 Dimmen der Ausgänge AUX5 / AUX6                          255   1...255 1= der kleinsten, 15= der maximalen Spannung
+00|065 Kurzzeitige Erhöhung der Motorspannung                     0   0... 14 Wert entspricht der Fahrstufe
+00|067 frei programmierbare Fahrkurve  1. Wert (28 Werten)            1...255 
+00|068 frei programmierbare Fahrkurve  2. Wert                        1...255  
+00|069 frei programmierbare Fahrkurve  3. Wert                        1...255 
+00|070 frei programmierbare Fahrkurve  4. Wert                        1...255 
+00|071 frei programmierbare Fahrkurve  5. Wert                        1...255 
+00|072 frei programmierbare Fahrkurve  6. Wert                        1...255 
+00|073 frei programmierbare Fahrkurve  7. Wert                        1...255 
+00|074 frei programmierbare Fahrkurve  8. Wert                        1...255 
+00|075 frei programmierbare Fahrkurve  9. Wert                        1...255 
+00|076 frei programmierbare Fahrkurve 10. Wert                        1...255 
+00|077 frei programmierbare Fahrkurve 11. Wert                        1...255 
+00|078 frei programmierbare Fahrkurve 12. Wert                        1...255 
+00|079 frei programmierbare Fahrkurve 13. Wert                        1...255 
+00|080 frei programmierbare Fahrkurve 14. Wert                        1...255 
+00|081 frei programmierbare Fahrkurve 15. Wert                        1...255 
+00|082 frei programmierbare Fahrkurve 16. Wert                        1...255 
+00|083 frei programmierbare Fahrkurve 17. Wert                        1...255 
+00|084 frei programmierbare Fahrkurve 18. Wert                        1...255 
+00|085 frei programmierbare Fahrkurve 19. Wert                        1...255 
+00|086 frei programmierbare Fahrkurve 20. Wert                        1...255 
+00|087 frei programmierbare Fahrkurve 21. Wert                        1...255 
+00|088 frei programmierbare Fahrkurve 22. Wert                        1...255 
+00|089 frei programmierbare Fahrkurve 23. Wert                        1...255 
+00|090 frei programmierbare Fahrkurve 24. Wert                        1...255 
+00|091 frei programmierbare Fahrkurve 25. Wert                        1...255 
+00|092 frei programmierbare Fahrkurve 26. Wert                        1...255 
+00|093 frei programmierbare Fahrkurve 27. Wert                        1...255 
+00|094 frei programmierbare Fahrkurve 28. Wert                        1...255 
+00|112 Blinkfrequenz der Beleuchtung                            200   10..255 
+00|113 Fahrstufe, ab der in CV#116 festgeleg. Ausgänge gedimmt   16   1...126  
+00|115 Rangierlicht für AUX1 bis AUX6                             0   0...255 
+00|116 Geschwindigkeitsabhängiges Dimmen für AUX1 bis Aux6        0   0....63 Legt fest, welche Ausgänge ab der in CV#113 definierten Fahrstufe gedimmt werden
+
+00|118 Alternatives Dimmen der Ausgänge: AUX1 / AUX2            255   1...255 1= der kleinsten, 15= der maximalen Spannung
+00|119 Alternatives Dimmen der Ausgänge: AUX3 / AUX4            255   1...255 1= der kleinsten, 15= der maximalen Spannung
+00|120 Alternatives Dimmen der Ausgänge: AUX5 / AUX6            255   1...255 1= der kleinsten, 15= der maximalen Spannung
+00|121 Ausschalten der Funktion F0 bei Fahrstufe 0                0   1...255 
+00|122 Einschalten der Ausgänge bei Fahrstufe 0                   0   1....63 
+00|123 Ausschalten der Funktion bei Fahrstufe 0                   0   1....15
+00|124 Optimierung der Lastregelung                               2   1....15
+00|126 Invertieren der Ausgäng AUX1 bis AUX6                      0   1....63 
+ENDE==============================================================ENDE

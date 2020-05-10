@@ -1,0 +1,89 @@
+Konfigurationsanleitung 
+M  / L  / XL / XXL 
+Ah CV  Beschreibung                                               S    Bereich Bemerkung 
+00|001 Lokadresse (standard kurz)                                 3   1...127 wenn CV 29, Bit 5 = 0 
+00|002 Anfahrspannung (in Fahrstufe 1)                            2   1...255 CV 2 x (1/255 Gleisspannung) 
+00|003 Anfahrverzögerung                                          3   1...255 CV 3 x 2ms x (1/255 Gleissp.) 
+00|004 Bremsverzögerung                                           3   1...255 CV 4 x 2ms x (1/255 Gleissp.) 
+00|005 Maximale Fahrgeschwindigkeit                             200   1...255 CV 5 x 1/255 Gleisspannung 
+00|006 Mittlere Fahrgeschwindigkeit                              50   1...255 CV 6 x 1/255 Gleisspannung 
+00|007 Software Versionsnummer                                  ---   ------  nur lesbar 
+00|008 Herstellerkennung                                        123   ------  nur lesbar 
+00|009 Motorfrequenz                                              0   0...  3 0 = 16 kHz 
+00|013 Funktion der Funktionsausgänge im Analogbetrieb            3   0...255 
+00|015 Programmiersperre                                        ---   0...255 Schlüssel 
+00|016 Programmiersperre                                        ---   0...255 Schloß (Anhang 4) nur lesen 
+00|017 Lange Lokadresse (hohes Byte)                            128 128.10239 wenn CV 29, Bit 5 = 1
+00|018 Lange Lokadresse (tiefes Byte) 							128	
+00|019 Mehrfachtraktionsadresse                                       1... 99 +128 für inverse Fahrtrichtung 
+00|029 NMRAKonfiguration                                          4           bitweise Programmierung 
+00|037 MZB-Schaltbefehl f. SUSI Funktion                         17           *siehe Sounddatenblatt 
+00|038 MZB-Schaltbefehl f. SUSI Funktion                         18           *siehe Sounddatenblatt 
+00|039 MZB-Schaltbefehl f. SUSI Funktion                         19           *siehe Sounddatenblatt 
+00|040 MZB-Schaltbefehl f. SUSI Funktion                         20           *siehe Sounddatenblatt
+00|041 MZB-Schaltbefehl f. SUSI Funktion                         21           *siehe Sounddatenblatt 
+00|042 MZB-Schaltbefehl f. SUSI Funktion                         22           *siehe Sounddatenblatt 
+00|043 MZB-Schaltbefehl f. SUSI Funktion                         23           *siehe Sounddatenblatt 
+00|044 MZB-Schaltbefehl f. SUSI Funktion                         24           *siehe Sounddatenblatt 
+00|047 Puffernachlaufzeit (analog / digital)                     10   1...240 nur bei Pufferbetrieb (0,125 Sekunden je Wert) 
+00|048 Einschaltschwelle Analogbetrieb                           60   0...120 
+00|049 MASSOTHKonfiguration                                      19           bitweise Programmierung 
+00|050 Licht: Dimmwert (PWM)                                     32   1... 32  32 = volle Gleisspannung 
+01|051 Licht vorne Schaltbefehl                                 128           siehe Anhang 1 
+02|052 Licht hinten Schaltbefehl                                 64           siehe Anhang 1 
+02|053 A1 + A2 Dimmwert 										 32           siehe Anhang 2 
+01|054 A1 Schaltbefehl                                            7           siehe Anhang 1  
+03|055 A1 Sonderfunktion                                          0           siehe Anhang 3 
+01|056 A2 Schaltbefehl                                            2           siehe Anhang 1 
+03|057 A2 Sonderfunktion                                          0           siehe Anhang 3 + 3a 
+00|058 Pausenzeit bei Halt mit Richtungsw.                        0   0...255 0,5 Sek pro Wert 
+00|059 Rangiergang Schaltbefehl                                   8   0... 16 0 = deaktiviert 
+00|060 Lastregelung maximale Nachregelstärke                      2   1... 15 großer Wert = starke Regelung 
+00|061 Lastregelung Nachregelverzögerung                         60   1...255 großer Wert = langsame Regl. 
+00|062 Lastregelung Nachregelbegrenzung                         255   1...255 
+00|063 Lastregelung Anfahrverhalten                              60   1...255 
+00|064 Verzögerungszeiten aus- und einschalten (Schaltbefehl)    16   0... 16 
+06|067 frei programmierbare Fahrkurve  1. Wert (28 Werten)            1...255 siehe Anhang 6
+06|068 frei programmierbare Fahrkurve  2. Wert                        1...255 siehe Anhang 6 
+06|069 frei programmierbare Fahrkurve  3. Wert                        1...255 siehe Anhang 6
+06|070 frei programmierbare Fahrkurve  4. Wert                        1...255 siehe Anhang 6
+06|071 frei programmierbare Fahrkurve  5. Wert                        1...255 siehe Anhang 6
+06|072 frei programmierbare Fahrkurve  6. Wert                        1...255 siehe Anhang 6
+06|073 frei programmierbare Fahrkurve  7. Wert                        1...255 siehe Anhang 6
+06|074 frei programmierbare Fahrkurve  8. Wert                        1...255 siehe Anhang 6
+06|075 frei programmierbare Fahrkurve  9. Wert                        1...255 siehe Anhang 6
+06|076 frei programmierbare Fahrkurve 10. Wert                        1...255 siehe Anhang 6
+06|077 frei programmierbare Fahrkurve 11. Wert                        1...255 siehe Anhang 6
+06|078 frei programmierbare Fahrkurve 12. Wert                        1...255 siehe Anhang 6
+06|079 frei programmierbare Fahrkurve 13. Wert                        1...255 siehe Anhang 6
+06|080 frei programmierbare Fahrkurve 14. Wert                        1...255 siehe Anhang 6
+06|081 frei programmierbare Fahrkurve 15. Wert                        1...255 siehe Anhang 6
+06|082 frei programmierbare Fahrkurve 16. Wert                        1...255 siehe Anhang 6
+06|083 frei programmierbare Fahrkurve 17. Wert                        1...255 siehe Anhang 6
+06|084 frei programmierbare Fahrkurve 18. Wert                        1...255 siehe Anhang 6
+06|085 frei programmierbare Fahrkurve 19. Wert                        1...255 siehe Anhang 6
+06|086 frei programmierbare Fahrkurve 20. Wert                        1...255 siehe Anhang 6
+06|087 frei programmierbare Fahrkurve 21. Wert                        1...255 siehe Anhang 6
+06|088 frei programmierbare Fahrkurve 22. Wert                        1...255 siehe Anhang 6
+06|089 frei programmierbare Fahrkurve 23. Wert                        1...255 siehe Anhang 6
+06|090 frei programmierbare Fahrkurve 24. Wert                        1...255 siehe Anhang 6
+06|091 frei programmierbare Fahrkurve 25. Wert                        1...255 siehe Anhang 6
+06|092 frei programmierbare Fahrkurve 26. Wert                        1...255 siehe Anhang 6
+06|093 frei programmierbare Fahrkurve 27. Wert                        1...255 siehe Anhang 6
+06|094 frei programmierbare Fahrkurve 28. Wert                        1...255 siehe Anhang 6
+02|112 A3 + A4 Dimmwert                                          32           siehe Anhang 2 
+01|113 A3 Schaltbefehl                                            3   0... 16 siehe Anhang 1 
+03|114 A3 Sonderfunktion                                          0           siehe Anhang 3 
+01|115 A4 Schaltbefehl                                            4           siehe Anhang 1 
+03|116 A4 Sonderfunktion                                          0           siehe Anhang 3 + 3a 
+01|117 A5 Schaltbefehl                                            5           siehe Anhang 1 
+03|118 A5 Sonderfunktion                                          0           siehe Anhang 3 
+01|119 A6 Schaltbefehl                                            6           siehe Anhang 1 
+03|120 A6 Sonderfunktion                                          0           siehe Anhang 3 + 3A 
+00|121 A3: Servofunktion                                          0 
+00|122 A3: Servo: untere Drehbegrenzung                          16  5 ... 50 an Servo anpassen 
+00|123 A3: Servo: obere Drehbegrenzung                           32  5 ... 50 an Servo anpassen 
+00|127 A3: Servo: Drehgeschwindigkeit                             1  1 ... 15 1 = schnell / Einheit = 10 ms 
+00|128 Pendel - Kontakt 1                                         0  0... 255 0 = deaktiv 2 .. 250 = 2..125 Sek. Sperrzeit
+00|255 Decodertyp-Kennung                                         *            nur lesen (Anhang 4) 
+ENDE==============================================================ENDE

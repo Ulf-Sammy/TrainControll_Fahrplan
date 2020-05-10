@@ -1,0 +1,293 @@
+AH01 Anhang 1:  
+0 für CV 51, 52, 54, 56, 113, 115, 117, 119 Schaltbefehle
+1 0...16 \t Werte Bereich 0= F0 ... 16 = F16
+2        \t 0 = Schalten mit der Lichttaste 
+3        \t 1 ... 16 = Schalten mit der Funktionstaste 
+4 +  64  \t Schaltausgang nur bei Rückwärtsfahrt an Zusatzwert aufaddieren 
+5 + 128  \t Schaltausgang nur bei Vorwärtsfahrt an Zusatzwert aufaddieren 
+6
+7
+8
+9
+0
+=====================================================================
+AH02 Anhang 2: 
+0  für CV 53, 112 - Dimmfunktion A1+A2, A3+A4
+1  1... 32         \t |Prozentuale Spannung am Ausgang (beide Ausgänge gedimmt) 
+2                  \t |  1 =   3% der Gleisspannung (0,75V) 
+3                  \t | 32 = 100% der Gleisspannung (24V) 
+4  (1... 32) + 64  \t | Nur A1 bzw. A3 wird gedimmt 
+5                  \t | A1 = Wert in CV53 |  A3 = Wert in CV112 
+6  (1... 32) +128  \t | Nur A2 bzw. A4 wird gedimmt 
+7                  \t | A2 = Wert in CV53 |  A4 = Wert in CV112 
+8 + 192            \t |Beide Ausgänge werden gedimmt 
+9
+0
+=====================================================================
+AH03 Anhang 3:
+0  für CV 55, 57, 114, 116, 118, 120 - Sonderfunktion A1, A2, A3, A4, A5, A6 
+1 0       \t| 0 = Dauerbetrieb des Ausgangs   \t(Normale Schaltfunktion) 
+2 1... 15 \t| Dauerhaftes symmetrisches Blinken\t(Zeitbasis 0,25 sec pro Wert)       
+3 + 64    \t| Kurzzeitfunktion, Monoflop       \t(Zeitbasis 0,25 sec pro Wert)
+4         \t| Ausgang schaltet sich nach der abgelaufenen Zeit automatisch aus. 
+5 + 128   \t| Asymmetrisches Blinken 1/3 an - 2/3 aus | kurz an / lang aus      
+6 + 192   \t| Asymmetrisches Blinken 2/3 an - 1/3 aus | lang an / kurz aus      
+7 für CV 57, 116, 120 - Sonderfunktion A2, A4, A6 
+8 16      \t| Inverse Kopplung zu A1, A3 oder A5 (Wechselblinken) 
+9         \t| CV 57 (A2 an A1)  | CV 116 (A4 an A3) |  CV 120 (A6 an A5) 
+0 30      \t| Taktsimulation für gepulsten Verdampfer (nur A3) CV 114 
+=====================================================================
+AH04 Anhang 4: 
+0 Decodertyp (CV 255) / Programmiersperre (CV 15/16) 
+1 Dec.Typ \t| LS  \t| S \  t| S PluG\t| XLS \t| XLS-Onb \t| XLS-M1 
+2 Wert    \t| 144 \t| 145 \t| 146   \t| 148 \t| 157     \t| 158 
+3
+4
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH05 Anhang 5:
+0 CV-Werte bei Decoder-Resetfunktion 
+1 Resetwert 
+2    16 \t| 15 \t| 16 
+3    55 \t|  1 \t| 17 \t| 18 \t| 29 \t| 49 \t| 58 \t| 59 
+4    66 \t|  2 \t|  3 \t|  4 \t|  5 \t|  6 \t|  9 \t| 60 \t| 61 \t| 62 \t| 64 
+5    77 \t| 13 \t| 50 \t| 51 \t| 52 \t| 53 \t| 54 \t| 55 \t| 56 \t| 57 \t| 112 
+6       \t| 113\t| 114\t| 121\t| 123\t| 124\t| 125\t| 126\t| 127\t| 129\t| 130 
+7   111 \t| CV 131 – CV 167 Reset Soundfunktionen 
+8   122 \t| CV 171 – CV 199 Reset Standphase 
+9   133 \t| CV 200 – CV 224 Reset Lautstärkeeinstellungen 
+0
+=====================================================================
+AH06 Anhang 6: 
+0 Grundwerte der frei programmierbaren Fahrkurve (CV 67 - 94) 
+1 CV  \t|  67 \t|  68 \t|  69 \t|  70 \t|  71 \t|  72 \t|  73 \t|
+2 Wert\t|   6 \t|   8 \t|  10 \t|  13 \t|  16 \t|  19 \t|  22 \t|
+3 CV  \t|  74 \t|  75 \t|  76 \t|  77 \t|  78 \t|  79 \t|  80 \t| 
+4 Wert\t|  26 \t|  31 \t|  36 \t|  42 \t|  48 \t|  54 \t|  60 \t| 
+5 CV  \t|  81 \t|  82 \t|  83 \t|  84 \t|  85 \t|  86 \t|  87 \t|
+6 Wert\t|  68 \t|  76 \t|  84 \t|  92 \t| 102 \t| 112 \t| 124 \t|
+7 CV  \t|  88 \t|  89 \t|  90 \t|  91 \t|  92 \t|  93 \t|  94 \t| 
+8 Wert\t| 136 \t| 152 \t| 168 \t| 188 \t| 208 \t| 228 \t| 232 \t|
+9
+0
+=====================================================================
+AH07 
+0 für CV 9 Motorfrequenz 
+1 0 =  16 kHz
+2 1 =   2 kHz
+3 2 = 250 Hz
+4 3 =  60 Hz
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH08
+0 für CV 13 Funktion der Funktionsausgänge im Analogbetrieb 
+1 Bit \t (An, wenn Funktionswert gesetzt) 
+2 Bit 0\t A1 =   1
+3 Bit 1\t A2 =   2
+4 Bit 2\t A3 =   4 
+5 Bit 3\t A4 =   8 
+6 Bit 4\t A5 =  16 
+7 Bit 5\t A6 =  32 
+8 Bit 6\t A7 =  64 
+9 Bit 7\t A8 = 128 
+0 Werte der gewünschten Funktionen addieren! 
+=====================================================================
+AH09
+0 für CV 29 NMRA Konfiguration
+1 Bit  \t Wert AUS(Wert 0)           \tAN 
+2 Bit 0\t  1 \tnormale Fahrtrichtung \tinverse Fahrtrichtung 
+3 Bit 1\t  2 \t14 Fahrstufen         \t28 Fahrstufen 
+4 Bit 2\t  4 \tnur Digitalbetrieb    \tDigital + Analogbetrieb 
+5 Bit 3\t    \tnicht genutzt
+6 Bit 4\t 16 \tinterne Fahrkurve     \tprogramm. Fahrkurve (CV 67-94) 
+7 Bit 5\t 32 \tkurze Lokadresse (CV 1)\tlange Lokadresse (CV 17/18) 
+8 Bit 6\t    \tnicht genutzt
+9 Bit 7\t    \tnicht genutzt
+0
+=====================================================================
+AH10
+0 für CV 37 MZB-Schaltbefehl f. SUSI Funktion 17 *siehe Sounddatenblatt 
+1      0 = \t Lichttaste      (F0)
+2 1...28 = \t Funktionstaste  (Fn)
+3     30 = \t Funktion deaktiviert 
+4     31 = \t Funktion immer an 
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH11
+0 für CV 49 MASSOTH Konfiguration  
+1 Bit  \t Wert AUS (Wert 0)                   \tAN 
+2 Bit 0\t   1 \tnur parallele Funktionsdaten  \tparallele + serielle Funktionsdaten 
+3 Bit 1\t   2 \tdigitale Lastregelung AUS     \tdigitale Lastregelung AN 
+4 Bit 2\t   4 \tanaloge Lastregelung AUS      \tanaloge Lastregelung AN 
+5 Bit 3\t   8 \tA1-Ausgang Standard           \tA1-Ausgang m. schnelle Pulskette 
+6 Bit 4\t  16 \tMassoth Busprotokoll          \tSUSI Busprotokoll (siehe Bit 7) 
+7 Bit 5\t  32 \tFeststellbremse AUS           \tFeststellbremse AN 
+8 Bit 6\t  64 \tLichtausgänge Standard        \tLichtausgänge invers 
+9 Bit 7\t 128 \tSUSI Bus                      \tMärklin MZB Bus 
+0
+=====================================================================
+AH12
+0 für CV 62 Lastregelung Nachregelbegrenzung  
+1 001 = \tschnelle Begrenzung 
+2 254 = \tlangsame Begrenzung 
+3 255 = \tkeine Begrenzung 
+4
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH13
+0 für CV 124 A7: Servofunktion 0 
+1 Bit  \tWert \tVerwendung             \tBemerkung 
+2 Bit 0\t 0  \tkeine Sonderfunktion    \tnormaler Schaltausgang A7 
+3 Bit 1\t 1  \tServobetrieb mit 2 Endstellungen 
+4 Bit 3\t +4 \tServobetrieb invers für \tinverse Ansteuerung 
+5 Bit 4\t +8 \tAbschaltung nach Bewegung 
+6 Bit 5\t    \tnicht genutzt
+7 Bit 6\t    \tnicht genutzt
+8 Bit 7\t    \tnicht genutzt
+9
+0
+=====================================================================
+AH14
+0 für CV 64 Verzögerungszeiten aus- und einschalten (Schaltbefehl) 
+1     0 = keine Tastenzuordnung 
+2 für CV 131 ... 142  Sound zuordnung zur Funtiontaste
+3     0 = keine Tastenzuordnung  (deaktiviert)
+4 für CV 121, 123 Schaltbefehlzuordung 
+5        0 = Licht           \t F0
+6
+7 1 ... 16 = Funktionstaste  \t Fn
+8
+9
+0
+=====================================================================
+AH15
+0 für CV 149 MASSOTH Soundkonfiguration
+1 Bit   Wert AUS (Wert 0) AN 
+2 Bit 0\t  1\t Zufallsgenerator AUS       \tZufallsgenerator AN 
+3 Bit 1\t  2\t Standgeräusch AUS          \tStandgeräusch AN 
+4 Bit 2\t  4\t Normales Fahrgeräusch      \tLastabhängiges Fahrgeräusch 
+5 Bit 3\t  8\t Zylinderhähne zu           \tZylinderhähne offen 
+6 Bit 4\t 16\t Kontakte normal            \tKontakte richtungsabhängig 
+7 Bit 5\t 32\t autom. Nebengeräusche AUS  \tautom. Nebengeräusche AN 
+8 Bit 6\t 64\t Anfahrsignal Sperrzeit AUS \tAnfahrsignal Sperrzeit AN (CV 7) 
+9
+0
+=====================================================================
+AH16
+0 für 150 Anfahrsperre während des Aufrüstens bei Diesel- und E-Lok 
+1 0 = Aus, 
+2 1 = digital 
+3 2 = analog 
+4 3 = digital + analog
+5
+6
+7
+8
+9
+0 
+=====================================================================
+AH17
+0 für CV 151...162 Soundwiederholung
+1          =\tkeine Soundwiederholung  
+2          \t (Der Sound wird mit jeder Auslösung 1 x abgespielt 
+3		   \t  und endet automatisch.) 
+4 1 ... 15 =\tAnzahl Wiederholungen    
+5          \t (Zum Beispiel die Anzahl der Glockenschläge 
+6          \t  oder die zeitliche Länge einer Pfeife) 
+7       16 =\tDauersound               
+8          \t (Der Sound wird mit der Funktionstaste 
+9          \t  gestartet und solange wiederholt, 
+0		   \t  bis die Funktionstaste wieder ausgeschaltet wird) 
+=====================================================================
+AH18
+0 für CV 171..174  Standgeräusch zu Ordung des Sound
+1      0 \t = kein Sound 
+2 1...12 \t = Zuordnung der Zusatzsounds 
+3  (Zusatzsounds werden im Stand in der Reihenfolge 1-4 abgespielt) 
+4
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH19
+0 für CV 175..178 Standgeräusch Sound Wiederholung 
+1        0\t= keine Soundwiederholung Der Sound wird 1x abgespielt. 
+2 1 ... 15\t= Anzahl der Wiederholungen z.B. Anzahl Luftpumpenschläge 
+3
+4
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH20
+0 für CV 180..183 Zufallssound: 
+1  Soundzuordnung gewählte Sounds werden in zufälliger Reihenf. abgespielt 
+2 0      \t= kein Zufallsgeräusch 
+3 1...12 \t= Zuordnung der Zusatzsounds 
+4         \t (gewählte Sounds werden in zufälliger Reihenf. abgespielt) 
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH21
+0 für CV 184..187 1. Zufallssound: Anzahl der Wiederholungen 
+1
+2      0 \t= keine Soundwiederholung Der Sound wird 1x abgespielt 
+3 1...15 \t= Anzahl Wiederholungen z.B. Anzahl Luftpumpenschläge 
+4
+5
+6
+7
+8
+9
+0
+=====================================================================
+AH22
+0 für CV 188..192 Zuordnug der Sounds bei Anfahnren,Bremseen, Rückwärts und Reed)
+1
+2      0 \t= kein Sound zugeordnet 
+3 1...12 \t= Zuordnung der Zusatzsounds 
+4 (Der gewählte Zusatzsound wird im entsprechenden 
+5  Betriebszustand der Lok abgespielt) 
+6
+7
+8
+9
+0
+=============================================================================
+
+
+
+
+
+
+
