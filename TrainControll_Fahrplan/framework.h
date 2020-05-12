@@ -100,7 +100,7 @@
 #else
 	#define FILE_ANLAGE   "Daten\\GLEIS_BILD - GARTEN.TXT"
 	#define FILE_FAHRPLAN "FAHRPLANGARTEN_%d_DATA.txt"
-	#define FILE_AKTIVE_ZUEGE "Daten\\ULF_%d_AKTIVEZUGDATA.txt"
+	#define FILE_AKTIVE_ZUEGE "Daten\\ULF_%d_AKTIVEZUGDATA - Garten.txt"
 #endif // TESTSTRECKE
 
 #define FILE_ALLE_ZUEGE   "Daten\\ULF_%d_ZUGDATA.txt"

@@ -54,8 +54,11 @@ protected:
 	CBrush* Brush_Old = NULL;
 	
 	CFont Font_Info;
-	CFont Font_Block;
-	CFont* Font_Old = NULL; 
+	CFont Font_Block_0;
+	CFont Font_Block_90;
+	CFont Font_Gleis_Info_0;
+	CFont Font_Gleis_Info_90;
+	CFont* Font_Old = NULL;
 
 	HBITMAP Lok_in_Uhr = NULL;
 	HBITMAP Lok_ge_Uhr = NULL;
@@ -93,5 +96,5 @@ protected:
 	void ZeicheAchteck(CPoint P, byte Nr, BlockType Block);
 	void SetzeBlockFarbe(byte Nr);
 	void ZeicheLok(CMem_DC LokBitmap,int  BlockNr);
-
+	void ZeichenTest();
 };
