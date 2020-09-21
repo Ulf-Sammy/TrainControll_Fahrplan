@@ -41,7 +41,8 @@ public:
 	~CInfoBlock();
 	CInfoBlock(CString InText);
 	BlockInfo Get_BlockInfo();
-	void SetTaster(CString InText);
+	void Set_ZweitenAntrieb(byte Nr);
+	void SetTaster(CString InText, CPoint Step);
 	void SkaliereDaten(CPoint Step);
 	void Calac_Pos();
 	byte GetNextBlock_Hand(bool Fahrrichtung);
@@ -51,6 +52,7 @@ public:
 	byte Nr = 0;
 	CDataXpressNet  *Besetzt_Zug = NULL;
 	bool			WeichenStellung = false;
+	byte			DoppelWecheAntrieb_2 = 0;
 	byte			WeichenGruppe = 0;
 	CString			Name;
 	BlockType		Block_Type = BlockType::isBlock;

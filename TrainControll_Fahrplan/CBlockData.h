@@ -17,11 +17,16 @@ struct Weichen_Gruppe
 	{
 		Ein_Block = _ttoi(InText.Mid( 0, 3));
 		Aus_Block = _ttoi(InText.Mid(11, 3));
-		if (0 < _ttoi(InText.Mid(15, 2)))	WStellung.push_back(TrainCon_Paar(InText.Mid(15, 3)));
-		if (0 < _ttoi(InText.Mid(19, 2)))	WStellung.push_back(TrainCon_Paar(InText.Mid(19, 3)));
-		if (0 < _ttoi(InText.Mid(23, 2)))	WStellung.push_back(TrainCon_Paar(InText.Mid(23, 3)));
-		if (0 < _ttoi(InText.Mid(27, 2)))	WStellung.push_back(TrainCon_Paar(InText.Mid(27, 3)));
-		if (0 < _ttoi(InText.Mid(31, 2)))	WStellung.push_back(TrainCon_Paar(InText.Mid(31, 3)));
+		if (0 < _ttoi(InText.Mid(15, 2)))	
+			WStellung.push_back(TrainCon_Paar(InText.Mid(15, 3)));
+		if (0 < _ttoi(InText.Mid(19, 2)))	
+			WStellung.push_back(TrainCon_Paar(InText.Mid(19, 3)));
+		if (0 < _ttoi(InText.Mid(23, 2)))	
+			WStellung.push_back(TrainCon_Paar(InText.Mid(23, 3)));
+		if (0 < _ttoi(InText.Mid(27, 2)))	
+			WStellung.push_back(TrainCon_Paar(InText.Mid(27, 3)));
+		if (0 < _ttoi(InText.Mid(31, 2)))	
+			WStellung.push_back(TrainCon_Paar(InText.Mid(31, 3)));
 	}
 	byte GetBlock(byte Block)
 	{
@@ -104,8 +109,12 @@ public:
 	CRect Get_Taster_Position(byte Nr, bool Ort);
 	void KlickTasterSchalten(CPoint point);
 	// für Weichen
+	bool is_DoppelWeiche(byte Nr);
+	bool Get_Stellung_Weiche_Ein(byte Nr);
+	bool Get_Stellung_Weiche_Aus(byte Nr);
 	bool Get_Stellung_Weiche(byte Nr);
 	void Set_Stellung_Weiche(TrainCon_Paar Wl);
+	void Set_Stellung_WeicheWert(byte Nr, byte Wert);
 	byte KlickWeicheNummer(CPoint KlickP);
 	bool SchalteWeicheTest(byte WeichenNr);
 	void SchalteWeiche(CPoint point);
@@ -114,6 +123,7 @@ public:
 	void SchalteWeichenStrasse(byte TasterA, byte TasterB);
 
 	CPoint Get_Weiche_EinPos(byte Nr);
+	CPoint Get_Weiche_EinPos(byte Nr, bool Bit);
 	CPoint Get_Weiche_AusPos(byte Nr, bool Bit);
 	CPoint Get_Weiche_MitPos(byte Nr);
 	CPoint Get_Weiche_TexPos(byte Nr);

@@ -71,7 +71,7 @@ protected:
 	CBitmap *m_pBitmapOldBackground = NULL;
 	CBitmap m_bitmapBackground ;
 
-	CPoint Step;
+
 
 	COLORREF colorHinterGrund = RGB(186, 252, 189);
 	COLORREF colorWeiﬂ = RGB(255, 255, 255);
@@ -90,7 +90,7 @@ protected:
 	// Zeichne Blocksignale
 	void ZeichneBlock(byte Nr);
 	void ZeichneWeiche(byte Nr);
-	void ZeicheMelder(byte Nr);
+	void ZeicheMelder();
 
 	void ZeicheTaster(byte Nr);
 	void ZeicheAchteck(CPoint P, byte Nr, BlockType Block);

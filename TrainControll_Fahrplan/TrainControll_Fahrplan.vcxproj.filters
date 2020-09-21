@@ -108,6 +108,9 @@
     <ClInclude Include="MemDC.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="CGleisMelderNet.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrainControll_Fahrplan.cpp">
@@ -189,6 +192,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="InPlaceEdit.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CGleisMelderNet.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

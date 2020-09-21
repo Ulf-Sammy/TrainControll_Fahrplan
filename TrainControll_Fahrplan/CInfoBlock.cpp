@@ -7,6 +7,8 @@ CInfoBlock::CInfoBlock()
 
 CInfoBlock::CInfoBlock(CString InText)
 {
+	static bool NextAntrieb = false;
+	static byte erstAntreib = 0;
 	Besetzt_Zug = NULL;
 	WeichenStellung = 0;
 	CString Text = InText.Mid(4, 6);
@@ -39,8 +41,7 @@ CInfoBlock::CInfoBlock(CString InText)
 		Text = InText.Mid(21, 8);
 		if (Text == "WEICH__L") Weiche_Type = WeichenType::linksWeiche;
 		if (Text == "WEICH__R") Weiche_Type = WeichenType::rechtsWeiche;
-		if (Text == "WEICH_DL") Weiche_Type = WeichenType::linksDoppelWeiche;
-		if (Text == "WEICH_DR") Weiche_Type = WeichenType::rechtsDoppelWeiche;
+		if (Text == "WEICH_DO")	Weiche_Type = WeichenType::DoppelWeiche;
 		Richtung = (char)InText[19];
 		WeichenGruppe    = _ttoi(InText.Mid(39, 3));
 		EingangBlock[0]  = _ttoi(InText.Mid(55, 3));
@@ -54,7 +55,7 @@ CInfoBlock::CInfoBlock(CString InText)
 		AusgangMelder[1] = _ttoi(InText.Mid(83, 3));
 
 		EinPos[0] = CPoint(_ttoi(InText.Mid(11, 3)), _ttoi(InText.Mid(15, 3)));
-		Calac_Pos();
+
 	}
 }
 
@@ -76,19 +77,28 @@ BlockInfo CInfoBlock::Get_BlockInfo()
 	return Data; 
 }
 
-void CInfoBlock::SetTaster(CString InText)
+void CInfoBlock::Set_ZweitenAntrieb(byte Nr)
 {
+	DoppelWecheAntrieb_2 = Nr;
+}
+
+void CInfoBlock::SetTaster(CString InText, CPoint Step)
+{
+	int x = _ttoi(InText.Mid(15, 3)) * Step.x;
+	int y = _ttoi(InText.Mid(19, 3)) * Step.y;
 	if ('E' == (char)InText[11])
 	{
-		EingangTaster.Pos = EinPos[0];
+		EingangTaster.Pos = CPoint(x, y);
 		EingangTaster.Showit = true;
+		EingangTaster.Color = (char)InText[13];
 		EingangTaster.SkaliereDaten((char)InText[12]);
 	}
 
 	if ('A' == (char)InText[11])
 	{
-		AusgangTaster.Pos = AusPos[0];
+		AusgangTaster.Pos = CPoint(x,y);
 		AusgangTaster.Showit = true;
+		AusgangTaster.Color = (char)InText[13];
 		AusgangTaster.SkaliereDaten((char)InText[12]);
 	}
 }
@@ -165,13 +175,35 @@ void CInfoBlock::Calac_Pos()
 			KlickRechteck.OffsetRect(EinPos[0] + CPoint(-1,-2));
 		}
 	}
-	if (Weiche_Type == WeichenType::rechtsDoppelWeiche)
-	{
-	}
-	if (Weiche_Type == WeichenType::linksDoppelWeiche)
-	{
+	if (Weiche_Type == WeichenType::DoppelWeiche)
+	{// Hier brauche ich nur links :-)
+		KlickRechteck = CRect(0, 0, 1, 2);
+		if (Richtung == 'R')
+		{
+			EinPos[1] = EinPos[0] + CPoint(0, -1);
+			MitPos[0] = EinPos[0] + CPoint(1, 0);
+			AusPos[0] = EinPos[0] + CPoint(2, 0);
+			AusPos[1] = EinPos[0] + CPoint(2, 1);
+			if (Nr > DoppelWecheAntrieb_2)			
+				KlickRechteck.OffsetRect(MitPos[0] + CPoint(-1, -1));
+			if (Nr < DoppelWecheAntrieb_2)			
+				KlickRechteck.OffsetRect(MitPos[0] + CPoint( 0, -1));
+		}
+		if (Richtung == 'L')
+		{
+			EinPos[1] = EinPos[0] + CPoint(0, 1);
+		    MitPos[0] = EinPos[0] + CPoint(1, 0);
+			AusPos[0] = EinPos[0] + CPoint(2, 0);
+			AusPos[1] = EinPos[0] + CPoint(2,-1);
+			if (Nr > DoppelWecheAntrieb_2)			
+				KlickRechteck.OffsetRect(MitPos[0] + CPoint(-1, -1));
+			if (Nr < DoppelWecheAntrieb_2)			
+				KlickRechteck.OffsetRect(MitPos[0] + CPoint(0, -1));
+
+		}
 	}
 }
+
 byte CInfoBlock::GetNextBlock_Hand(bool Fahrrichtung)
 {
 	byte NextBlock;
@@ -209,6 +241,7 @@ CInfoBlock::~CInfoBlock()
 
 void CInfoBlock::SkaliereDaten(CPoint Step)
 {
+	Calac_Pos();
 	EinPos[0].x = EinPos[0].x * Step.x;
 	EinPos[1].x = EinPos[1].x * Step.x;
 	MitPos[0].x = MitPos[0].x * Step.x;

@@ -20,10 +20,10 @@ C3DMeterGleis::C3DMeterGleis(void)
 {
 	Zeige[Zeichne_Gitter] = true;
 	Zeige[Zeichne_Block_Nr] = false;
-	Zeige[Zeichne_Gleis_Nr] = true;
-	Zeige[Zeichne_Weichen_Nr] = true;
-	Zeige[Zeichne_Melder_Nr] = true;
-	Zeige[Zeichne_Tasten_Nr] = false; 
+	Zeige[Zeichne_Gleis_Nr] = false;
+	Zeige[Zeichne_Weichen_Nr] = false;
+	Zeige[Zeichne_Melder_Nr] = false;
+	Zeige[Zeichne_Tasten_Nr] = true; 
 
 	
 	Pen_Gr.CreatePen(PS_SOLID, 5, RGB(  6,233,    13)); // Grün
@@ -144,10 +144,7 @@ void C3DMeterGleis::OnPaint(void)
 
 	}
 	pDC->SelectObject(&Pen_Melder);
-	for(int i = 0; i < DataBlock->GetAnzahl_Melder(); i++)
-	{
-		ZeicheMelder(i);
-	}
+	ZeicheMelder();
 
 	pDC->SelectObject(&Pen_Old);
 	pDC->SelectObject(&Brush_Old);
@@ -166,8 +163,9 @@ void C3DMeterGleis::ReconstructControl()
 }
 void C3DMeterGleis::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	DataBlock->KlickTasterSchalten(point);
 	DataBlock->SchalteWeiche(point);
+	DataBlock->KlickTasterSchalten(point);
+	
 	CStatic::OnLButtonDown(nFlags, point);
 }
 
@@ -182,7 +180,8 @@ void C3DMeterGleis::ZeichenHintergrund(CDC * pDC_H, CRect &rect)
 	CFont*	 pOldFont  ;
 	CString  Text;
 	CPoint   P;
-	int X_Lang = 80;
+	CPoint   Step = CPoint(40,22);
+	int X_Lang = 40;
 	int Y_Lang = 30;
    //Brush_Back.CreateSolidBrush(colorHinterGrund);
    Pen_Back.CreatePen(PS_SOLID, 1,Back_Pen);
@@ -225,7 +224,7 @@ void C3DMeterGleis::ZeichneBlock(byte Nr)
 	CRect GleisFeld;
 	CPoint Prellbock[2];
 	SetzeBlockFarbe(Nr);
-
+	
 	pDC->MoveTo(DataBlock->GetWerte_Block(Nr).EinPos[0]);
 	pDC->LineTo(DataBlock->GetWerte_Block(Nr).MitPos[0]);
 	pDC->LineTo(DataBlock->GetWerte_Block(Nr).MitPos[1]);
@@ -272,29 +271,29 @@ void C3DMeterGleis::ZeichneBlock(byte Nr)
 		GleisText = DataBlock->Get_Gleis_Name(Nr);
 		if (DataBlock->ist_besetzt(Nr))
 			LokTexT = DataBlock->GetZugName_in_Block(Nr);
-			
 		else
 			LokTexT = _T("-");
+
 		// Glies von Links nach Rechts
 		if (DataBlock->GetWerte_Block(Nr).MitPos[0].y == DataBlock->GetWerte_Block(Nr).MitPos[1].y)
 		{
 			Block = &Font_Block_0;
 			InfoGleis = &Font_Gleis_Info_0;
-			GleisFeld.SetRect((DataBlock->GetWerte_Block(Nr).TextPos +CPoint(70, -10)), (DataBlock->GetWerte_Block(Nr).TextPos + CPoint(180, 10)));
+			GleisFeld.SetRect((DataBlock->GetWerte_Block(Nr).TextPos +CPoint(70, -10)), (DataBlock->GetWerte_Block(Nr).TextPos + CPoint(150, 10)));
 			x_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.x + 74;
 			y_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.y - 8;
 			x_txt_G = x_txt_B;
-			y_txt_G = y_txt_B - 18;
+			y_txt_G = y_txt_B + 18;
 		}
 		// Gleis von Oben nach unten
 		if (DataBlock->GetWerte_Block(Nr).MitPos[0].x == DataBlock->GetWerte_Block(Nr).MitPos[1].x)
 		{
 			Block = &Font_Block_90;
 			InfoGleis = &Font_Gleis_Info_90;
-			GleisFeld.SetRect((DataBlock->GetWerte_Block(Nr).TextPos + CPoint(-10, 65)), (DataBlock->GetWerte_Block(Nr).TextPos + CPoint(10,180)));
+			GleisFeld.SetRect((DataBlock->GetWerte_Block(Nr).TextPos + CPoint(-10, 65)), (DataBlock->GetWerte_Block(Nr).TextPos + CPoint(10,150)));
 			x_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.x + 8;
 			y_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.y + 68;
-			x_txt_G = x_txt_B + 16;
+			x_txt_G = x_txt_B - 20;
 			y_txt_G = y_txt_B;
 		}
 		pDC->SelectObject(&Pen_SW);
@@ -309,55 +308,75 @@ void C3DMeterGleis::ZeichneBlock(byte Nr)
 		pDC->SelectObject(InfoGleis);
 		pDC->SetBkColor(colorHinterGrund);
 		pDC->TextOutW(x_txt_G, y_txt_G, GleisText); // Beschreibung Gleis
-		ZeicheAchteck(DataBlock->GetWerte_Block(Nr).TextPos, Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
 	}
+	ZeicheAchteck(DataBlock->GetWerte_Block(Nr).TextPos, Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
 }
 
 void C3DMeterGleis::ZeichneWeiche(byte Nr)
 {
-	bool S = DataBlock->Get_Stellung_Weiche(Nr);
-	//pDC->SelectObject(&Pen_SW);
-    //pDC->Rectangle(DataBlock->Get_Weichen_Feld(i));
+	if(DataBlock->is_DoppelWeiche(Nr))
+	{
+		bool ES = DataBlock->Get_Stellung_Weiche_Ein(Nr);
+		bool AS = DataBlock->Get_Stellung_Weiche_Aus(Nr); 
+		pDC->SelectObject(&Pen_White);
+		pDC->MoveTo(DataBlock->Get_Weiche_EinPos(Nr,!ES));
+		pDC->LineTo(DataBlock->Get_Weiche_MitPos(Nr));
+		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, !AS));
 
-	// Zeiche erst leere Strecke
-	pDC->SelectObject(&Pen_White);
-	pDC->MoveTo(DataBlock->Get_Weiche_MitPos(Nr));   
-	pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, !S));
+		SetzeBlockFarbe(Nr);
+		pDC->MoveTo(DataBlock->Get_Weiche_EinPos(Nr,ES));
+		pDC->LineTo(DataBlock->Get_Weiche_MitPos(Nr));
+		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, AS));
+		pDC->SelectObject(&Pen_Ro);
+		ZeicheAchteck(DataBlock->Get_Weiche_TexPos(Nr), Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
+	}
+	else
+	{
+		bool S = DataBlock->Get_Stellung_Weiche(Nr);
+		//pDC->SelectObject(&Pen_SW);
+		//pDC->Rectangle(DataBlock->Get_Weichen_Feld(i));
 
-	SetzeBlockFarbe(Nr);
-	pDC->MoveTo(DataBlock->Get_Weiche_EinPos(Nr));  
-	pDC->LineTo(DataBlock->Get_Weiche_MitPos(Nr));  
-	pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr,S));
-	pDC->SelectObject(&Pen_Ro);
-	ZeicheAchteck(DataBlock->Get_Weiche_TexPos(Nr), Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
+		// Zeiche erst leere Strecke
+		pDC->SelectObject(&Pen_White);
+		pDC->MoveTo(DataBlock->Get_Weiche_MitPos(Nr));
+		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, !S));
+
+		SetzeBlockFarbe(Nr);
+		pDC->MoveTo(DataBlock->Get_Weiche_EinPos(Nr));
+		pDC->LineTo(DataBlock->Get_Weiche_MitPos(Nr));
+		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, S));
+		pDC->SelectObject(&Pen_Ro);
+		ZeicheAchteck(DataBlock->Get_Weiche_TexPos(Nr), Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
+	}
 }
 
-void C3DMeterGleis::ZeicheMelder(byte Nr)
+void C3DMeterGleis::ZeicheMelder()
 {
 	CString TextNr, TextInfo;
 	CRect Kreis;
-	if (DataBlock->Show_Melder(Nr))
-	{
-		pDC->SetTextAlign(TA_LEFT | TA_CENTER);
 
-		Kreis = CRect(-6, -6, 6, 6);
-		Kreis.OffsetRect(DataBlock->Get_Melder_Position(Nr));
-		if (DataBlock->Get_Melder(Nr))
+		for (int i = 0; i < DataBlock->GetAnzahl_Melder(); i++)
 		{
-			pDC->SelectObject(&Brush_Melder_I);
+			if (DataBlock->Show_Melder(i))
+			{
+				pDC->SetTextAlign(TA_LEFT | TA_CENTER);
+
+				Kreis = CRect(-6, -6, 6, 6);
+				Kreis.OffsetRect(DataBlock->Get_Melder_Position(i));
+				if (DataBlock->Get_Melder(i))
+				{					pDC->SelectObject(&Brush_Melder_I);				}
+				else
+				{					pDC->SelectObject(&Brush_Melder_O);				}
+				pDC->Ellipse(Kreis);
+				if (Zeige[Zeichne_Melder_Nr])
+				{
+					pDC->SelectObject(&Font_Gleis_Info_0);
+					pDC->SetBkColor(colorHinterGrund);
+					TextNr.Format(_T("%3i"), i);
+					pDC->TextOut(DataBlock->Get_Melder_PositionText(i).x, DataBlock->Get_Melder_PositionText(i).y, TextNr);
+				}
+			}
 		}
-		else
-		{
-			pDC->SelectObject(&Brush_Melder_O);
-		}
-		pDC->Ellipse(Kreis);
-		if (Zeige[Zeichne_Melder_Nr])
-		{
-			pDC->SetBkColor(colorHinterGrund);
-			TextNr.Format(_T("%3i"), Nr);
-			pDC->TextOut(DataBlock->Get_Melder_PositionText(Nr).x, DataBlock->Get_Melder_PositionText(Nr).y, TextNr);
-		}
-	}
 }
 
 void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
@@ -395,12 +414,13 @@ void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
 
 void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 {
-	CBrush BCol;
-
+	CBrush BCol ;
+	COLORREF colorWert; // , , Gelb = RGB(253, 240, 2);
 	if (Block == BlockType::isBlock)
 	{
 		if (Zeige[Zeichne_Block_Nr])
 		{
+			colorWert = RGB(253,240, 2);
 		}
 		else
 		{
@@ -411,6 +431,7 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 	{
 		if (Zeige[Zeichne_Gleis_Nr])
 		{
+			colorWert = colorGelb;
 		}
 		else
 		{
@@ -421,6 +442,7 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 	{
 		if (Zeige[Zeichne_Weichen_Nr])
 		{
+			colorWert = RGB(255, 128, 0);
 		}
 		else
 		{
@@ -431,7 +453,7 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 	CPoint Pts[8];
 	CString TextNr;
 
-	BCol.CreateSolidBrush(colorGelb);
+	BCol.CreateSolidBrush(colorWert);
 	P = P + CPoint(-14, -10);
 
 	Pts[0] = CPoint(   d,    0);
@@ -449,7 +471,7 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 	pDC->SelectObject(&Pen_SW);
 	pDC->SelectObject(&BCol);
 	pDC->Polygon(Pts, 8);
-	pDC->SetBkColor(colorGelb);
+	pDC->SetBkColor(colorWert);
 	pDC->SetTextAlign(TA_LEFT | TA_CENTER);
 	TextNr.Format(_T("%2i"), Nr);
 	pDC->SelectObject(&Font_Block_0);

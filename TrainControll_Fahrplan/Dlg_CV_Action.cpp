@@ -48,12 +48,12 @@ void CDlg_CV_Action::DoDataExchange(CDataExchange* pDX)
 
 void CDlg_CV_Action::LoadAnhang(void)
 {
-	LPCTSTR			pszPathName;
+	LPCTSTR			pszPathName =_T(FILE_ANHANG);
 	CStdioFile		file;
 	CFileException	ex;
 	CString			strIn, Text;
 	int				AnhangNr;
-	pszPathName = _T("ANHANG.TXT");
+
 
 	if (!file.Open(pszPathName, CFile::modeRead | CFile::shareDenyWrite, &ex))
 	{

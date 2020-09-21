@@ -277,7 +277,7 @@ void CDataXpressNet::Set_Funktion(FahrplanPos Befehl)
 void CDataXpressNet::Set_Funktion_Sound(bool SW)
 {
 	byte Nr = Decoder_Data.Get_Sound_FuntionsTaste();
-	if (Nr > 0)
+	if ((Nr > 0) &&(Nr < 255))
 	{
 		byte G_Nr = FunNr[Nr];
 

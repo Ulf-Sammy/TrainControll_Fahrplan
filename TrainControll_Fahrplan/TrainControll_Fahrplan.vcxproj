@@ -192,6 +192,7 @@
     <ClInclude Include="CDatenBankLok.h" />
     <ClInclude Include="CDlg_Fahrplan.h" />
     <ClInclude Include="CDlg_RunCam_Train.h" />
+    <ClInclude Include="CGleisMelderNet.h" />
     <ClInclude Include="CGleisPlan.h" />
     <ClInclude Include="CInfoBlock.h" />
     <ClInclude Include="CustomTrace.h" />
@@ -225,6 +226,7 @@
     <ClCompile Include="CDatenBankLok.cpp" />
     <ClCompile Include="CDlg_Fahrplan.cpp" />
     <ClCompile Include="CDlg_RunCam_Train.cpp" />
+    <ClCompile Include="CGleisMelderNet.cpp" />
     <ClCompile Include="CGleisPlan.cpp" />
     <ClCompile Include="CInfoBlock.cpp" />
     <ClCompile Include="CustomTrace.cpp" />

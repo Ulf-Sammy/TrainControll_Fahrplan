@@ -480,6 +480,7 @@ void CGleisPlan::Setup_TrainControl()
 		AnzahlgemeldeteMelder = XpressNet->GetMelderAnzahl();
 		if (AnzahlgemeldeteMelder != 0)
 		{
+			TRACE(_T("Anzahl Melder = %i \n"), AnzahlgemeldeteMelder);
 			if (MelderAnzahl != AnzahlgemeldeteMelder)
 				TRACE(_T(" ERROR Melder anzahl stimmt micht %i != %i"), MelderAnzahl, AnzahlgemeldeteMelder);
 			for (int i = 0; i < AnzahlgemeldeteMelder; i++)
@@ -500,6 +501,7 @@ void CGleisPlan::Setup_TrainControl()
 		StatusZentrale = XpressNet->GetStatus_Setup_LZV();
 		SetStatusPower();
 		ChangeSetupMode(ControlStatus::Testen, 0);
+		
 		// Setup Datenaustausch  ferig 
 		// Starte den Thread
 	}

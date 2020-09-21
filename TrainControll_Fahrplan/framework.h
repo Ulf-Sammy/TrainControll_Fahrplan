@@ -101,6 +101,7 @@
 	#define FILE_ANLAGE   "Daten\\GLEIS_BILD - GARTEN.TXT"
 	#define FILE_FAHRPLAN "FAHRPLANGARTEN_%d_DATA.txt"
 	#define FILE_AKTIVE_ZUEGE "Daten\\ULF_%d_AKTIVEZUGDATA - Garten.txt"
+	#define	FILE_ANHANG "Daten\\ANHANG.txt"
 #endif // TESTSTRECKE
 
 #define FILE_ALLE_ZUEGE   "Daten\\ULF_%d_ZUGDATA.txt"
@@ -126,7 +127,7 @@
 enum class ControlStatus { No_Arduino = -1, Begin_COM = 0, Setup_Controller, Program, Testen, Ende_COM };
 enum class XpNSendwas { FGruppe0 = 0, FGruppe1, FGruppe2, FGruppe3, FGruppe4, FGruppe5 };
 enum class BlockType { isWeiche, isBlock, isGleis };
-enum class WeichenType { linksWeiche, rechtsWeiche, linksDoppelWeiche, rechtsDoppelWeiche };
+enum class WeichenType { linksWeiche, rechtsWeiche, DoppelWeiche };
 
 enum class FahrPlanDo { begin_Block, stoppen, vorwaerz_fahren, rueckwaerz_fahren, warten_fahren, warten_stoppen, schalten_Funk, schalten_Weiche, letzte_Zeile };
 

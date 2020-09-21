@@ -56,21 +56,43 @@ void CDataBlock::Load_Data_Block()
 
 	Block.push_back(strIn); //Block[0] anlegen istr wichtig :-);
 	file.ReadString(strIn); // Erste Zeile
+	bool nextDoppelWeiche = false;
+	byte DoppelWeiche_A1 = 0;
+	byte DoppelWeiche_A2 = 0;
 	while((strIn.Mid(4, 6) == "Weiche") ||
 		  (strIn.Mid(4, 6) == "Block ") ||
 		  (strIn.Mid(4, 6) == "Gleis "))
 	{
 		Nr = _ttoi(strIn.Mid(0, 3));
 		Block.push_back(strIn);
-		Block[Block.size()-1].SkaliereDaten(Step);
-		
+		if ((strIn.Mid(21, 8) == "WEICH_DO"))
+		{
+			if (nextDoppelWeiche)
+			{
+				nextDoppelWeiche = false;
+				DoppelWeiche_A2 = Nr;
+				Block[DoppelWeiche_A1].Set_ZweitenAntrieb(DoppelWeiche_A2);
+				Block[DoppelWeiche_A1].SkaliereDaten(Step);
+				Block[DoppelWeiche_A2].Set_ZweitenAntrieb(DoppelWeiche_A1);
+				Block[DoppelWeiche_A2].SkaliereDaten(Step);
+			}
+			else
+			{
+				nextDoppelWeiche = true;
+				DoppelWeiche_A1 = Nr;
+			}
+		}
+		else
+		{
+			Block[Block.size() - 1].SkaliereDaten(Step);
+		}
 		file.ReadString(strIn); // Block einlesen
 	} 
 
 	file.ReadString(strIn);
 	while (strIn.Mid(4, 6) == "Taster")
 	{
-		Block[_ttoi(strIn.Mid(0, 3))].SetTaster(strIn);
+		Block[_ttoi(strIn.Mid(0, 3))].SetTaster(strIn,Step);
 		file.ReadString(strIn);
 	}
 
@@ -141,6 +163,25 @@ byte CDataBlock::ClearBlockbyLok(byte LokNr, byte Melder)
 	return byte();
 }
 
+bool CDataBlock::is_DoppelWeiche(byte Nr)
+{
+	if (Block[Nr].Weiche_Type == WeichenType::DoppelWeiche)
+		return true;
+	return false;
+}
+
+bool CDataBlock::Get_Stellung_Weiche_Ein(byte Nr)
+{
+		return Block[Nr].WeichenStellung;
+}
+bool CDataBlock::Get_Stellung_Weiche_Aus(byte Nr)
+{
+	if (is_DoppelWeiche(Nr))
+		return Block[Block[Nr].DoppelWecheAntrieb_2].WeichenStellung;
+	else
+		return Block[Nr].WeichenStellung;
+}
+
 bool CDataBlock::Get_Stellung_Weiche(byte Nr)
 {
 	return Block[Nr].WeichenStellung;
@@ -149,6 +190,44 @@ bool CDataBlock::Get_Stellung_Weiche(byte Nr)
 void CDataBlock::Set_Stellung_Weiche(TrainCon_Paar Wl)
 {
 	Block[Wl.GetWert()].WeichenStellung = Wl.GetBit();
+	Neu_DataGleis.Putin();
+}
+
+void CDataBlock::Set_Stellung_WeicheWert(byte Nr, byte Wert)
+{
+	if (is_DoppelWeiche(Nr))
+	{
+		byte W1 = Nr;
+		byte W2 = Block[Nr].DoppelWecheAntrieb_2;
+		switch (Wert)
+		{
+			case 0:
+				Block[W1].WeichenStellung = false;
+				Block[W2].WeichenStellung = false;
+				break;
+			case 1:
+				Block[W1].WeichenStellung = true;
+				Block[W2].WeichenStellung = false;
+				break;
+			case 2:
+				Block[W1].WeichenStellung = false;
+				Block[W2].WeichenStellung = true;
+				break;
+			case 3:
+				Block[W1].WeichenStellung = true;
+				Block[W2].WeichenStellung = true;
+				break;
+			default:
+				Block[W1].WeichenStellung = false;
+				Block[W2].WeichenStellung = false;
+				break;
+		}
+	}
+	else
+	{
+		if (Wert == 1) Block[Nr].WeichenStellung = true;
+		else Block[Nr].WeichenStellung = false;
+	}
 	Neu_DataGleis.Putin();
 }
 
@@ -711,6 +790,7 @@ void CDataBlock::SchalteWeichenStrasse(byte TasterA, byte TasterB)
 			for (TrainCon_Paar wa : i.WStellung)
 			{
 				SchalteWeiche(wa);
+				Sleep(100);
 			}
 		}
 	}
@@ -724,10 +804,13 @@ bool CDataBlock::SchalteWeicheTest(byte WeichenNr)
 }
 void CDataBlock::SchalteWeiche(CPoint KPoint)
 {
-	TrainCon_Paar WL;
-	WL.SetWert(KlickWeicheNummer(KPoint));
-	WL.SetBit(!Block[WL.GetWert()].WeichenStellung);
 	
+	byte Weiche = KlickWeicheNummer(KPoint);
+	if (Weiche == 0) return;
+	TrainCon_Paar WL;
+	WL.SetWert(Weiche);
+	WL.SetBit(!Block[WL.GetWert()].WeichenStellung);
+	TRACE(_T(" Weiche Nr (%i) = %i \n"), WL.GetWert(), WL.GetBit());
 	if (XpressNet->NoComToXpressNet())
 	{
 		Block[WL.GetWert()].WeichenStellung = WL.GetBit();
@@ -750,6 +833,7 @@ void CDataBlock::SchalteWeiche(byte Weiche_a, bool Weg_a)
 }
 void CDataBlock::SchalteWeiche(TrainCon_Paar Setto)
 {
+	
 	if (XpressNet->NoComToXpressNet())
 	{
 		Block[Setto.GetWert()].WeichenStellung = Setto.GetBit();
@@ -882,6 +966,13 @@ CPoint CDataBlock::Get_Weiche_EinPos(byte Nr)
 {
 	return Block[Nr].EinPos[0];
 }
+CPoint CDataBlock::Get_Weiche_EinPos(byte Nr, bool Bit)
+{
+	if (Bit)
+		return Block[Nr].EinPos[1];
+	else
+		return Block[Nr].EinPos[0]; 
+}
 CPoint CDataBlock::Get_Weiche_AusPos(byte Nr, bool Bit)
 {
 	if (Bit)
@@ -891,7 +982,7 @@ CPoint CDataBlock::Get_Weiche_AusPos(byte Nr, bool Bit)
 }
 CPoint CDataBlock::Get_Weiche_MitPos(byte Nr)
 {
-	return Block[Nr].MitPos[0];
+		return Block[Nr].MitPos[0];
 }
 CPoint CDataBlock::Get_Weiche_TexPos(byte Nr)
 {

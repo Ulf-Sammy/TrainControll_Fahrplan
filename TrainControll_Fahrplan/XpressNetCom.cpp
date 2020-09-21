@@ -104,6 +104,7 @@ void CXpressNetCom::SendeNeueDaten()
 		else
 		{
 			TailSend_Liste = (TailSend_Liste + 1) % SENDBUFFER;
+			Sleep(300);
 		}
 	}
 }
@@ -124,6 +125,7 @@ void CXpressNetCom::SendeZugDaten(XpNSendwas was, byte Adresse, byte Daten)
 }
 void CXpressNetCom::SendeWeicheDaten(TrainCon_Paar Wl)
 {
+	TRACE(_T("schalte Weiche Nr [%i] = %i \n"), Wl.GetWert(), Wl.GetBit());
 	Send_Liste[HeadSend_Liste][2] = (byte)Wl.GetBit();
 	Send_Liste[HeadSend_Liste][1] = Wl.GetWert();
 	Send_Liste[HeadSend_Liste][0] = COM_WRITE_WEICHE;
@@ -214,6 +216,7 @@ int CXpressNetCom::GetMelderAnzahl()
 
 	if (Befehl_Read[0] == COM_WRITE_MELDER_ST)
 	{
+		TRACE1("Melder Anzahl : %i \n", Befehl_Read[1]);
 		return (Befehl_Read[1]); // MelderAnzahl
 	}
 	return 0;
@@ -225,6 +228,7 @@ TrainCon_Paar CXpressNetCom::ReadMelder()
 	} while (!GetTC_Message());
 	if (Befehl_Read[0] == COM_SEND_MELDER)
 	{
+
 		return (TrainCon_Paar(Befehl_Read[1], (bool)Befehl_Read[2]));
 	}
 	else
@@ -296,13 +300,11 @@ void CXpressNetCom::SetTC_Message()
 	}
 }
 
-
-
 byte CXpressNetCom::GetNextMessage()
 {
 	if (GetTC_Message())
 	{
-		// TRACE3(" Neue Meldung | %x | %x | %x  \n",Befehl_Read[0], Befehl_Read[1], Befehl_Read[2]);
+		TRACE3(" Neue Meldung | %x | %x | %x  \n",Befehl_Read[0], Befehl_Read[1], Befehl_Read[2]);
 		return Befehl_Read[0];
 	}
 	else
