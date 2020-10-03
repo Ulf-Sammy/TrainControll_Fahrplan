@@ -3,11 +3,11 @@
 
 #define SENDBUFFER 8
 
-class CXpressNetCom
+class CCom_XpressNet
 {
 public:
-	CXpressNetCom(void);
-	~CXpressNetCom(void);
+	CCom_XpressNet(void);
+	~CCom_XpressNet(void);
 	bool OpenCom(int Port);
 	void CloseCom();
 	bool NoComToXpressNet();
@@ -31,7 +31,6 @@ public:
 	void Set_In_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode);
 	bool Get_Acknolage_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode);
 	int GetMelderAnzahl();
-	TrainCon_Paar ReadMelder();
 	void SetWeichenAnzahl(byte Nr);
 	void SetMelder_Zeit(byte Nr);
 	byte GetStatus_Setup_LZV();
@@ -50,8 +49,8 @@ protected:
 	int HeadSend_Liste;
 	int TailSend_Liste;
 	byte Send_Liste[SENDBUFFER][8];
-	byte Befehl_Read[8];
-	byte Befehl_Send[8];
+	byte Befehl_Read[8] = {0,0,0,0,0,0,0,0};
+	byte Befehl_Send[8] = { 0,0,0,0,0,0,0,0 };
 	void Neu_Send_Befehl();
 	bool GetTC_Message();
 	void SetTC_Message();

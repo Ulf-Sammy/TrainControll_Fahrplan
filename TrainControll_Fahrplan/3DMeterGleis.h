@@ -1,6 +1,5 @@
 #pragma once
 #include "pch.h"
-#include "CBlockData.h"
 #include "CGleisPlan.h"
 #include "MemDC.h"
 
@@ -16,7 +15,6 @@ public:
 	void OnInitDialog(CGleisPlan* pBlock);
 	void ReconstructControl();
 	bool RunThread = false;
-	CDataBlock *DataBlock = NULL;
 	CGleisPlan *DataPlan = NULL;
 
 protected:
@@ -73,10 +71,6 @@ protected:
 
 
 
-	COLORREF colorHinterGrund = RGB(186, 252, 189);
-	COLORREF colorWeiﬂ = RGB(255, 255, 255);
-	COLORREF colorGelb = RGB(253, 240,   2);
-	COLORREF colorRot  = RGB(255,   0,   0);
 
 	//{{AFX_MSG(C3DMeterGleis)
 	afx_msg void OnPaint();
@@ -87,10 +81,6 @@ protected:
 
 	void ZeichenHintergrund(CDC * pDC_H, CRect & rect);
 	
-	// Zeichne Blocksignale
-	void ZeichneBlock(byte Nr);
-	void ZeichneWeiche(byte Nr);
-	void ZeicheMelder();
 
 	void ZeicheTaster(byte Nr);
 	void ZeicheAchteck(CPoint P, byte Nr, BlockType Block);

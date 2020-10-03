@@ -42,28 +42,19 @@ void CDlg_Plan_Liste_Train::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO_WAS, Combo_Was);
 }
 
-void CDlg_Plan_Liste_Train::SetData( byte Anzahl, CDataBlock *BlockD)
+void CDlg_Plan_Liste_Train::SetData( byte Anzahl)
 {
-	Block = BlockD;
 	Fahrplan_Anzahl = Anzahl;
 }
 void CDlg_Plan_Liste_Train::SucheWegStrecke()
 {
 	for (int i = 0; i < MAX_WEICHEN_WEGE; i++)
 	{
-
-		if ((W_Gruppe[i].Ein_Block == Befehl.WertA) && (W_Gruppe[i].Aus_Block == Befehl.WertB))
-		{
-			
-			Befehl.SetWeg(&W_Gruppe[i].WStellung[0]);
-			return;
-		}
 	}
 }
 BOOL CDlg_Plan_Liste_Train::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	Block->copyWeg(&W_Gruppe);
 	
 	Combo_Was.AddString(_T("Zug stoppen"));
 	Combo_Was.AddString(_T("Zug vorwärtz fahren"));
@@ -92,77 +83,14 @@ BOOL CDlg_Plan_Liste_Train::OnInitDialog()
 	Combo_Plan_Nr.SetCurSel(0);
 	Plan_Nr = Combo_Plan_Nr.GetCurSel();
 
-	FahrplanData.Load_Daten(Plan_Nr);
 	Fill_Tabelle(Plan_Nr);
 	Z_Nr = FahrplanTabelle.GetItemCount() -1;
-	Set_Befehl_Dlg(FahrplanData.Get_Was(Z_Nr));
 	FahrplanTabelle.SetHotItem(Z_Nr);
 	return TRUE;
 }
 
 void CDlg_Plan_Liste_Train::Fill_Tabelle(byte Plan_Nr)
 {
-	byte Z = (byte)FahrplanData.Get_PlanBefehleAnzahl();
-	FahrplanPos Befehl;
-	CString Text;
-	int WA, WB;
-	SetDlgItemText(IDC_EDIT_NAME, FahrplanData.Get_FahrplanName());
-	for (int i = 0; i < Z; i++)
-	{
-		Befehl = FahrplanData.Get_Befehl(i);
-		Text.Format(_T("%2i. "), i);
-		FahrplanTabelle.InsertItem(LVIF_TEXT | LVIF_STATE, i, Text, 0, LVIS_SELECTED, 0, 0);
-		if (Befehl.Melder == 0xFF)
-		{
-			Text.Format(_T("-"));
-		}
-		else
-		Text.Format(_T("%2i"),Befehl.Melder);
-		WA = Befehl.WertA;
-		WB = Befehl.WertB;
-
-		FahrplanTabelle.SetItemText(i, 1, Text); // Der Melder..
-		switch (Befehl.mache)
-		{
-		case FahrPlanDo::begin_Block:
-			Text = _T("der Zug startet in Gleis");
-			break;
-		case FahrPlanDo::stoppen:
-			Text = _T("der Zug stopped");
-			break;
-		case FahrPlanDo::vorwaerz_fahren:
-			Text = _T("der Zug fährt vorwärtz");
-			break;
-		case FahrPlanDo::rueckwaerz_fahren:
-			Text = _T("der Zug fährt rückwärtz");
-			break;
-		case FahrPlanDo::warten_fahren:
-			Text = _T("Der Zug hält, wartet und fährt dann weiter");
-			break;
-		case FahrPlanDo::warten_stoppen:
-			Text = _T("Der Zug stopped verzögert ins Gleis");
-			break;
-		case FahrPlanDo::schalten_Funk:
-			Text.Format(_T("an der Lok schalten der Funktion Nr: %i "),WA);
-			if ((bool)WB)  Text = Text + _T("an");
-			else Text = Text + _T("aus");
-			break;
-		case FahrPlanDo::schalten_Weiche:
-			Text.Format(_T("Schalten der Weichen von Block %i nach Block %i "),WA, WB);
-			break;
-		case FahrPlanDo::letzte_Zeile:
-			Text = _T("Hier ist der Fahrplan zu Ende");
-			break;
-		default:
-			break;
-		}
-		FahrplanTabelle.SetItemText(i, 2, Text);
-		Text.Format(_T("%5i"), WA);
-		FahrplanTabelle.SetItemText(i, 3, Text);
-		Text.Format(_T("%5i"), WB);
-		FahrplanTabelle.SetItemText(i, 4, Text);
-	}
-	alt_Item = -1;
 }
 
 void CDlg_Plan_Liste_Train::Get_FahrPlan_Befehl()
@@ -171,7 +99,7 @@ void CDlg_Plan_Liste_Train::Get_FahrPlan_Befehl()
 	int WertA = GetDlgItemInt(IDC_EDIT_WERTA);
 	int WertB = GetDlgItemInt(IDC_EDIT_WERTB);
 	FahrPlanDo Do = (FahrPlanDo)(Combo_Was.GetCurSel()+1);
-	Befehl = FahrplanPos(Melder,Do , WertA, WertB);
+	//Befehl = FahrplanPos(Melder,Do , WertA, WertB);
 }
 
 void CDlg_Plan_Liste_Train::Set_Befehl_Dlg(FahrPlanDo Was)
@@ -285,42 +213,13 @@ void CDlg_Plan_Liste_Train::OnCbnSelchangeComboNr()
 
 void CDlg_Plan_Liste_Train::OnBnClickedButtonDel()
 {
-	byte AZ = FahrplanTabelle.GetItemCount();
-
-	if ((Z_Nr > 0)&&(Z_Nr < (AZ-1) ))
-	{
-		FahrplanTabelle.DeleteItem(Z_Nr);
-		FahrplanData.Del_Befehl(Z_Nr);
-		Z_Nr = Z_Nr - 1;
-	}
-	FahrplanTabelle.SetHotItem(Z_Nr);
+	
 }
 void CDlg_Plan_Liste_Train::OnBnClickedButtonEdit()
 {
-	byte AZ = FahrplanTabelle.GetItemCount();
-	Get_FahrPlan_Befehl();
-	if (Z_Nr > -1) 
-	{
-		if (Befehl.mache == FahrPlanDo::schalten_Weiche) SucheWegStrecke();
-		FahrplanData.Set_Befehl(Z_Nr, Befehl);
-		FahrplanTabelle.DeleteAllItems();
-		Fill_Tabelle(Plan_Nr);
-	}
-	FahrplanTabelle.SetHotItem(Z_Nr);
 }
 void CDlg_Plan_Liste_Train::OnBnClickedButtonAdd()
 {
-	byte AZ = FahrplanTabelle.GetItemCount();
-	Get_FahrPlan_Befehl();
-	if (Z_Nr == -1)
-	{
-		Z_Nr = AZ - 1;
-	}
-	FahrplanData.Set_neu_Befehl(Z_Nr,Befehl);
-	Z_Nr++;
-	FahrplanTabelle.DeleteAllItems();
-	Fill_Tabelle(Plan_Nr);
-	FahrplanTabelle.SetHotItem(Z_Nr);
 }
 
 void CDlg_Plan_Liste_Train::OnLvnItemchangedList1(NMHDR *pNMHDR, LRESULT *pResult)
@@ -328,23 +227,7 @@ void CDlg_Plan_Liste_Train::OnLvnItemchangedList1(NMHDR *pNMHDR, LRESULT *pResul
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 	int neu_Item = pNMLV->iItem;
 	CString Text;
-	FahrplanPos Befehl;
-
-	if (alt_Item != neu_Item)
-	{
-		alt_Item = neu_Item;
-		Z_Nr = neu_Item;
-		Befehl = FahrplanData.Get_Befehl(Z_Nr);
-		Text.Format(_T("%2i"), Befehl.Melder);
-		SetDlgItemTextW(IDC_EDIT_MELDER, Text);
-		Text.Format(_T("%2i"), Befehl.WertA);
-		SetDlgItemTextW(IDC_EDIT_WERTA, Text);
-		Text.Format(_T("%2i"), Befehl.WertB);
-		SetDlgItemTextW(IDC_EDIT_WERTB, Text);
-		Set_Befehl_Dlg(Befehl.mache);
-		Combo_Was.SetCurSel((int(Befehl.mache) - 1));
-		FahrplanTabelle.SetHotItem(Z_Nr);
-	}
+	//FahrplanPos Befehl;
 	*pResult = 0;
 }
 
@@ -352,14 +235,9 @@ void CDlg_Plan_Liste_Train::OnEnKillfocusEditName()
 {
 	CString Neu_Name;
 	GetDlgItemText(IDC_EDIT_NAME,Neu_Name);
-	if (Neu_Name != FahrplanData.Get_FahrplanName())
-	{
-		FahrplanData.Set_FahrplanName(Neu_Name);
-	}
 }
 
 void CDlg_Plan_Liste_Train::OnCancel()
 {
-	FahrplanData.Save_Daten(Plan_Nr);
 	CDialog::OnCancel();
 }

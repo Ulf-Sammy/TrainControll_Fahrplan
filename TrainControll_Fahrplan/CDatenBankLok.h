@@ -10,7 +10,7 @@ public:
 	CDatenBankLok();
 	~CDatenBankLok();
 	byte Init();
-	CXpressNetCom *Get_XpressNet();
+	CCom_XpressNet *Get_XpressNet();
 	void Test_Data();
 	void Load_Zug_Data();
 	void Save_Zug_Data();
@@ -75,6 +75,6 @@ protected:
 	byte			Prog_CV = 0;
 	bool			Zug_wartet_auf_Data = false;
 	bool			Do_Save_Data = false;
-	CXpressNetCom   *XpressNet = NULL;
+	CCom_XpressNet   *XpressNet = NULL;
 };
 

@@ -42,9 +42,6 @@
     <ClInclude Include="CaptureGraph.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="CBlockData.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="CDataFahrplan.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -63,9 +60,6 @@
     <ClInclude Include="CGleisPlan.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="CInfoBlock.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="CustomTrace.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -73,9 +67,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="VC_TableInfo.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="XpressNetCom.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Dlg_Liste_Funktion.h">
@@ -108,7 +99,16 @@
     <ClInclude Include="MemDC.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="CGleisMelderNet.h">
+    <ClInclude Include="ComXpressNet.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Com_BlockMelderNet.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CBlockInfo.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CBlock.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -131,9 +131,6 @@
     <ClCompile Include="CaptureGraph.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="CBlockData.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="CDataFahrplan.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -152,9 +149,6 @@
     <ClCompile Include="CGleisPlan.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="CInfoBlock.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="CustomTrace.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -162,9 +156,6 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="VC_TableInfo.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="XpressNetCom.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Dlg_Liste_Funktion.cpp">
@@ -195,6 +186,15 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="CGleisMelderNet.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="ComXpressNet.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CBlockInfo.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CBlock.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

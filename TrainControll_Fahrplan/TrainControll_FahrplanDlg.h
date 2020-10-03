@@ -39,12 +39,13 @@ protected:
 	void InitDlg();
 
 public:
-	byte		   Anzahl_Dlg_Run = 0;
-	CGleisPlan	   Gleis_Data;
-	C3DMeterGleis  m_3DGleis;
-	C3DMeterStatus m_3DStatus;
-	CDatenBankLok  meineLoks;
-	CXpressNetCom  XpressNet;
+	byte				Anzahl_Dlg_Run = 0;
+	CGleisPlan			Gleis_Data;
+	C3DMeterGleis		m_3DGleis;
+	C3DMeterStatus		m_3DStatus;
+	CDatenBankLok		meineLoks;
+	CCom_XpressNet		XpressNet;
+	CCom_BlockMelderNet	BlockMelder;
 
 	void DoStartDialog(bool Zeige);
 

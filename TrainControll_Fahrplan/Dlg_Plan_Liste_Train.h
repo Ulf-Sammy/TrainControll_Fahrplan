@@ -1,6 +1,5 @@
 #pragma once
 #include "pch.h"
-#include "CBlockData.h"
 #include <vector>
 // CDlg_Plan_Liste_Train-Dialog
 
@@ -11,7 +10,7 @@ class CDlg_Plan_Liste_Train : public CDialog
 public:
 	CDlg_Plan_Liste_Train(CWnd* pParent = nullptr);   // Standardkonstruktor
 	virtual ~CDlg_Plan_Liste_Train();
-	void SetData(byte Anzahl, CDataBlock *Block);
+	void SetData(byte Anzahl);
 	void Fill_Tabelle(byte Plan_Nr);
 	void Get_FahrPlan_Befehl();
 	void Set_Befehl_Dlg(FahrPlanDo Was);
@@ -25,16 +24,12 @@ protected:
 	int alt_Item;
 	DECLARE_MESSAGE_MAP()
 
-	std::vector <Weichen_Gruppe>W_Gruppe;
 	CListCtrl FahrplanTabelle;
-	CDataFahrplan FahrplanData;
 	CComboBox Combo_Plan_Nr;
 	CComboBox Combo_Was;
 	byte Plan_Nr;
-	CDataBlock *Block;
 	byte Fahrplan_Anzahl;
 	int Z_Nr;
-	FahrplanPos Befehl;
 	void SucheWegStrecke();
 
 	virtual BOOL OnInitDialog();

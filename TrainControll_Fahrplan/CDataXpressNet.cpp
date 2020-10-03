@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "CDataXpressNet.h"
-#include "CBlockData.h"
 #include "TrainControll_FahrplanDlg.h"
 
 CDataXpressNet::CDataXpressNet()
@@ -209,11 +208,8 @@ byte CDataXpressNet::Get_Decoder_Nr()
 
 void CDataXpressNet::Set_Startbedingungen(Zug_Status UserSet_Status)
 {
-	BlockInfo StartBlock;
-
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 
-	StartBlock = APP->Gleis_Data.Block_Data.GetWerte_BlockInfo(Block_ist);
 
 	switch (UserSet_Status)
 	{
@@ -229,20 +225,6 @@ void CDataXpressNet::Set_Startbedingungen(Zug_Status UserSet_Status)
 		FahrRicht = true;
 		break;
 
-	}
-	byte S = 0;
-	if ((StartBlock.Block_Type == BlockType::isWeiche))
-		S = StartBlock.WeichenStellung;
-	// Weichentype ?
-	if (Prüfrichtung())
-	{
-		Block_soll = StartBlock.AusgangBlock[S];
-		Melder_next = StartBlock.AusgangMelder[S];
-	}
-	else
-	{
-		Block_soll = StartBlock.EingangBlock[S];
-		Melder_next = StartBlock.EingangMelder[S];
 	}
 }
 

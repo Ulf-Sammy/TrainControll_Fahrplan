@@ -67,11 +67,11 @@
 #define COM_WRITE_ZUG_D5    0x58+0x03  //11 ADR + GRUPPE 5			| _ | T | A | _ |
 #define COM_WRITE_WEICHE    0x60+0x03  //12 Weiche + Wert			| _ | T | A | _ |
 #define COM_READ_ZUG_DA     0x68+0x03  //13 ADR	+ Lok_Nr_Liste		| _ | T | A | _ |
-#define COM_READ_ZUG_D1     0x70+0x02  //14 ADR						| _ | T | A | _ |
-#define COM_READ_FUK_STAT   0x78+0x02  //15 ADR						| _ | T | A | _ |
-#define COM_WRITE_FUK_STAT  0x80+0x02  //16 ADR						| _ | T | A | _ |
+#define COM_READ_ZUG_D1     0x70+0x02  //14 ADR	(frei)					| _ | T | A | _ |
+#define COM_SEND_RELAIS     0x78+0x02  //15 Relais + Bit						| _ | T | A | _ |
+#define COM_WRITE_RELAIS    0x80+0x02  //16 Relais + Bit						| _ | T | A | _ |;
 #define COM_SEND_TIME	    0x88+0x02  //17 TIME + Wert				| _ | T | A | _ | Timer ist aus gelöst
-#define COM_SEND_MELDER     0x90+0x03  //18 Melder + Wert			| _ | T | A | _ |
+#define COM_SEND_BLOCK      0x90+0x03  //18 Block + Wert			| _ | T | A | _ |
 #define COM_SEND_WEICHE     0x98+0x03  //19 Weiche + Wert			| _ | T | A | _ |
 #define COM_SEND_ZUG_DA     0xA0+0x07  //20 Gr0 .. Gr5 + Nr			| _ | T | A | _ |
 #define COM_SEND_ZUG_D1     0xA8+0x03  //21 ADR + GRUPPE 1			| _ | T | A | _ |
@@ -123,11 +123,26 @@
 #define MAX_TASTER_IN_GRUPPE 10
 #define MAX_FAHRPLAN 2
 
+const COLORREF colorHinterGrund = RGB(186, 252, 189);
+const COLORREF GleisGruen = RGB(6, 233, 13);
+const COLORREF GleisOrange = RGB(232,104,13);
+const COLORREF GleisRot = RGB(225, 24, 32);
+const COLORREF GleisGelb = RGB(255, 242, 0);
+const COLORREF GleishellRot = RGB(242, 141, 147);
+const COLORREF colorWeiss = RGB(255, 255, 255);
+const COLORREF colorGelb = RGB(253, 240, 2);
+const COLORREF colorRot = RGB(255, 0, 0);
+const COLORREF colorSchwarz = RGB(0, 0, 0);
+
+const int Rect_X = 1600;
+const int Rect_Y = 660;
+
 
 enum class ControlStatus { No_Arduino = -1, Begin_COM = 0, Setup_Controller, Program, Testen, Ende_COM };
 enum class XpNSendwas { FGruppe0 = 0, FGruppe1, FGruppe2, FGruppe3, FGruppe4, FGruppe5 };
 enum class BlockType { isWeiche, isBlock, isGleis };
-enum class WeichenType { linksWeiche, rechtsWeiche, DoppelWeiche };
+enum class WeichenType { linksWeiche, rechtsWeiche, L_DoppelWeiche, R_DoppelWeiche};
+enum class StreckenType {Strecke, Gleis, Abstellgleis};
 
 enum class FahrPlanDo { begin_Block, stoppen, vorwaerz_fahren, rueckwaerz_fahren, warten_fahren, warten_stoppen, schalten_Funk, schalten_Weiche, letzte_Zeile };
 
@@ -137,6 +152,8 @@ enum class Zug_Steuerung { nicht_Betriebs_bereit, Hand_Betrieb, Automatik_Betrie
 enum class BlockRueckmeldung { Frei_Fahrt = 0, Weichenweg_nichtfrei = 1, Block_besetzt = 9 };
 enum class DecoderHersteller { Tams = 0, Massoth };
 enum class DecoderTypen { Tams_Normal = 0, Massoth_No_Sound, Massoth_Sound, NoName, NoDecoder = 999 };
+
+
 
 struct neueMeldungen
 {
@@ -237,51 +254,6 @@ protected:
 	bool Bit = false;
 };
 
-
-
-struct MelderBlock
-{
-	MelderBlock()
-	{}
-
-	MelderBlock(CString InText)
-	{
-		Nr = _ttoi(InText.Mid(0, 3));
-		Pos = CPoint(_ttoi(InText.Mid(11, 3)), _ttoi(InText.Mid(15, 3)));
-		TextPos = 0;
-		TextRicht = (char)InText[19];
-		if ((char)InText[31] == '0')	Showit = false;
-		if ((char)InText[31] == '1')	Showit = true;
-		Eingang_Block = 0xFF;
-		Ausgang_Block = 0xFF;
-		Freimach_Block = 0;
-		Bit = false;
-	}
-	void SkaliereDaten(CPoint Step)
-	{
-		if (TextRicht == 'U') TextPos = CPoint(+2, -23);
-		if (TextRicht == 'D') TextPos = CPoint(+2, +6);
-		if (TextRicht == 'R') TextPos = CPoint(+14, -6);
-		if (TextRicht == 'L') TextPos = CPoint(-14, -6);
-		Pos.x = Pos.x * Step.x;
-		Pos.y = Pos.y * Step.y;
-		TextPos = TextPos + Pos;
-	}
-	void SetBlockData(byte Ein, byte Aus)
-	{
-
-	}
-	byte Nr;
-	char   TextRicht;
-	CPoint Pos;
-	CPoint TextPos;
-	bool Showit;
-	bool Bit;
-
-	byte Eingang_Block;
-	byte Ausgang_Block;
-	byte Freimach_Block;
-};
 
 #define BUFFER 16
 struct RingBuffer

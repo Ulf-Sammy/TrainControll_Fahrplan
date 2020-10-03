@@ -33,11 +33,6 @@ BEGIN_MESSAGE_MAP(CDlg_Test_Weiche, CDialogEx)
 END_MESSAGE_MAP()
 
 
-void CDlg_Test_Weiche::SetPointer(CDataBlock * pGData)
-{
-	Gleis_Data = pGData;
-}
-
 // CDlg_Test_Weiche-Meldungshandler
 void CDlg_Test_Weiche::OnBnClickedFunktion(UINT nID)
 {
@@ -49,9 +44,9 @@ void CDlg_Test_Weiche::OnBnClickedFunktion(UINT nID)
 	CString Text;
 	if (Setting_Test.GetCurSel() == 0)
 	{
-		bit = Gleis_Data->SchalteWeicheTest(index);
-		static_cast<CButton*>(GetDlgItem(index + IDC_CHECK_W1 - 1))->SetCheck(bit);
-		Text.Format(_T("Schalte Weiche: %2i"), index);
+		//bit = Gleis_Data->SchalteWeicheTest(index);
+		//static_cast<CButton*>(GetDlgItem(index + IDC_CHECK_W1 - 1))->SetCheck(bit);
+		//Text.Format(_T("Schalte Weiche: %2i"), index);
 		SetDlgItemTextW(IDC_COUNTER, Text);
 	}
 	else
@@ -59,8 +54,8 @@ void CDlg_Test_Weiche::OnBnClickedFunktion(UINT nID)
 		xMal = Setting_Test.GetCurSel() * 10;
 		for (int i = 0; i < xMal; i++)
 		{
-			bit = Gleis_Data->SchalteWeicheTest(index);
-			static_cast<CButton*>(GetDlgItem(index+ IDC_CHECK_W1 - 1))->SetCheck(bit);
+			//bit = Gleis_Data->SchalteWeicheTest(index);
+			//static_cast<CButton*>(GetDlgItem(index+ IDC_CHECK_W1 - 1))->SetCheck(bit);
 			if (xMal == 10) 
 				Sleep(2000);
 			else
@@ -79,13 +74,14 @@ BOOL CDlg_Test_Weiche::OnInitDialog()
 	bool bit;
 	int Item_Nr = IDC_CHECK_W1-1;
 
-
+	/*
 	for (int i = 1; i < 33; i++)
 	{
-		bit = Gleis_Data->Get_Stellung_Weiche(i);
+		//bit = Gleis_Data->Get_Stellung_Weiche(i);
 		static_cast<CButton*>(GetDlgItem(Item_Nr + i))->SetCheck(bit);
 	}
 	Setting_Test.SetCurSel(0);
+	*/
 	return TRUE; 
 }
 

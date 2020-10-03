@@ -138,7 +138,9 @@ BOOL CTrainControll_FahrplanDlg::OnInitDialog()
 //##########################################################################
 	DoStartDialog(false);
 	XpressNet.OpenCom(4);
+	BlockMelder.OpenCom(5);
 	Gleis_Data.Init();
+
 	m_3DStatus.OnInitDialog(&Gleis_Data);
 	m_3DGleis.OnInitDialog(&Gleis_Data);
 
@@ -276,64 +278,17 @@ void CTrainControll_FahrplanDlg::OnSetupTestedieweiche()
 {
 	CDlg_Test_Weiche Dlg;
 
-	Dlg.SetPointer(&Gleis_Data.Block_Data);
 	Dlg.DoModal();
 }
 void CTrainControll_FahrplanDlg::OnSetupFahrplanEdit()
 {
 	CDlg_Plan_Liste_Train Dlg;
-	Dlg.SetData(Gleis_Data.Block_Data.FahrplanAnzahl, &Gleis_Data.Block_Data);
 	Dlg.DoModal();
 }
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonZug(UINT nID)
 {
 	int index = nID - IDC_BUTTON_ZUG0;
-	byte Lok_Nr = index;
-	if (meineLoks.Get_aktiveLok_Pointer(Lok_Nr).isAutomaticOn())
-	{
-		if (Gleis_Data.isPower_onGleis())
-		{
-			if(Gleis_Data.Block_Data.Set_FahrPlan(Lok_Nr, 0))
-			{
-				Gleis_Data.Block_Data.Do_Start_Plan_Zug(Lok_Nr);
-				// Starte die Lok
-				GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
-				SetDlgItemTextW(IDC_STATIC_ZUG0_1+ index, _T("fährt jetzt nach Fahrplan Nr.:0"));
-			}
-			else
-				SetDlgItemTextW(IDC_STATIC_ZUG0_1 +index, _T("konnte nicht gestartet werden"));
-
-		}
-	}
-	else
-	{
-		byte Dlg_Nr = 0xFF;
-		if (meineLoks.Get_aktiveLok_Pointer(Lok_Nr).Dlg_Nr != 0xFF)
-		{
-			Dlg_Nr = meineLoks.Get_aktiveLok_Pointer(Lok_Nr).Dlg_Nr;
-
-			if (pDlgTrainRun[Dlg_Nr] == NULL)
-			{
-				ButtonTrainRun[Dlg_Nr] = IDC_BUTTON_ZUG0 + index;
-				pDlgTrainRun[Dlg_Nr] = new CDlg_Run_Train(this, Dlg_Nr);
-				pDlgTrainRun[Dlg_Nr]->Set_aktive_Lok(Lok_Nr);
-				if (pDlgTrainRun[Dlg_Nr]->Create())
-				{
-					GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
-				}
-			}
-			else
-			{
-				pDlgTrainRun[Dlg_Nr]->ShowWindow(SW_SHOW);
-				GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
-			}
-		}
-		else
-		{
-			GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
-		}
-	}
 }
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonSound()
@@ -351,10 +306,6 @@ void CTrainControll_FahrplanDlg::OnBnClickedButtonReset()
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonTest()
 {
-
-	static bool Bit = true;
-	Gleis_Data.Block_Data.setze_Block_Test(10, Bit);
-	Bit = !Bit;
 }
 void CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche()
 {
@@ -388,6 +339,8 @@ void CTrainControll_FahrplanDlg::OnClose()
 		delete pDlgTrainRunCam;
 	}
 	Gleis_Data.Stop_Com_Thread();
+	XpressNet.CloseCom();
+	BlockMelder.CloseCom();
 	CDialogEx::OnClose();
 }
 

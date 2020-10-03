@@ -1,6 +1,5 @@
 #pragma once
 #include "pch.h"
-#include "CBlockData.h"
 #include "afxwin.h"
 
 // CDlg_Test_Weiche-Dialogfeld
@@ -13,7 +12,6 @@ public:
 	CDlg_Test_Weiche(CWnd* pParent = NULL);   // Standardkonstruktor
 	virtual ~CDlg_Test_Weiche();
 
-	void SetPointer(CDataBlock* PGData);
 	afx_msg void OnBnClickedFunktion(UINT nID);
 
 // Dialogfelddaten
@@ -23,8 +21,6 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV-Unterstützung
-	
-	CDataBlock      *Gleis_Data;
 
 	DECLARE_MESSAGE_MAP()
 

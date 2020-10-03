@@ -263,7 +263,6 @@ void CDlg_Run_Train::OnBnClickedSpeed(UINT nID)
 	case Zug_Status::Zug_Stopped:
 		Zug_Data->Set_aktiveLok_Startbedingung(Lok_Nr_act, NeuerZug_Status); 
 	case Zug_Status::Zug_haelt:
-		PrZug = Train_Data->Block_Data.besetzte_bis_Next_Block_Hand(Lok_Nr_act);
 		PrZug = BlockRueckmeldung::Frei_Fahrt;
 		switch (PrZug)
 		{

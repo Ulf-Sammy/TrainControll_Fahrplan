@@ -1,10 +1,10 @@
 #### Info's zum aktive Züge ####
 ## ZugPos ##- use | Block | Blick     |Plan16:02 09.02.2019
-Spreewald       |H|053 Zug gegen Uhrzei|01|
-Niki & Frank S  |H|054 Zug gegen Uhrzei|00|
-996001          |H|055 Zug gegen Uhrzei|01|	
-Feuerwehr Lok   |H|056 Zug gegen Uhrzei|00|
-grüne Stainz    |H|057 Zug gegen Uhrzei|00
+Spreewald       |H|025 Zug gegen Uhrzei|01|
+Niki & Frank S  |H|026 Zug gegen Uhrzei|00|
+996001          |H|027 Zug gegen Uhrzei|01|	
+Feuerwehr Lok   |H|028 Zug gegen Uhrzei|00|
+grüne Stainz    |H|029 Zug gegen Uhrzei|00
 rote Stainz     |A|000 Zug in Uhrzeiger|00
 weiße Stainz    |H|000 Zug gegen Uhrzei|00
 995001          |A|000 Zug in Uhrzeiger|00

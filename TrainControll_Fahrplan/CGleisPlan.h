@@ -1,7 +1,8 @@
 #pragma once
 #include "pch.h"
-#include "XpressNetCom.h"
-#include "CBlockData.h"
+#include "CBlock.h"
+#include "ComXpressNet.h"
+#include "Com_BlockMelderNet.h"
 #include "CDatenBankLok.h"
 
 struct InfoConStat
@@ -21,24 +22,26 @@ UINT Thread_Update(LPVOID pParam);
 class CGleisPlan: public CStatic
 {
 public:
-	CDataBlock      Block_Data;
 	bool ListentoCom = false;
 	bool Thread_Run = false;
 
 	CGleisPlan();
 	~CGleisPlan();
 	void Init();
-	byte GetNextMessage();
+	byte GetNextMessage_Mega();
+	byte GetNextMessage_Uno();
 
 	void Start_Com_Thread();
 	void Stop_Com_Thread();
 	void ChangeSetupMode(ControlStatus	Mode, byte Sub);
 
 	bool isNewUpdate_Status();
-		
+	bool isNewUpdate_Gleis();
+	bool isNewUpdate_Taster();
 	// für den Task	
 	void NewDataMelder();
 	void NewDataWeiche();
+	void NewDataRelais();
 	void NewDataZug();
 	void NewTimeZug(clock_t Zeit);
 	void New_Daten_LVZ();
@@ -46,8 +49,6 @@ public:
 	void New_Daten_Senden();
 	void New_Controll_Mode();
 
-	void DoMelder_I(byte Melder_Nr, byte Lok_Nr); // arbeite die Melder ab
-	void DoMelder_O(byte Melder_Nr, byte Lok_Nr); // arbeite die Melder ab
 	void DoCheckIt(byte Lok_Nr, clock_t Zeit);
 	void showInfo_Dlg(byte LokNr, CString Info);
 	void showPlan_Dlg(byte LokNr, CString Info);
@@ -64,18 +65,28 @@ public:
 	bool isPower_onGleis();
 	bool isreadyforStartup();
 	void Setup_TrainControl();
+	void ZeicheStrecke(CDC* pDC);
+	void ZeicheBlock(byte Nr, CDC* pDC);
+	void Kick_Block(CPoint Klick);
+	void Set_Weiche(TrainCon_Paar WeichenData);
+	void Set_Relais(TrainCon_Paar RelayData);
 
 protected:
-	CXpressNetCom   *XpressNet		= NULL;
-	CDatenBankLok   *Züge			= NULL;
+	std::vector <CBlock> Block;
+	CCom_XpressNet      *XpressNet	  = NULL;
+	CDatenBankLok       *Züge		  = NULL;
+	CCom_BlockMelderNet * BlockMelder = NULL;
 	BlockRueckmeldung PruefeZugWeg	= BlockRueckmeldung::Frei_Fahrt;
 	int				StartUpCount	= -1;
 	ControlStatus	ModeControl		= ControlStatus::No_Arduino;
 	byte		    ModeSub			= 0;
 	byte			StatusZentrale	= 0;
 	neueMeldungen   Neu_DataStatus	= neueMeldungen();
+	neueMeldungen   Neu_DataGleis   = neueMeldungen(); // Melder und Weiche
+	neueMeldungen   Neu_DatTaster   = neueMeldungen();
 	byte			max_active_Loks = 0;
-	//bool StreckenPlan = true; // true = Test false = im Garten
 	bool Zug_wartet_auf_Data = false;
+
+	void Lade_Daten();
 
 };

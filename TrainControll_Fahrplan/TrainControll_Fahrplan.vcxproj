@@ -186,16 +186,16 @@
     <ClInclude Include="3DMeterGleis.h" />
     <ClInclude Include="3DMeterStatus.h" />
     <ClInclude Include="CaptureGraph.h" />
-    <ClInclude Include="CBlockData.h" />
     <ClInclude Include="CDataFahrplan.h" />
     <ClInclude Include="CDataXpressNet.h" />
     <ClInclude Include="CDatenBankLok.h" />
     <ClInclude Include="CDlg_Fahrplan.h" />
     <ClInclude Include="CDlg_RunCam_Train.h" />
-    <ClInclude Include="CGleisMelderNet.h" />
+    <ClInclude Include="Com_BlockMelderNet.h" />
     <ClInclude Include="CGleisPlan.h" />
-    <ClInclude Include="CInfoBlock.h" />
+    <ClInclude Include="CBlockInfo.h" />
     <ClInclude Include="CustomTrace.h" />
+    <ClInclude Include="CBlock.h" />
     <ClInclude Include="DlgTrainRun.h" />
     <ClInclude Include="Dlg_CV_Action.h" />
     <ClInclude Include="Dlg_Liste_Funktion.h" />
@@ -214,13 +214,12 @@
     <ClInclude Include="TrainControll_Fahrplan.h" />
     <ClInclude Include="TrainControll_FahrplanDlg.h" />
     <ClInclude Include="VC_TableInfo.h" />
-    <ClInclude Include="XpressNetCom.h" />
+    <ClInclude Include="ComXpressNet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3DMeterGleis.cpp" />
     <ClCompile Include="3DMeterStatus.cpp" />
     <ClCompile Include="CaptureGraph.cpp" />
-    <ClCompile Include="CBlockData.cpp" />
     <ClCompile Include="CDataFahrplan.cpp" />
     <ClCompile Include="CDataXpressNet.cpp" />
     <ClCompile Include="CDatenBankLok.cpp" />
@@ -228,8 +227,9 @@
     <ClCompile Include="CDlg_RunCam_Train.cpp" />
     <ClCompile Include="CGleisMelderNet.cpp" />
     <ClCompile Include="CGleisPlan.cpp" />
-    <ClCompile Include="CInfoBlock.cpp" />
+    <ClCompile Include="CBlockInfo.cpp" />
     <ClCompile Include="CustomTrace.cpp" />
+    <ClCompile Include="CBlock.cpp" />
     <ClCompile Include="DlgTrainRun.cpp" />
     <ClCompile Include="Dlg_CV_Action.cpp" />
     <ClCompile Include="Dlg_Liste_Funktion.cpp" />
@@ -249,7 +249,7 @@
     <ClCompile Include="TrainControll_Fahrplan.cpp" />
     <ClCompile Include="TrainControll_FahrplanDlg.cpp" />
     <ClCompile Include="VC_TableInfo.cpp" />
-    <ClCompile Include="XpressNetCom.cpp" />
+    <ClCompile Include="ComXpressNet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TrainControllFahrplan.rc" />

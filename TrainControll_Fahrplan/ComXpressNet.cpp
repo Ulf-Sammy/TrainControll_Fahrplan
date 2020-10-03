@@ -1,21 +1,20 @@
 #include "pch.h"
-#include "XpressNetCom.h"
+#include "ComXpressNet.h"
 
-CXpressNetCom::CXpressNetCom(void)
+CCom_XpressNet::CCom_XpressNet(void)
 {
 	PortNr = 0;
 	m_hCom = NULL;
     HeadSend_Liste = 0;
 	TailSend_Liste = 0;
 	bytesSend = 0;
-
 }
-CXpressNetCom::~CXpressNetCom(void)
+CCom_XpressNet::~CCom_XpressNet(void)
 {
 
 }
 
-bool CXpressNetCom::OpenCom(int Port)
+bool CCom_XpressNet::OpenCom(int Port)
 {
 	CString strPortName;
 	PortNr = Port;
@@ -74,7 +73,7 @@ bool CXpressNetCom::OpenCom(int Port)
 	return(true);
 
 }
-void CXpressNetCom::CloseCom()
+void CCom_XpressNet::CloseCom()
 {
 	if (!NoComToXpressNet())
 	{
@@ -85,13 +84,13 @@ void CXpressNetCom::CloseCom()
 	}
 	::CloseHandle(m_hCom);
 }
-bool CXpressNetCom::NoComToXpressNet()
+bool CCom_XpressNet::NoComToXpressNet()
 {
 	if (m_hCom == NULL) return (true);
 	return (m_hCom == INVALID_HANDLE_VALUE);
 }
 
-void CXpressNetCom::SendeNeueDaten()
+void CCom_XpressNet::SendeNeueDaten()
 {
 	if (HeadSend_Liste != TailSend_Liste)
 	{		
@@ -109,21 +108,21 @@ void CXpressNetCom::SendeNeueDaten()
 	}
 }
 
-void CXpressNetCom::SendeAsknachLokDaten(byte Adr)
+void CCom_XpressNet::SendeAsknachLokDaten(byte Adr)
 {
 	Send_Liste[HeadSend_Liste][2] = 0;// nicht mehr benötigt
 	Send_Liste[HeadSend_Liste][1] = Adr;
 	Send_Liste[HeadSend_Liste][0] = COM_READ_ZUG_DA;
 	Neu_Send_Befehl();
 }
-void CXpressNetCom::SendeZugDaten(XpNSendwas was, byte Adresse, byte Daten)
+void CCom_XpressNet::SendeZugDaten(XpNSendwas was, byte Adresse, byte Daten)
 {
 	Send_Liste[HeadSend_Liste][2] = Daten ;
 	Send_Liste[HeadSend_Liste][1] = Adresse;
 	Send_Liste[HeadSend_Liste][0] = SendAdr[(byte)was];
 	Neu_Send_Befehl();
 }
-void CXpressNetCom::SendeWeicheDaten(TrainCon_Paar Wl)
+void CCom_XpressNet::SendeWeicheDaten(TrainCon_Paar Wl)
 {
 	TRACE(_T("schalte Weiche Nr [%i] = %i \n"), Wl.GetWert(), Wl.GetBit());
 	Send_Liste[HeadSend_Liste][2] = (byte)Wl.GetBit();
@@ -131,13 +130,13 @@ void CXpressNetCom::SendeWeicheDaten(TrainCon_Paar Wl)
 	Send_Liste[HeadSend_Liste][0] = COM_WRITE_WEICHE;
 	Neu_Send_Befehl();
 }
-void CXpressNetCom::SendeLVZ_Power(bool Bit)
+void CCom_XpressNet::SendeLVZ_Power(bool Bit)
 {
 	Send_Liste[HeadSend_Liste][1] = (byte)Bit;
 	Send_Liste[HeadSend_Liste][0] = COM_WRITE_LVZ_POWER;
 	Neu_Send_Befehl();
 }
-void CXpressNetCom::Sende_Write_CV(byte CV, byte Wert)
+void CCom_XpressNet::Sende_Write_CV(byte CV, byte Wert)
 {
 	Send_Liste[HeadSend_Liste][2] = Wert;
 	Send_Liste[HeadSend_Liste][1] = CV;
@@ -145,14 +144,14 @@ void CXpressNetCom::Sende_Write_CV(byte CV, byte Wert)
 	Neu_Send_Befehl();
 
 }
-void CXpressNetCom::Sende_Read_CV(byte CV, byte Wert)
+void CCom_XpressNet::Sende_Read_CV(byte CV, byte Wert)
 {
 	Send_Liste[HeadSend_Liste][2] = Wert;
 	Send_Liste[HeadSend_Liste][1] = CV;
 	Send_Liste[HeadSend_Liste][0] = COM_READ_CV;
 	Neu_Send_Befehl();
 }
-void CXpressNetCom::Sende_Setto_Prog(bool onoff)
+void CCom_XpressNet::Sende_Setto_Prog(bool onoff)
 {
 	Send_Liste[HeadSend_Liste][2] = 0;
 	if( onoff)
@@ -163,12 +162,12 @@ void CXpressNetCom::Sende_Setto_Prog(bool onoff)
 	Send_Liste[HeadSend_Liste][0] = COM_WRITE_MOD; // Befehl Schreiben
 	Neu_Send_Befehl();
 }
-void CXpressNetCom::Neu_Send_Befehl()
+void CCom_XpressNet::Neu_Send_Befehl()
 {
 	HeadSend_Liste = (HeadSend_Liste + 1) % SENDBUFFER;
 }
 // Nur im Setup 
-void CXpressNetCom::Set_In_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode)
+void CCom_XpressNet::Set_In_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode)
 {
 	bool NoCom = true;
 	Befehl_Send[0] = COM_WRITE_MOD; // Befehl Schreiben
@@ -187,7 +186,7 @@ void CXpressNetCom::Set_In_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode)
 		TRACE(_T(" Mode ist changed NOT OK !!!!! \n"));
 	}
 }
-bool CXpressNetCom::Get_Acknolage_Mode(ControlStatus Mode, byte SubMode, byte * LZVMode)
+bool CCom_XpressNet::Get_Acknolage_Mode(ControlStatus Mode, byte SubMode, byte * LZVMode)
 {
 	do
 	{
@@ -199,43 +198,9 @@ bool CXpressNetCom::Get_Acknolage_Mode(ControlStatus Mode, byte SubMode, byte * 
 	}
 	return false;
 }
-void CXpressNetCom::SetMelder_Zeit(byte Nr)
-{
-	//  der Wert mit 10 msec mal genommen 
-	// in der Ardunino Controller
-	Befehl_Send[0] = COM_WRITE_MELDER_TI;
-	Befehl_Send[1] = Nr;
-	SetTC_Message();
-	Sleep(300);
-}
-int CXpressNetCom::GetMelderAnzahl()
-{ // wird nur im Setup abgefragt
-	do
-	{
-	} while (!GetTC_Message());
 
-	if (Befehl_Read[0] == COM_WRITE_MELDER_ST)
-	{
-		TRACE1("Melder Anzahl : %i \n", Befehl_Read[1]);
-		return (Befehl_Read[1]); // MelderAnzahl
-	}
-	return 0;
-}
-TrainCon_Paar CXpressNetCom::ReadMelder()
-{
-	do
-	{
-	} while (!GetTC_Message());
-	if (Befehl_Read[0] == COM_SEND_MELDER)
-	{
 
-		return (TrainCon_Paar(Befehl_Read[1], (bool)Befehl_Read[2]));
-	}
-	else
-		TRACE(_T("Fehler beim Melder Setup  \n "));
-	return (TrainCon_Paar(0xFF, false));
-}
-void CXpressNetCom::SetWeichenAnzahl(byte Nr)
+void CCom_XpressNet::SetWeichenAnzahl(byte Nr)
 {
 	// Block Nr = 0 gibt es nicht hier werden die Anzahl der Weichen geschickt
 	// sonst ob Block Frei oder bezetzt ist.
@@ -244,7 +209,7 @@ void CXpressNetCom::SetWeichenAnzahl(byte Nr)
 	SetTC_Message();
 	Sleep(300);
 }
-byte CXpressNetCom::GetStatus_Setup_LZV()
+byte CCom_XpressNet::GetStatus_Setup_LZV()
 {
 	do
 	{
@@ -262,7 +227,7 @@ byte CXpressNetCom::GetStatus_Setup_LZV()
 
 
 
-bool CXpressNetCom::GetTC_Message()
+bool CCom_XpressNet::GetTC_Message()
 {
 	byte  c;
 	DWORD bytesRead;
@@ -289,7 +254,7 @@ bool CXpressNetCom::GetTC_Message()
 		}
 	}
 }
-void CXpressNetCom::SetTC_Message()
+void CCom_XpressNet::SetTC_Message()
 {
 	DWORD bytesSend;
 	byte l = COM_LEN(Befehl_Send[0]);
@@ -300,7 +265,7 @@ void CXpressNetCom::SetTC_Message()
 	}
 }
 
-byte CXpressNetCom::GetNextMessage()
+byte CCom_XpressNet::GetNextMessage()
 {
 	if (GetTC_Message())
 	{
@@ -311,14 +276,14 @@ byte CXpressNetCom::GetNextMessage()
 		return false;
 }
 
-byte CXpressNetCom::Hole_Acknolage_Mode()
+byte CCom_XpressNet::Hole_Acknolage_Mode()
 {
 	//(Befehl_Read[0] == COM_ACKN_MOD) 
 	return(Befehl_Read[1]);
 	//	(Befehl_Read[2] == SubMode))
 }
 
-void CXpressNetCom::HoleZugData(byte *Data, byte Adr)
+void CCom_XpressNet::HoleZugData(byte *Data, byte Adr)
 {
 	if (Befehl_Read[6] == Adr)
 	{
@@ -330,15 +295,15 @@ void CXpressNetCom::HoleZugData(byte *Data, byte Adr)
 		*(Data + 4) = Befehl_Read[5];
 	}
 }
-TrainCon_Paar CXpressNetCom::HoleMelderData()
+TrainCon_Paar CCom_XpressNet::HoleMelderData()
 {
 	return (TrainCon_Paar(Befehl_Read[1], (bool)Befehl_Read[2]));
 }
-TrainCon_Paar CXpressNetCom::HoleWeicheData()
+TrainCon_Paar CCom_XpressNet::HoleWeicheData()
 {
 	return (TrainCon_Paar(Befehl_Read[1], (bool)Befehl_Read[2]));
 }
-byte CXpressNetCom::HoleStatus_LZV()
+byte CCom_XpressNet::HoleStatus_LZV()
 {
 	if (Befehl_Read[0] == COM_SEND_LVZ_STA)
 	{
@@ -349,13 +314,13 @@ byte CXpressNetCom::HoleStatus_LZV()
 	return (0xFF);
 }
 
-byte CXpressNetCom::Hole_CV_Wert()
+byte CCom_XpressNet::Hole_CV_Wert()
 {
 	return(Befehl_Read[2]);;
 }
 
 
-byte CXpressNetCom::DoWorkonCV(bool RW, byte CV, byte Wert)
+byte CCom_XpressNet::DoWorkonCV(bool RW, byte CV, byte Wert)
 {
 	bool Info;
 	if (RW) // schreibe CV Wert;

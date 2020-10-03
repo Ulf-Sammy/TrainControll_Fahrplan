@@ -203,6 +203,7 @@ public:
 			Docu_Data.push_back(0x00);
 		}
 		Decoder_Type = 0;
+		Type = DecoderTypen::NoDecoder;
 	}
 	void Set_DecoderType(DecoderTypen Type)
 	{

@@ -18,11 +18,6 @@ CDlg_Fahrplan::~CDlg_Fahrplan()
 {
 }
 
-void CDlg_Fahrplan::SetPointer(CDataBlock * BlDa)
-{
-	Block_Data = BlDa;
-}
-
 void CDlg_Fahrplan::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);

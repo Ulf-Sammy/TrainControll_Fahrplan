@@ -22,7 +22,7 @@ byte CDatenBankLok::Init()
 }
 
 
-CXpressNetCom * CDatenBankLok::Get_XpressNet()
+CCom_XpressNet * CDatenBankLok::Get_XpressNet()
 {
 	return XpressNet;
 }
@@ -312,11 +312,6 @@ Zug_Status CDatenBankLok::Get_aktiveLok_Status(byte Nr)
 void CDatenBankLok::Set_aktiveLoks_aufsGleis()
 {
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	CDataBlock* Block = &APP->Gleis_Data.Block_Data;
-	for (byte Nr = 0; Nr < (byte)aktiveLoks.size(); Nr++)
-	{
-		Block->besetzte_Block(MeineZüge[aktiveLoks[Nr]].Block_ist, &MeineZüge[aktiveLoks[Nr]]);
-	}
 }
 
 void CDatenBankLok::Set_aktiveLok_FuntiontoRun()

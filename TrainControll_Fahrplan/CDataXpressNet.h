@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "XpressNetCom.h"
+#include "ComXpressNet.h"
 #include "CDataFahrplan.h"
 #include "VC_TableInfo.h"
 #include <vector>
@@ -86,7 +86,7 @@ protected:                 //0 1 2 3 4 5 6 7 8 9 0 1 2 3
 	
 
 	// alles zum Fahren
-	CXpressNetCom   *XpressNet = NULL;
+	CCom_XpressNet   *XpressNet = NULL;
 	Zug_Status    Status = Zug_Status::Zug_Stopped;       // Der Status vom Zug stop,fähr, hält
 	bool		Zug_active			= false; // ist Zug active
 	bool		Zug_wartet_auf_Data = false; // Zug wartet auf Daten

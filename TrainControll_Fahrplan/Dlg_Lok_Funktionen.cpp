@@ -69,7 +69,6 @@ BOOL CDlg_Lok_Funktionen::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 	CString FunktionTxt;
-	int Nr;
 	for(int i = 0; i < 35;i++)
 	/*
 	{
@@ -97,7 +96,6 @@ BOOL CDlg_Lok_Funktionen::OnInitDialog()
 
 void CDlg_Lok_Funktionen::OnOK()
 {
-	int Nr;
 	UpdateData(true);
 	for(int i = 0; i < 35;i++)
 	{

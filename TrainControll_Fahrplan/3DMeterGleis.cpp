@@ -9,8 +9,12 @@ UINT Thread_Update_Gleis(LPVOID pParam)
 	Sleep(500);
 	do
 	{
-		 if (Info_Gleis->DataBlock->isNewUpdate_Gleis()) 	 Info_Gleis->Invalidate();
-		 if (Info_Gleis->DataBlock->isNewUpdate_Taster()) 	 Info_Gleis->Invalidate();
+		if (Info_Gleis->DataPlan->isNewUpdate_Gleis())
+		{
+			TRACE(_T("update Bildschirm \n"));
+			Info_Gleis->Invalidate();
+		}
+		 //if (Info_Gleis->DataBlock->isNewUpdate_Taster()) 	 Info_Gleis->Invalidate();
 	} while (Info_Gleis->RunThread);
 	return 0;
 }
@@ -53,22 +57,7 @@ C3DMeterGleis::C3DMeterGleis(void)
 						 OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
 						 DEFAULT_QUALITY, 
 						 DEFAULT_PITCH|FF_SWISS, _T("Arial Narrow")) ;
-	Font_Block_0.CreateFont(16, 0, 0, 0, 400,
-						 FALSE, FALSE, 0, ANSI_CHARSET,
-						 OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, 
-						 DEFAULT_PITCH|FF_SWISS, _T("Arial Narrow")) ;
-	Font_Block_90.CreateFont(14, 0, 2700, 900, 200,
-						FALSE, FALSE, 0, ANSI_CHARSET,
-						OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,
-						DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow"));
-	Font_Gleis_Info_0.CreateFont(14, 0, 0, 0, 400,
-						FALSE, FALSE, 0, ANSI_CHARSET,
-						OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
-						DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow"));
-	Font_Gleis_Info_90.CreateFont(11, 0, 2700, 0, 400,
-						FALSE, FALSE, 0, ANSI_CHARSET,
-						OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
-						DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow"));
+	
 	Lok_in_Uhr = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_MUHR));
 	Lok_ge_Uhr = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_GUHR));
 	Lok_Hoch   = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_HOCH));
@@ -91,7 +80,6 @@ END_MESSAGE_MAP()
 void C3DMeterGleis::OnInitDialog(CGleisPlan *pPlan)
 {
 	DataPlan = pPlan;
-	DataBlock = &pPlan->Block_Data;
 	RunThread = true;
 	AfxBeginThread(Thread_Update_Gleis, this);
 }
@@ -125,26 +113,7 @@ void C3DMeterGleis::OnPaint(void)
 	Brush_Old = pDC->SelectObject(&Brush_Weiche) ;
 	Font_Old  = pDC->SelectObject(&Font_Block_0) ;
 	//ZeichenTest();
-
-	for(int i = 1; i < (DataBlock->GetAnzahl_Block()); i++)
-	{
-		switch(DataBlock->Get_BlockType(i))
-		{
-			case BlockType::isWeiche:
-				ZeichneWeiche(i);
-			    break;
-			case BlockType::isBlock:
-			case BlockType::isGleis:
-				ZeichneBlock(i);
-				ZeicheLok(&Test_DC, i);
-				pDC->SelectObject(&Pen_Taster);
-				ZeicheTaster(i);
-				break;
-		}
-
-	}
-	pDC->SelectObject(&Pen_Melder);
-	ZeicheMelder();
+	DataPlan->ZeicheStrecke(pDC);
 
 	pDC->SelectObject(&Pen_Old);
 	pDC->SelectObject(&Brush_Old);
@@ -163,8 +132,8 @@ void C3DMeterGleis::ReconstructControl()
 }
 void C3DMeterGleis::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	DataBlock->SchalteWeiche(point);
-	DataBlock->KlickTasterSchalten(point);
+	DataPlan->Kick_Block(point);
+//	DataBlock->KlickTasterSchalten(point);
 	
 	CStatic::OnLButtonDown(nFlags, point);
 }
@@ -216,174 +185,13 @@ void C3DMeterGleis::ZeichenHintergrund(CDC * pDC_H, CRect &rect)
    pDC_H->SelectObject(pOldPen);
    pDC_H->SelectObject(pOldFont);
 }
-void C3DMeterGleis::ZeichneBlock(byte Nr)
-{
-	CString LokTexT;
-	CString GleisText;
-	int x_txt_B , y_txt_B, x_txt_G, y_txt_G;
-	CRect GleisFeld;
-	CPoint Prellbock[2];
-	SetzeBlockFarbe(Nr);
-	
-	pDC->MoveTo(DataBlock->GetWerte_Block(Nr).EinPos[0]);
-	pDC->LineTo(DataBlock->GetWerte_Block(Nr).MitPos[0]);
-	pDC->LineTo(DataBlock->GetWerte_Block(Nr).MitPos[1]);
-	pDC->LineTo(DataBlock->GetWerte_Block(Nr).AusPos[0]);
-
-	if (DataBlock->GetWerte_Block(Nr).EingangBlock[0] == 0xFF)
-	{
-		if (DataBlock->GetWerte_Block(Nr).EinPos[0].x == DataBlock->GetWerte_Block(Nr).AusPos[0].x)
-		{
-			Prellbock[0] = CPoint(-3, 0);
-			Prellbock[1] = CPoint(+3, 0);
-		}
-		if (DataBlock->GetWerte_Block(Nr).EinPos[0].y == DataBlock->GetWerte_Block(Nr).AusPos[0].y)
-		{
-			Prellbock[0] = CPoint(0, -3);
-			Prellbock[1] = CPoint(0, +3);
-		}
-
-		pDC->MoveTo(DataBlock->GetWerte_Block(Nr).EinPos[0] + Prellbock[0]);
-		pDC->LineTo(DataBlock->GetWerte_Block(Nr).EinPos[0] + Prellbock[1]);
-	}
-
-	if (DataBlock->GetWerte_Block(Nr).AusgangBlock[0] == 0xFF)
-	{
-		if (DataBlock->GetWerte_Block(Nr).MitPos[1].x == DataBlock->GetWerte_Block(Nr).AusPos[0].x)
-		{
-			Prellbock[0] = CPoint(-3, 0);
-			Prellbock[1] = CPoint(+3, 0);
-		}
-		if (DataBlock->GetWerte_Block(Nr).MitPos[1].y == DataBlock->GetWerte_Block(Nr).AusPos[0].y)
-		{
-			Prellbock[0] = CPoint(0, -3);
-			Prellbock[1] = CPoint(0, +3);
-		}
-
-		pDC->MoveTo(DataBlock->GetWerte_Block(Nr).AusPos[0] + Prellbock[0]);
-		pDC->LineTo(DataBlock->GetWerte_Block(Nr).AusPos[0] + Prellbock[1]);
-	}
-	// Das Gleis Feld Zeichnen
-	if (DataBlock->GetWerte_Block(Nr).Block_Type == BlockType::isGleis)
-	{
-		CFont* Block = NULL;
-		CFont* InfoGleis = NULL;
-		GleisText = DataBlock->Get_Gleis_Name(Nr);
-		if (DataBlock->ist_besetzt(Nr))
-			LokTexT = DataBlock->GetZugName_in_Block(Nr);
-		else
-			LokTexT = _T("-");
-
-		// Glies von Links nach Rechts
-		if (DataBlock->GetWerte_Block(Nr).MitPos[0].y == DataBlock->GetWerte_Block(Nr).MitPos[1].y)
-		{
-			Block = &Font_Block_0;
-			InfoGleis = &Font_Gleis_Info_0;
-			GleisFeld.SetRect((DataBlock->GetWerte_Block(Nr).TextPos +CPoint(70, -10)), (DataBlock->GetWerte_Block(Nr).TextPos + CPoint(150, 10)));
-			x_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.x + 74;
-			y_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.y - 8;
-			x_txt_G = x_txt_B;
-			y_txt_G = y_txt_B + 18;
-		}
-		// Gleis von Oben nach unten
-		if (DataBlock->GetWerte_Block(Nr).MitPos[0].x == DataBlock->GetWerte_Block(Nr).MitPos[1].x)
-		{
-			Block = &Font_Block_90;
-			InfoGleis = &Font_Gleis_Info_90;
-			GleisFeld.SetRect((DataBlock->GetWerte_Block(Nr).TextPos + CPoint(-10, 65)), (DataBlock->GetWerte_Block(Nr).TextPos + CPoint(10,150)));
-			x_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.x + 8;
-			y_txt_B = DataBlock->GetWerte_Block(Nr).TextPos.y + 68;
-			x_txt_G = x_txt_B - 20;
-			y_txt_G = y_txt_B;
-		}
-		pDC->SelectObject(&Pen_SW);
-		pDC->SelectObject(&Brush_White);
-		pDC->SelectObject(Block);
-		// Zug in Block schreiben
-		pDC->Rectangle(GleisFeld);
-		pDC->SetTextAlign(TA_LEFT);
-		pDC->SetBkColor(colorWeiß);
-		pDC->TextOutW(x_txt_B, y_txt_B, LokTexT);
-		// Gleisbeschriften
-		pDC->SelectObject(InfoGleis);
-		pDC->SetBkColor(colorHinterGrund);
-		pDC->TextOutW(x_txt_G, y_txt_G, GleisText); // Beschreibung Gleis
-	}
-	ZeicheAchteck(DataBlock->GetWerte_Block(Nr).TextPos, Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
-}
-
-void C3DMeterGleis::ZeichneWeiche(byte Nr)
-{
-	if(DataBlock->is_DoppelWeiche(Nr))
-	{
-		bool ES = DataBlock->Get_Stellung_Weiche_Ein(Nr);
-		bool AS = DataBlock->Get_Stellung_Weiche_Aus(Nr); 
-		pDC->SelectObject(&Pen_White);
-		pDC->MoveTo(DataBlock->Get_Weiche_EinPos(Nr,!ES));
-		pDC->LineTo(DataBlock->Get_Weiche_MitPos(Nr));
-		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, !AS));
-
-		SetzeBlockFarbe(Nr);
-		pDC->MoveTo(DataBlock->Get_Weiche_EinPos(Nr,ES));
-		pDC->LineTo(DataBlock->Get_Weiche_MitPos(Nr));
-		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, AS));
-		pDC->SelectObject(&Pen_Ro);
-		ZeicheAchteck(DataBlock->Get_Weiche_TexPos(Nr), Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
-	}
-	else
-	{
-		bool S = DataBlock->Get_Stellung_Weiche(Nr);
-		//pDC->SelectObject(&Pen_SW);
-		//pDC->Rectangle(DataBlock->Get_Weichen_Feld(i));
-
-		// Zeiche erst leere Strecke
-		pDC->SelectObject(&Pen_White);
-		pDC->MoveTo(DataBlock->Get_Weiche_MitPos(Nr));
-		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, !S));
-
-		SetzeBlockFarbe(Nr);
-		pDC->MoveTo(DataBlock->Get_Weiche_EinPos(Nr));
-		pDC->LineTo(DataBlock->Get_Weiche_MitPos(Nr));
-		pDC->LineTo(DataBlock->Get_Weiche_AusPos(Nr, S));
-		pDC->SelectObject(&Pen_Ro);
-		ZeicheAchteck(DataBlock->Get_Weiche_TexPos(Nr), Nr, DataBlock->GetWerte_Block(Nr).Block_Type);
-	}
-}
-
-void C3DMeterGleis::ZeicheMelder()
-{
-	CString TextNr, TextInfo;
-	CRect Kreis;
-
-		for (int i = 0; i < DataBlock->GetAnzahl_Melder(); i++)
-		{
-			if (DataBlock->Show_Melder(i))
-			{
-				pDC->SetTextAlign(TA_LEFT | TA_CENTER);
-
-				Kreis = CRect(-6, -6, 6, 6);
-				Kreis.OffsetRect(DataBlock->Get_Melder_Position(i));
-				if (DataBlock->Get_Melder(i))
-				{					pDC->SelectObject(&Brush_Melder_I);				}
-				else
-				{					pDC->SelectObject(&Brush_Melder_O);				}
-				pDC->Ellipse(Kreis);
-				if (Zeige[Zeichne_Melder_Nr])
-				{
-					pDC->SelectObject(&Font_Gleis_Info_0);
-					pDC->SetBkColor(colorHinterGrund);
-					TextNr.Format(_T("%3i"), i);
-					pDC->TextOut(DataBlock->Get_Melder_PositionText(i).x, DataBlock->Get_Melder_PositionText(i).y, TextNr);
-				}
-			}
-		}
-}
 
 void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
 {
 	CString TextNr, TextInfo;
 	for (int i = 0; i < 2; i++)
 	{
+		/*
 		if (DataBlock->Show_Taster(Block_Nr, (bool) i))
 		{
 			CBrush Bneu;
@@ -408,9 +216,11 @@ void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
 				break;
 			}
 			pDC->Ellipse(DataBlock->Get_Taster_Position(Block_Nr, (bool) i));
-		}
+			
+		} */
 	}
 }
+
 
 void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 {
@@ -481,6 +291,7 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 
 void C3DMeterGleis::SetzeBlockFarbe(byte Nr)
 {
+	/*
 	if (DataBlock->ist_frei(Nr))
 		pDC->SelectObject(&Pen_Gr);
 	else
@@ -502,11 +313,11 @@ void C3DMeterGleis::SetzeBlockFarbe(byte Nr)
 			pDC->SelectObject(&Pen_hR);
 			break;
 		}
-	}
-
+	} */
 }
 void C3DMeterGleis::ZeicheLok(CMem_DC LokBitmap, int Nr)
 {
+	/*
 	if (DataBlock->Get_BlockType(Nr) == BlockType::isGleis)
 	{
 		if (DataBlock->ist_besetzt(Nr))
@@ -549,7 +360,7 @@ void C3DMeterGleis::ZeicheLok(CMem_DC LokBitmap, int Nr)
 			pDC->SelectObject(&Brush_Hinterg);
 			pDC->BitBlt(P.x, P.y, 100, 50, LokBitmap, 0, 0, MERGECOPY); // RCCOPY);
 		}
-	}
+	} */
 }
 
 void C3DMeterGleis::ZeichenTest()
