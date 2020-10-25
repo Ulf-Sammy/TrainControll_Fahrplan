@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "ComXpressNet.h"
+#include "TrainControll_Fahrplan.h"
 
 CCom_XpressNet::CCom_XpressNet(void)
 {
@@ -8,6 +9,12 @@ CCom_XpressNet::CCom_XpressNet(void)
     HeadSend_Liste = 0;
 	TailSend_Liste = 0;
 	bytesSend = 0;
+	//COM_status = *COMSTAT::cbInQue ;
+	Error_Com = 0;
+	ComInfo = _T("Kein Mega");
+	ComInfo_Nr = 0;
+	LZVInfo_Nr = 2;
+	in_Run = true;
 }
 CCom_XpressNet::~CCom_XpressNet(void)
 {
@@ -26,7 +33,7 @@ bool CCom_XpressNet::OpenCom(int Port)
 		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
-		if (m_hCom == INVALID_HANDLE_VALUE) 
+	if (m_hCom == INVALID_HANDLE_VALUE) 
 	{
 		strPortName.Format(_T(" Serieller Port Com%d: kann nicht geöffnet werden "), Port);
 		TRACE(_T("ERROR %s !!\n"), strPortName);
@@ -45,7 +52,7 @@ bool CCom_XpressNet::OpenCom(int Port)
 		}
 		else
 		{
-			dcbSerialParams.BaudRate = 112500; 
+			dcbSerialParams.BaudRate = 115200; 
 			dcbSerialParams.ByteSize = 8;
 			dcbSerialParams.Parity   = NOPARITY;
 			dcbSerialParams.StopBits = ONESTOPBIT;
@@ -70,8 +77,30 @@ bool CCom_XpressNet::OpenCom(int Port)
 			}
 		}
 	}
+	EscapeCommFunction(m_hCom, SETDTR); // Reset Arduino
+	EscapeCommFunction(m_hCom, CLRDTR);
+	//Sleep(5000);
+	byte  c;
+	DWORD bytesRead;
+	for (;;)
+	{
+		if (::ReadFile(m_hCom, &c, 1, &bytesRead, NULL) == 0)
+		{
+			TRACE(_T("Lesefehler Com"));
+		}
+		if (c == '\r')
+		{
+			ComInfo_Nr = 1;
+			TRACE2(" - Serieller Com Port %i geöffnet von Mega [ %s ] \n", PortNr, ComInfo);
+			return(true);
+		}
+		if (bytesRead != 0)		ComInfo.AppendChar(c);
+		if (c == '\n')
+		{
+			ComInfo.Empty();
+		}
+	}
 	return(true);
-
 }
 void CCom_XpressNet::CloseCom()
 {
@@ -97,6 +126,7 @@ void CCom_XpressNet::SendeNeueDaten()
 		byte l = COM_LEN(Send_Liste[TailSend_Liste][0]);
 		if (!WriteFile(this->m_hCom, &Send_Liste[TailSend_Liste], l, &bytesSend, 0))
 		{
+			ComInfo_Nr = 2;
 			ClearCommError(this->m_hCom, &this->Error_Com, &this->COM_status);
 			TRACE(_T("Fehler beim Senden !!! \n"));
 		}
@@ -124,7 +154,7 @@ void CCom_XpressNet::SendeZugDaten(XpNSendwas was, byte Adresse, byte Daten)
 }
 void CCom_XpressNet::SendeWeicheDaten(TrainCon_Paar Wl)
 {
-	TRACE(_T("schalte Weiche Nr [%i] = %i \n"), Wl.GetWert(), Wl.GetBit());
+	Set_Debug_Text(Wl.GetWert(), Wl.GetBit());
 	Send_Liste[HeadSend_Liste][2] = (byte)Wl.GetBit();
 	Send_Liste[HeadSend_Liste][1] = Wl.GetWert();
 	Send_Liste[HeadSend_Liste][0] = COM_WRITE_WEICHE;
@@ -154,11 +184,18 @@ void CCom_XpressNet::Sende_Read_CV(byte CV, byte Wert)
 void CCom_XpressNet::Sende_Setto_Prog(bool onoff)
 {
 	Send_Liste[HeadSend_Liste][2] = 0;
-	if( onoff)
+	if (onoff)
+	{
 		Send_Liste[HeadSend_Liste][1] = (byte)ControlStatus::Program;
+		LZVInfo_Nr = 4;
+		in_Run = false;
+	}
 	else
-		Send_Liste[HeadSend_Liste][1] = (byte)ControlStatus::Testen;
-
+	{
+		Send_Liste[HeadSend_Liste][1] = (byte)ControlStatus::Fahren;
+		LZVInfo_Nr = 1;
+		in_Run = true;
+	}
 	Send_Liste[HeadSend_Liste][0] = COM_WRITE_MOD; // Befehl Schreiben
 	Neu_Send_Befehl();
 }
@@ -167,76 +204,35 @@ void CCom_XpressNet::Neu_Send_Befehl()
 	HeadSend_Liste = (HeadSend_Liste + 1) % SENDBUFFER;
 }
 // Nur im Setup 
-void CCom_XpressNet::Set_In_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode)
+void CCom_XpressNet::StartKomunikation()
 {
-	bool NoCom = true;
-	Befehl_Send[0] = COM_WRITE_MOD; // Befehl Schreiben
-	Befehl_Send[1] = (byte)Mode;
-	Befehl_Send[2] = SubMode;
-	SetTC_Message();
-	do
+	DWORD bytesSend;
+	Befehl_Send[0] = COM_WRITE_MOD;
+	if (!WriteFile(this->m_hCom, &Befehl_Send, 1, &bytesSend, 0))
 	{
-	} while (!GetTC_Message());
-	if ((Befehl_Read[0] == COM_ACKN_MOD) && (Befehl_Read[1] == (byte)Mode) && (Befehl_Read[2] == SubMode))
-	{
-		*LZVMode = Befehl_Read[3];
-	}
-	else
-	{
-		TRACE(_T(" Mode ist changed NOT OK !!!!! \n"));
+		ClearCommError(this->m_hCom, &this->Error_Com, &this->COM_status);
+		TRACE(_T("Fehler beim Senden !!!  StartKomunikation-CComBlockMelderNet \n"));
 	}
 }
-bool CCom_XpressNet::Get_Acknolage_Mode(ControlStatus Mode, byte SubMode, byte * LZVMode)
+
+byte CCom_XpressNet::GetStatus_LZV()
 {
-	do
-	{
-	} while (!GetTC_Message());
-	if ((Befehl_Read[0] == COM_ACKN_MOD) && (Befehl_Read[1] == (byte)Mode) && (Befehl_Read[2] == SubMode))
-	{
-		*LZVMode = Befehl_Read[3];
-		return true;
-	}
-	return false;
+	return (LZVInfo_Nr);
 }
-
-
-void CCom_XpressNet::SetWeichenAnzahl(byte Nr)
-{
-	// Block Nr = 0 gibt es nicht hier werden die Anzahl der Weichen geschickt
-	// sonst ob Block Frei oder bezetzt ist.
-	Befehl_Send[0] = COM_WRITE_WEICHE_ST;
-	Befehl_Send[1] = Nr;
-	SetTC_Message();
-	Sleep(300);
-}
-byte CCom_XpressNet::GetStatus_Setup_LZV()
-{
-	do
-	{
-	} while (!GetTC_Message());
-
-	if (Befehl_Read[0] == COM_SEND_LVZ_STA)
-	{
-		return (Befehl_Read[1]);    // Status
-	}
-	else
-		TRACE(_T("Fehler beim melden LZV Status  \n "));
-	return (0xFF);
-}
-
-
-
-
 bool CCom_XpressNet::GetTC_Message()
 {
 	byte  c;
 	DWORD bytesRead;
 	byte Nr = 0;
 	byte Len;
-
+	BOOL Error;
 	for (;;)
 	{
-		::ReadFile(m_hCom, &c, 1, &bytesRead, NULL);
+		Error = ::ReadFile(m_hCom, &c, 1, &bytesRead, NULL);
+		if (!Error)
+		{
+			ComInfo_Nr = 2;
+		}
 		if( bytesRead == 1)
 		{
 			if (Nr == 0) Len = (c & 0x07) ;
@@ -260,28 +256,108 @@ void CCom_XpressNet::SetTC_Message()
 	byte l = COM_LEN(Befehl_Send[0]);
 	if(!WriteFile(this->m_hCom, &Befehl_Send, l , &bytesSend, 0))
 	{
+		ComInfo_Nr = 2;
 		ClearCommError(this->m_hCom, &this->Error_Com, &this->COM_status);
 		TRACE(_T("Fehler beim Senden !!! \n"));
 	}
 }
 
-byte CCom_XpressNet::GetNextMessage()
+void CCom_XpressNet::DebugMessage()
 {
+	if (Befehl_Read[0] == COM_WRITE_MOD)		TRACE2("=> MSG: COM_WRITE_MOD       | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_ACKN_MOD)			TRACE2("=> MSG: COM_ACKN_MOD        | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_LVZ_STA)		TRACE2("=> MSG: COM_SEND_LVZ_STA    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_ERROR)		TRACE2("=> MSG: COM_SEND_ERROR      | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_DISPLAY)		TRACE2("=> MSG:	COM_SEND_DISPLAY    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_ZUG_D0)		TRACE2("=> MSG:	COM_WRITE_ZUG_D0    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_ZUG_D1)		TRACE2("=> MSG:	COM_WRITE_ZUG_D1    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_ZUG_D2)		TRACE2("=> MSG:	COM_WRITE_ZUG_D2    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_ZUG_D3)		TRACE2("=> MSG:	COM_WRITE_ZUG_D3    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_ZUG_D4)		TRACE2("=> MSG:	COM_WRITE_ZUG_D4    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_ZUG_D5)		TRACE2("=> MSG:	COM_WRITE_ZUG_D5    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_WEICHE)		TRACE2("=> MSG:	COM_WRITE_WEICHE    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_READ_ZUG_DA)		TRACE2("=> MSG:	COM_READ_ZUG_DA     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_READ_ZUG_D1)		TRACE2("=> MSG:	COM_READ_ZUG_D1     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_RELAIS)		TRACE2("=> MSG:	COM_SEND_RELAIS     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_RELAIS)		TRACE2("=> MSG:	COM_WRITE_RELAIS    | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_TIME)		TRACE2("=> MSG:	COM_SEND_TIME       | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_BLOCK)		TRACE2("=> MSG:	COM_SEND_BLOCK      | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_WEICHE)		TRACE2("=> MSG:	COM_SEND_WEICHE     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_ZUG_DA)		TRACE2("=> MSG:	COM_SEND_ZUG_DA     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_ZUG_D1)		TRACE2("=> MSG:	COM_SEND_ZUG_D1     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_ZUG_D2)		TRACE2("=> MSG:	COM_SEND_ZUG_D2     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_ZUG_D3)		TRACE2("=> MSG:	COM_SEND_ZUG_D3     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_ZUG_D4)		TRACE2("=> MSG:	COM_SEND_ZUG_D4     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_ZUG_D5)		TRACE2("=> MSG:	COM_SEND_ZUG_D5     | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_MELDER_TI)  TRACE2("=> MSG:	COM_WRITE_MELDER_TI | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_MELDER_ST)  TRACE2("=> MSG:	COM_WRITE_MELDER_ST | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_WEICHE_ST)  TRACE2("=> MSG:	COM_WRITE_WEICHE_ST | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_LVZ_POWER)  TRACE2("=> MSG:	COM_WRITE_LVZ_POWER | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_SEND_CV)          TRACE2("=> MSG:	COM_SEND_CV         | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_WRITE_CV)         TRACE2("=> MSG:	COM_WRITE_CV        | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+	if (Befehl_Read[0] == COM_READ_CV)          TRACE2("=> MSG:	COM_READ_CV         | %x | %x  \n", Befehl_Read[1], Befehl_Read[2]);
+}
+void CCom_XpressNet::Set_Debug_Text(byte Block, bool Bit)
+{
+	CString Text;
+	static byte Pos = 0;
+	if (Bit)
+	{
+		Text.Format(_T("Weiche %2i : I"), Block);
+	}
+	else
+	{
+		Text.Format(_T("Weiche %2i : o"), Block);
+	}
+	Text = theApp.Get_Time(Text);
+	if (Pos == 11)
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			Debug_Text[i] = Debug_Text[i + 1];
+		}
+		Debug_Text[10] = Text;
+	}
+	else
+	{
+		Debug_Text[Pos] = Text;
+		Pos++;
+	}
+
+}
+void CCom_XpressNet::Set_Debug_Text()
+{
+	CString Text;
+	static byte Pos = 0;
+	Text.Format(_T("Zug Adr  %2i : %2i"), Befehl_Read[6],(Befehl_Read[1] & 0x1F));
+	Text = theApp.Get_Time(Text);
+	if (Pos == 11)
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			Debug_Text[i] = Debug_Text[i + 1];
+		}
+		Debug_Text[10] = Text;
+	}
+	else
+	{
+		Debug_Text[Pos] = Text;
+		Pos++;
+	}
+
+
+}
+byte CCom_XpressNet::GetNextMessage()
+{ 
 	if (GetTC_Message())
 	{
-		TRACE3(" Neue Meldung | %x | %x | %x  \n",Befehl_Read[0], Befehl_Read[1], Befehl_Read[2]);
+		DebugMessage();
 		return Befehl_Read[0];
 	}
 	else
 		return false;
 }
 
-byte CCom_XpressNet::Hole_Acknolage_Mode()
-{
-	//(Befehl_Read[0] == COM_ACKN_MOD) 
-	return(Befehl_Read[1]);
-	//	(Befehl_Read[2] == SubMode))
-}
 
 void CCom_XpressNet::HoleZugData(byte *Data, byte Adr)
 {
@@ -307,13 +383,13 @@ byte CCom_XpressNet::HoleStatus_LZV()
 {
 	if (Befehl_Read[0] == COM_SEND_LVZ_STA)
 	{
+		LZVInfo_Nr = Befehl_Read[1];
 		return (Befehl_Read[1]);    // Status
 	}
 	else
 		TRACE(_T("Fehler beim melden LZV Status  \n "));
 	return (0xFF);
 }
-
 byte CCom_XpressNet::Hole_CV_Wert()
 {
 	return(Befehl_Read[2]);;
@@ -326,12 +402,12 @@ byte CCom_XpressNet::DoWorkonCV(bool RW, byte CV, byte Wert)
 	if (RW) // schreibe CV Wert;
 	{
 		Befehl_Send[0] = COM_WRITE_CV; // Befehl Schreiben
-		TRACE2("write ->  CV Nr.: %i = %i \n", CV, Wert);
+		TRACE2("write ->  CV Nr.: %02i =  %i \n", CV, Wert);
 	}
 	else
 	{
 		Befehl_Send[0] = COM_READ_CV; // Befehl Lesen
-		TRACE2("Read <- CV N.: %i = %i \n", CV, Wert);
+		TRACE2("Read <- CV N.: %02i =  %i \n", CV, Wert);
 	}
 	Befehl_Send[1] = CV;
 	Befehl_Send[2] = Wert;
@@ -358,4 +434,28 @@ byte CCom_XpressNet::DoWorkonCV(bool RW, byte CV, byte Wert)
 		}
 	} while (Info);
     return(Wert);
+}
+
+byte CCom_XpressNet::Get_VersionInfo(CString *Text)
+{
+	*Text = ComInfo;
+	return ComInfo_Nr;
+}
+
+bool CCom_XpressNet::Get_Mode_Run()
+{
+	return in_Run;
+}
+
+void CCom_XpressNet::ZeichneWeichenMeldung(CDC* pDC)
+{
+	CFont* pOldFont;
+	pOldFont = pDC->SelectObject(&theApp.Font_Info_small);
+
+	for (int i = 0; i < 11; i++)
+	{
+		pDC->TextOutW(460, ((i * 8) + 725), Debug_Text[i]);
+	}
+	pDC->SelectObject(pOldFont);
+
 }

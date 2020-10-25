@@ -270,16 +270,16 @@ void CBlock_Strecke::Setup(CString InText, CPoint Step)
 			KlickRechteck = CRect(TextPos + CPoint(70, -10), TextPos + CPoint(_ttoi(InText.Mid(24, 3)), 10));
 			TextPos = TextPos + CPoint(74, -8);
 			TextBes = TextPos + CPoint(0, 20);
-			BeschriftungBlock.CreateFontW(16, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow"));
-			GleisBeschriftung.CreateFontW(14, 0, 0, 0, 400, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow"));
+			BeschriftungBlock.CreateFontIndirectW(&FontType_Ar_16_0);
+			GleisBeschriftung.CreateFontIndirectW(&FontType_Ar_14_0);
 		}
 		if (box == '|')
 		{
 			KlickRechteck = CRect(TextPos + CPoint(-10, 65), TextPos + CPoint(10, _ttoi(InText.Mid(24, 3))));
 			TextPos = TextPos + CPoint(8, 68);
 			TextBes = TextPos + CPoint(-20, 0);
-			BeschriftungBlock.CreateFont(14, 0, 2700, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow"));
-			GleisBeschriftung.CreateFont(11, 0, 2700, 0, 400, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow"));
+			BeschriftungBlock.CreateFontIndirectW(&FontType_Ar_14_270);
+			GleisBeschriftung.CreateFontIndirectW(&FontType_Ar_11_270);
 		}
 	}
 

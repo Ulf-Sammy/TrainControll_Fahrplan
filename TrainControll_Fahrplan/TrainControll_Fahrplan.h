@@ -12,17 +12,22 @@
 // Siehe TrainControll_Fahrplan.cpp für die Implementierung dieser Klasse
 //
 
+
 class CTrainControll_FahrplanApp : public CWinApp
 {
 public:
 	CTrainControll_FahrplanApp();
 // Überschreibungen
+	CFont Font_Info_s;
+	CFont Font_Info_small;
+	CString Get_Time(CString Info);
 public:
 	virtual BOOL InitInstance();
 
 // Implementierung
 
 	DECLARE_MESSAGE_MAP()
+
 };
 
 extern CTrainControll_FahrplanApp theApp;

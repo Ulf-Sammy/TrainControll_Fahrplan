@@ -1,23 +1,7 @@
 #include "pch.h"
 #include ".\3dmetergleis.h"
 #include "math.h"
-#include "resource.h"
-
-UINT Thread_Update_Gleis(LPVOID pParam)
-{
-	C3DMeterGleis* Info_Gleis = (C3DMeterGleis*)pParam;
-	Sleep(500);
-	do
-	{
-		if (Info_Gleis->DataPlan->isNewUpdate_Gleis())
-		{
-			TRACE(_T("update Bildschirm \n"));
-			Info_Gleis->Invalidate();
-		}
-		 //if (Info_Gleis->DataBlock->isNewUpdate_Taster()) 	 Info_Gleis->Invalidate();
-	} while (Info_Gleis->RunThread);
-	return 0;
-}
+#include "TrainControll_Fahrplan.h"
 
 
 C3DMeterGleis::C3DMeterGleis(void)
@@ -52,11 +36,7 @@ C3DMeterGleis::C3DMeterGleis(void)
 
 
 
-	Font_Info.CreateFont(15, 0, 0, 0, 400,
-						 FALSE, FALSE, 0, ANSI_CHARSET,
-						 OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-						 DEFAULT_QUALITY, 
-						 DEFAULT_PITCH|FF_SWISS, _T("Arial Narrow")) ;
+	
 	
 	Lok_in_Uhr = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_MUHR));
 	Lok_ge_Uhr = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_GUHR));
@@ -66,8 +46,6 @@ C3DMeterGleis::C3DMeterGleis(void)
 //
 C3DMeterGleis::~C3DMeterGleis(void)
 {
-	RunThread = false;
-	Sleep(500);
 }
 
 //
@@ -80,8 +58,6 @@ END_MESSAGE_MAP()
 void C3DMeterGleis::OnInitDialog(CGleisPlan *pPlan)
 {
 	DataPlan = pPlan;
-	RunThread = true;
-	AfxBeginThread(Thread_Update_Gleis, this);
 }
 
 void C3DMeterGleis::OnSize(UINT nType, int cx, int cy)
@@ -97,6 +73,8 @@ void C3DMeterGleis::OnPaint(void)
 	CMem_DC memDC(&dc, &m_rectCtrl);
 	pDC = &memDC;
 	CMem_DC Test_DC(&dc, &m_rectCtrl);
+	static int Kick = 0;
+	CString Text;
 
 	if ((m_dcBackground.GetSafeHdc() == NULL) || (m_bitmapBackground.m_hObject == NULL))
 	{
@@ -114,11 +92,12 @@ void C3DMeterGleis::OnPaint(void)
 	Font_Old  = pDC->SelectObject(&Font_Block_0) ;
 	//ZeichenTest();
 	DataPlan->ZeicheStrecke(pDC);
-
+	Text.Format(_T(" gezeichnet %i mal !"), Kick);
+	pDC->TextOutW(10, 10, Text);
 	pDC->SelectObject(&Pen_Old);
 	pDC->SelectObject(&Brush_Old);
 	pDC->SelectObject(&Font_Old) ;
-	DataPlan->Set_Startup(true);
+	Kick++;
 }
 void C3DMeterGleis::ReconstructControl()
 {
@@ -157,7 +136,7 @@ void C3DMeterGleis::ZeichenHintergrund(CDC * pDC_H, CRect &rect)
 
    pOldBrush = pDC_H->SelectObject(&Brush_Hinterg);
    pOldPen   = pDC_H->SelectObject(&Pen_Back);
-   pOldFont  = pDC_H->SelectObject(&Font_Info) ;
+   pOldFont  = pDC_H->SelectObject(&theApp.Font_Info_s) ;
    pDC_H->Rectangle(rect);
    if (Zeige[Zeichne_Gitter])
    {

@@ -184,11 +184,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="3DMeterGleis.h" />
-    <ClInclude Include="3DMeterStatus.h" />
     <ClInclude Include="CaptureGraph.h" />
     <ClInclude Include="CDataFahrplan.h" />
     <ClInclude Include="CDataXpressNet.h" />
     <ClInclude Include="CDatenBankLok.h" />
+    <ClInclude Include="CDlg_Debug_Mega.h" />
     <ClInclude Include="CDlg_Fahrplan.h" />
     <ClInclude Include="CDlg_RunCam_Train.h" />
     <ClInclude Include="Com_BlockMelderNet.h" />
@@ -218,14 +218,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3DMeterGleis.cpp" />
-    <ClCompile Include="3DMeterStatus.cpp" />
     <ClCompile Include="CaptureGraph.cpp" />
     <ClCompile Include="CDataFahrplan.cpp" />
     <ClCompile Include="CDataXpressNet.cpp" />
     <ClCompile Include="CDatenBankLok.cpp" />
+    <ClCompile Include="CDlg_Debug_Mega.cpp" />
     <ClCompile Include="CDlg_Fahrplan.cpp" />
     <ClCompile Include="CDlg_RunCam_Train.cpp" />
-    <ClCompile Include="CGleisMelderNet.cpp" />
+    <ClCompile Include="Com_BlockMelderNet.cpp" />
     <ClCompile Include="CGleisPlan.cpp" />
     <ClCompile Include="CBlockInfo.cpp" />
     <ClCompile Include="CustomTrace.cpp" />

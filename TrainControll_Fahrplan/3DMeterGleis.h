@@ -3,8 +3,6 @@
 #include "CGleisPlan.h"
 #include "MemDC.h"
 
-UINT Thread_Update_Gleis(LPVOID pParam);
-
 enum { Zeichne_Gitter, Zeichne_Block_Nr, Zeichne_Gleis_Nr, Zeichne_Weichen_Nr, Zeichne_Tasten_Nr, Zeichne_Melder_Nr, Zeichnen_Ende };
 
 class C3DMeterGleis: public CStatic
@@ -14,7 +12,6 @@ public:
 	~C3DMeterGleis(void);
 	void OnInitDialog(CGleisPlan* pBlock);
 	void ReconstructControl();
-	bool RunThread = false;
 	CGleisPlan *DataPlan = NULL;
 
 protected:
@@ -51,7 +48,6 @@ protected:
 	CBrush Brush_Melder_O;
 	CBrush* Brush_Old = NULL;
 	
-	CFont Font_Info;
 	CFont Font_Block_0;
 	CFont Font_Block_90;
 	CFont Font_Gleis_Info_0;
@@ -68,8 +64,6 @@ protected:
 	
 	CBitmap *m_pBitmapOldBackground = NULL;
 	CBitmap m_bitmapBackground ;
-
-
 
 
 	//{{AFX_MSG(C3DMeterGleis)

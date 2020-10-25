@@ -36,9 +36,6 @@
     <ClInclude Include="3DMeterGleis.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="3DMeterStatus.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="CaptureGraph.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -111,6 +108,9 @@
     <ClInclude Include="CBlock.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="CDlg_Debug_Mega.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TrainControll_Fahrplan.cpp">
@@ -123,9 +123,6 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="3DMeterGleis.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="3DMeterStatus.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="CaptureGraph.cpp">
@@ -185,9 +182,6 @@
     <ClCompile Include="InPlaceEdit.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="CGleisMelderNet.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="ComXpressNet.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -195,6 +189,12 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="CBlock.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Debug_Mega.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Com_BlockMelderNet.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

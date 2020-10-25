@@ -39,11 +39,24 @@ CTrainControll_FahrplanApp theApp;
 
 // CTrainControll_FahrplanApp-Initialisierung
 
+CString CTrainControll_FahrplanApp::Get_Time(CString Info)
+{
+	SYSTEMTIME  lt;
+	CString	Text;
+
+	GetLocalTime(&lt);
+
+	Text.Format(_T(">  %02d:%02d:%02d :%03d  = %s"),lt.wHour, lt.wMinute,lt.wSecond, lt.wMilliseconds, Info);
+	 return Text;
+	 //GetTickCount64();
+}
+
 BOOL CTrainControll_FahrplanApp::InitInstance()
 {
 	CWinApp::InitInstance();
 
-
+	Font_Info_s.CreateFontIndirectW(&FontType_Ar_15_0);
+	Font_Info_small.CreateFontIndirectW(&FontType_Ar_9_0);
 	// Shell-Manager erstellen, falls das Dialogfeld
 	// Shellstrukturansicht- oder Shelllistenansicht-Steuerelemente enthält.
 	//CShellManager *pShellManager = new CShellManager;
@@ -55,7 +68,7 @@ BOOL CTrainControll_FahrplanApp::InitInstance()
 	// Ändern Sie den Registrierungsschlüssel, unter dem Ihre Einstellungen gespeichert sind.
 	// TODO: Ändern Sie diese Zeichenfolge entsprechend,
 	// z.B. zum Namen Ihrer Firma oder Organisation.
-	SetRegistryKey(_T("Vom lokalen Anwendungs-Assistenten generierte Anwendungen"));
+	//SetRegistryKey(_T("Vom lokalen Anwendungs-Assistenten generierte Anwendungen"));
 
 	CTrainControll_FahrplanDlg dlg;
 	m_pMainWnd = &dlg;

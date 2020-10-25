@@ -106,6 +106,7 @@
 
 #define FILE_ALLE_ZUEGE   "Daten\\ULF_%d_ZUGDATA.txt"
 #define FILE_ALLE_ZUEGE_BILDER "Images\\%s.bmp"
+#define FILE_ALLE_BILDER "Images\\%s"
 
 #define MAXARRAY 100
 #define MAXDECODERTYPE 5
@@ -134,11 +135,18 @@ const COLORREF colorGelb = RGB(253, 240, 2);
 const COLORREF colorRot = RGB(255, 0, 0);
 const COLORREF colorSchwarz = RGB(0, 0, 0);
 
+const tagLOGFONTW FontType_Ar_9_0 =  {  9, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial") };
+const tagLOGFONTW FontType_Ar_14_0 = { 14, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
+const tagLOGFONTW FontType_Ar_15_0 = { 15, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
+const tagLOGFONTW FontType_Ar_16_0 = { 16, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
+const tagLOGFONTW FontType_Ar_11_270 = { 11, 0, 2700, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
+const tagLOGFONTW FontType_Ar_14_270 = { 14, 0, 2700, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
+
 const int Rect_X = 1600;
 const int Rect_Y = 660;
 
 
-enum class ControlStatus { No_Arduino = -1, Begin_COM = 0, Setup_Controller, Program, Testen, Ende_COM };
+enum class ControlStatus { No_Arduino = -1, Setup =0, Program, Fahren, Ende_COM };
 enum class XpNSendwas { FGruppe0 = 0, FGruppe1, FGruppe2, FGruppe3, FGruppe4, FGruppe5 };
 enum class BlockType { isWeiche, isBlock, isGleis };
 enum class WeichenType { linksWeiche, rechtsWeiche, L_DoppelWeiche, R_DoppelWeiche};

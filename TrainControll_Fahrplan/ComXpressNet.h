@@ -9,6 +9,7 @@ public:
 	CCom_XpressNet(void);
 	~CCom_XpressNet(void);
 	bool OpenCom(int Port);
+	void StartKomunikation();
 	void CloseCom();
 	bool NoComToXpressNet();
 	void SendeNeueDaten();
@@ -21,22 +22,19 @@ public:
 	void Sende_Setto_Prog(bool onoff);
 	byte GetNextMessage(); // nur in Task
 
-	byte Hole_Acknolage_Mode();
 	void HoleZugData(byte *Data, byte Adr);
 	TrainCon_Paar HoleMelderData();
 	TrainCon_Paar HoleWeicheData();
 	byte HoleStatus_LZV();
 	byte Hole_CV_Wert();
 	// Nur für Setup ;
-	void Set_In_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode);
-	bool Get_Acknolage_Mode(ControlStatus Mode, byte SubMode, byte *LZVMode);
-	int GetMelderAnzahl();
-	void SetWeichenAnzahl(byte Nr);
-	void SetMelder_Zeit(byte Nr);
-	byte GetStatus_Setup_LZV();
+	byte GetStatus_LZV();
 
 	byte DoWorkonCV(bool RW, byte CV, byte Wert);
-
+	byte Get_VersionInfo(CString *text);
+	bool Get_Mode_Run();
+	void ZeichneWeichenMeldung(CDC* pDC);
+	void ZeichneZugInfoMeldung(CDC* pDC);
 
 protected:
 	const byte SendAdr[6] = { COM_WRITE_ZUG_D0 ,COM_WRITE_ZUG_D1,COM_WRITE_ZUG_D2,COM_WRITE_ZUG_D3,COM_WRITE_ZUG_D4,COM_WRITE_ZUG_D5 };
@@ -45,15 +43,21 @@ protected:
 	COMSTAT COM_status;
 	DWORD Error_Com;
 	int PortNr;
-	bool in_Setup_Setup;
+	CString ComInfo;
+	byte ComInfo_Nr;
+	byte LZVInfo_Nr;
+	bool in_Run;
 	int HeadSend_Liste;
 	int TailSend_Liste;
 	byte Send_Liste[SENDBUFFER][8];
 	byte Befehl_Read[8] = {0,0,0,0,0,0,0,0};
 	byte Befehl_Send[8] = { 0,0,0,0,0,0,0,0 };
+	CString Debug_Text[11];
+	CString Debug_Text2[11];
 	void Neu_Send_Befehl();
 	bool GetTC_Message();
 	void SetTC_Message();
-	
-
+	void DebugMessage();
+	void Set_Debug_Text(byte Block, bool Bit);
+	void Set_Debug_Text();
 };

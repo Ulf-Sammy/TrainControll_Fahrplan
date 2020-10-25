@@ -16,63 +16,40 @@ UINT Thread_Update_Time(LPVOID pParam)
 	return 0;
 }
 
-UINT Thread_Update_Block(LPVOID pParam)
+UINT Thread_Update_UNO(LPVOID pParam)
 {
 	CGleisPlan* Info = (CGleisPlan*)pParam;
+	byte Data;
+	Info->Setup_MelderControl();
 	TRACE(_T("starte update Thread Uno.....\n"));
 	do
 	{
-		switch (Info->GetNextMessage_Uno())
+		Data = Info->GetNextMessage_Uno();
+		if (Data)
 		{
-			case false:
-				break;
-			case COM_SEND_BLOCK:
-				Info->NewDataMelder();
-				break;
-		    case COM_SEND_RELAIS:
-				Info->NewDataRelais();
-				break;
+			Info->Verarbeite_Uno_Daten(Data);
 		}
 	} while (Info->ListentoCom);
 	TRACE(_T("ende Update Thread Uno.....\n"));
 	return 0;
 }
 
-UINT Thread_Update(LPVOID pParam)
+UINT Thread_Update_MEGA(LPVOID pParam)
 {
 	CGleisPlan * Info = (CGleisPlan*)pParam;
+	byte Data;
 	TRACE(_T("starte update Thread Mega.....\n"));
-	do
-	{
-	} while (Info->isreadyforStartup());
-	TRACE(_T("starte Setup .....\n"));
 	 Info->Setup_TrainControl();
-	TRACE(_T("ende   Setup .....\n"));
+	TRACE(_T("run Thread   .....\n"));
 	Info->Thread_Run = true;
 	do
 	{
 		// Daten Empfangen
-		switch (Info->GetNextMessage_Mega())
-			{// alles was vom Train Control Kommt
-			case false:
-				break;
-			case COM_ACKN_MOD:
-				Info->New_Controll_Mode();
-				break;
-			case COM_SEND_LVZ_STA:
-				// Status der LVZ Zentrale
-				Info->New_Daten_LVZ();
-				break;
-			case COM_SEND_WEICHE:
-				Info->NewDataWeiche();
-				break;
-			case COM_SEND_ZUG_DA:// Zug antwortet
-				Info -> NewDataZug();
-				break;
-			case COM_SEND_CV:
-				Info->New_CV_Daten();
-				break;
-			}
+		Data = Info->GetNextMessage_Mega();
+		if(Data)
+		{
+			Info->Verarbeite_Mega_Daten(Data);
+		}
 		// Daten Senden
 		Info->New_Daten_Senden();
 	} while (Info->ListentoCom);
@@ -84,9 +61,8 @@ UINT Thread_Update(LPVOID pParam)
 CGleisPlan::CGleisPlan()
 {
 	
+
 }
-
-
 CGleisPlan::~CGleisPlan()
 {
 }
@@ -94,14 +70,12 @@ CGleisPlan::~CGleisPlan()
 void CGleisPlan::Init()
 {
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-
 	Züge = &APP->meineLoks;
 	XpressNet = &APP->XpressNet;
 	BlockMelder = &APP->BlockMelder;
 	max_active_Loks = Züge->Init();
 	Lade_Daten();
 }
-
 
 byte CGleisPlan::GetNextMessage_Mega()
 {
@@ -116,21 +90,20 @@ byte CGleisPlan::GetNextMessage_Uno()
 void CGleisPlan::Start_Com_Thread()
 {
 	 // damit hört der Task zu
-	if (XpressNet->NoComToXpressNet())
+	if (XpressNet->NoComToXpressNet() && BlockMelder->NoComToBlockNet())
 	{
 		ListentoCom = false;
-		TRACE(_T(" Thread nicht gestart !!\n"));
+		TRACE(_T(" Thread nicht gestart Kein Uno & Mega !!\n"));
 	}
 	else
 	{
 		ListentoCom = true;
-		AfxBeginThread(Thread_Update, this);
-		AfxBeginThread(Thread_Update_Block, this);
+		AfxBeginThread(Thread_Update_MEGA, this);
+		AfxBeginThread(Thread_Update_UNO, this);
 		AfxBeginThread(Thread_Update_Time, this);
-		TRACE(_T(" Thread's gestart !!\n"));
+		TRACE(_T(" Thread's gestart für Uno und Mega !!\n"));
 	}
 	Set_Weiche(TrainCon_Paar(17, true));
-
 }
 
 void CGleisPlan::Stop_Com_Thread()
@@ -140,26 +113,8 @@ void CGleisPlan::Stop_Com_Thread()
 		ListentoCom = false; // damit hört der Task zu
 		{
 		} while (Thread_Run);
-		//Sleep(1000);
-		XpressNet->CloseCom();
 		TRACE(_T("So bin fertig mit dem Thread \n"));
 	}
-}
-
-void CGleisPlan::ChangeSetupMode(ControlStatus Mode, byte Sub )
-{
-//	CString TextControlStatus[5] = { _T("starte Komunikation: "),_T("Mache Setup arbeite an "),_T("Programmiere Zug "),_T("Fahren auf Strecke"),_T("stoppe Com:") };
-	ModeControl = Mode;
-	ModeSub     = Sub;
-	
-	XpressNet->Set_In_Mode(Mode, Sub, &StatusZentrale);
-	Neu_DataStatus.Putin();
-}
-
-void CGleisPlan::New_Controll_Mode()
-{
-	ModeControl  = (ControlStatus) XpressNet->Hole_Acknolage_Mode();
-	Neu_DataStatus.Putin();
 }
 
 
@@ -187,74 +142,67 @@ void CGleisPlan::showPlan_Dlg(byte LokNr, CString Info)
 {
 }
 
-bool CGleisPlan::isNewUpdate_Status()
-{
-	return Neu_DataStatus.Get_Out();
-}
-bool CGleisPlan::isNewUpdate_Gleis()
-{
-	return Neu_DataGleis.Get_Out();
-}
 bool CGleisPlan::isNewUpdate_Taster()
 {
 	return false;
 }
-void CGleisPlan::NewDataMelder()
-{
-	TrainCon_Paar upBlock;
-	// CString strName;
-	// byte BlockNr;
-	upBlock = BlockMelder->HoleBlockData();
-	Block[upBlock.GetWert()].bestetzen(upBlock.GetBit());
-    //Block[upBlock.GetWert()-1].bestetzen(!upBlock.GetBit());
 
-	Neu_DataGleis.Putin();
-	//BlockNr = upBlock.GetWert();
-	// strName.Format(_T(" Block Nr. %d: gezeigt "), BlockNr);
-	//AfxMessageBox(strName, MB_OK );
-}
-void CGleisPlan::NewDataWeiche()
-{
-	TrainCon_Paar Weiche ;
 
-	Weiche = XpressNet->HoleWeicheData();
-	Set_Weiche(Weiche);
-
-}
-void CGleisPlan::NewDataRelais()
+void CGleisPlan::Verarbeite_Mega_Daten(byte neueInfo)
 {
-	TrainCon_Paar Relais;
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+	TrainCon_Paar DatenPaar;
 
-	Relais = BlockMelder->HoleRelayData();
-	Set_Relais(Relais);
+	switch (neueInfo)
+	{
+	case COM_SEND_LVZ_STA:
+		// Status der LVZ Zentrale
+		StatusZentrale = XpressNet->HoleStatus_LZV();
+		APP->Invalidate();
+		break;
+	case COM_SEND_WEICHE:
+		DatenPaar = XpressNet->HoleWeicheData();
+		Set_Weiche(DatenPaar);
+		APP->Invalidate();
+		break;
+	case COM_SEND_ZUG_DA:// Zug antwortet
+		Züge->New_Lok_Data();
+		APP->Invalidate();
+		break;
+	case COM_SEND_CV:
+		APP->meineLoks.PRG_Set_CV();
+		APP->Invalidate();
+		break;
+	}
 }
-void CGleisPlan::NewDataZug()
+
+void CGleisPlan::Verarbeite_Uno_Daten(byte neueInfo)
 {
-	Züge->New_Lok_Data();
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+	TrainCon_Paar DatenPaar;
+	switch (neueInfo)
+	{
+	case COM_SEND_BLOCK:
+		DatenPaar = BlockMelder->HoleBlockData();
+		Block[DatenPaar.GetWert()].bestetzen(DatenPaar.GetBit());
+		APP->Invalidate();
+		break;
+	case COM_SEND_RELAIS:
+		DatenPaar = BlockMelder->HoleRelayData();
+		Set_Relais(DatenPaar);
+		APP->Invalidate();
+		break;
+	}
 }
+
 void CGleisPlan::NewTimeZug(clock_t Zeit)
 {
 	static byte Lok_Nr = 0;
-	static TrainCon_Paar neuerMelder;
 
 	DoCheckIt(Lok_Nr, Zeit);
 	Lok_Nr = (Lok_Nr + 1) % (max_active_Loks);
 }
-void CGleisPlan::New_Daten_LVZ()
-{
-	StatusZentrale = XpressNet->HoleStatus_LZV();
-	SetStatusPower();
-	Neu_DataStatus.Putin();
-}
 
-void CGleisPlan::New_CV_Daten()
-{
-	CTrainControll_FahrplanDlg* P;
-	P = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-
-	P->meineLoks.PRG_Set_CV();
-	//Train_Data.DoGetNewCV(XpressNet.Hole_CV_Wert());
-}
 
 void CGleisPlan::New_Daten_Senden()
 {
@@ -291,32 +239,12 @@ void CGleisPlan::Set_Lok_Geschwindigkeit(byte Lok_Nr, Zug_Status SetTo, byte Ges
 	}
 }
 
-void CGleisPlan::Reeady_ToRun()
-{
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	APP->DoStartDialog(true);
-}
-
-void CGleisPlan::Set_Startup(bool B)
-{
-	if ((B) && (StartUpCount < 3))
-	{
-		StartUpCount++;
-	}
-	if (StartUpCount == 2)
-	{
-		Start_Com_Thread();
-	}
-}
 
 byte CGleisPlan::GetStatusZentrale()
 {
 	return StatusZentrale;
 }
-InfoConStat CGleisPlan::GetStatusMode()
-{
-	return InfoConStat(ModeControl, ModeSub);
-}
+
 void CGleisPlan::SetStatusPower()
 {
 	CTrainControll_FahrplanDlg* P;
@@ -351,7 +279,7 @@ bool CGleisPlan::Schalte_Power_LVZ()
 		XpressNet->SendeLVZ_Power(false);
 		return true;
 	}
-	if (StatusZentrale == 2)
+	if (StatusZentrale == 2||StatusZentrale == 0)
 	{// Power is off Power -> einschalten
 		XpressNet->SendeLVZ_Power(true);
 
@@ -363,13 +291,9 @@ bool CGleisPlan::isPower_onGleis()
 {
 	return (StatusZentrale == 1);
 }
-bool CGleisPlan::isreadyforStartup()
-{
-	return (StartUpCount < 1);
-}
+
 void CGleisPlan::Setup_TrainControl()
 {
-	byte WeichenAnzahl = 32;
 	if (XpressNet->NoComToXpressNet())
 	{
 		TRACE(_T(" Kein Setup weil keine Com Schnitstelle \n"));
@@ -377,25 +301,22 @@ void CGleisPlan::Setup_TrainControl()
 	}
 	else
 	{
-		ChangeSetupMode(ControlStatus::Begin_COM, 0);
-		ChangeSetupMode(ControlStatus::Setup_Controller, 0);
-		// Melder Setup
-		ChangeSetupMode(ControlStatus::Setup_Controller, 1);
-		// Weichen Setup
-		ChangeSetupMode(ControlStatus::Setup_Controller, 2);
-		XpressNet->SetWeichenAnzahl(WeichenAnzahl);
-		//Block  Setup
-		ChangeSetupMode(ControlStatus::Setup_Controller, 3);
-
-		// XpressNet Setup
-		ChangeSetupMode(ControlStatus::Setup_Controller, 4);
-		StatusZentrale = XpressNet->GetStatus_Setup_LZV();
-		SetStatusPower();
-		ChangeSetupMode(ControlStatus::Testen, 0);
-		
-		// Setup Datenaustausch  ferig 
-		// Starte den Thread
+		XpressNet->StartKomunikation();
 	}	
+}
+
+void CGleisPlan::Setup_MelderControl()
+{
+	if (BlockMelder->NoComToBlockNet())
+	{
+
+		TRACE(_T(" Kein Setup weil keine Com UNO Schnittstelle \n"));
+		return;
+	}
+	else
+	{
+		BlockMelder->StartKomunikation();
+	}
 }
 
 void CGleisPlan::ZeicheStrecke(CDC* pDC)
@@ -445,7 +366,6 @@ void CGleisPlan::Set_Weiche(TrainCon_Paar WeichenData)
 		auto i = &B - &Block[0];
 		if (Block[i].set_Weiche(WeichenData))
 		{
-			Neu_DataGleis.Putin();
 			return;
 		}
 	}
@@ -458,7 +378,6 @@ void CGleisPlan::Set_Relais(TrainCon_Paar RelayData)
 		auto i = &B - &Block[0];
 		if (Block[i].set_Relais(RelayData))
 		{
-			Neu_DataGleis.Putin();
 			return;
 		}
 	}
