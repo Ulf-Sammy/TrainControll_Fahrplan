@@ -58,9 +58,11 @@ UINT Thread_Update_MEGA(LPVOID pParam)
 	return 0;
 }
 
+
+
+
 CGleisPlan::CGleisPlan()
 {
-	
 
 }
 CGleisPlan::~CGleisPlan()
@@ -74,7 +76,12 @@ void CGleisPlan::Init()
 	XpressNet = &APP->XpressNet;
 	BlockMelder = &APP->BlockMelder;
 	max_active_Loks = Züge->Init();
+	for (int i = 0; i <= MAX_WEICHEN_MOTOR; i++)
+	{
+		WeichenAntrieb.push_back(TrainCon_Paar(i, false));
+	}
 	Lade_Daten();
+
 }
 
 byte CGleisPlan::GetNextMessage_Mega()
@@ -247,30 +254,7 @@ byte CGleisPlan::GetStatusZentrale()
 
 void CGleisPlan::SetStatusPower()
 {
-	CTrainControll_FahrplanDlg* P;
-	P = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	//TRACE(_T("Status Zentrale %i \n"), StatusZentrale);
-	if (StatusZentrale == 1)
-	{
-		P->SetDlgItemText(IDC_BUTTON_POWER, _T("Power OFF"));
-	}
-	if (StatusZentrale == 2)
-	{
-		P->SetDlgItemText(IDC_BUTTON_POWER, _T("Power ON !"));
-	}
-	if (StatusZentrale == 3)
-	{
-		P->SetDlgItemText(IDC_BUTTON_POWER, _T("Programmiern"));
-	}
-	if (StatusZentrale == 4)
-	{    // Zentrale Meldet programiern
-		// das geht nicht P->SetDlgItemText(IDC_BUTTON_POWER, _T("Power (4)! "));
-	}
-	if (StatusZentrale == 5)
-	{
-		P->SetDlgItemText(IDC_BUTTON_POWER, _T("Power (5)! "));
-	}
-
+	
 }
 bool CGleisPlan::Schalte_Power_LVZ()
 {
@@ -282,7 +266,6 @@ bool CGleisPlan::Schalte_Power_LVZ()
 	if (StatusZentrale == 2||StatusZentrale == 0)
 	{// Power is off Power -> einschalten
 		XpressNet->SendeLVZ_Power(true);
-
 	}
 	// was mache ich sonst ?? 
 	return false;
@@ -290,6 +273,11 @@ bool CGleisPlan::Schalte_Power_LVZ()
 bool CGleisPlan::isPower_onGleis()
 {
 	return (StatusZentrale == 1);
+}
+
+bool CGleisPlan::isPower_onBlock(byte Nr)
+{
+	return Block[Nr].Get_Relais_Data(false).GetBit();
 }
 
 void CGleisPlan::Setup_TrainControl()
@@ -320,66 +308,180 @@ void CGleisPlan::Setup_MelderControl()
 }
 
 void CGleisPlan::ZeicheStrecke(CDC* pDC)
+	
 {
-		for (auto&  B : Block)
+	for (auto&  B : Block)
 	{
-		B.ZeicheBlock(pDC);
+		B.ZeicheBlock(pDC, &WeichenAntrieb);
 	}
 }
 
-void CGleisPlan::ZeicheBlock(byte Nr, CDC* pDC)
-{
-	Block[Nr].ZeicheBlock(pDC);
-}
 
-void CGleisPlan::Kick_Block(CPoint Klick)
+bool CGleisPlan::Kick_Block(CPoint Klick)
 {
 	TrainCon_Paar Data;
+	byte Wert;
 	byte Ergebnis;
 
 	for (auto& B : Block)
 	{
-		Ergebnis = B.OnKlick(Klick, &Data);
+		Ergebnis = B.OnKlick(Klick, &Wert);
 		if(Ergebnis== 1)
 		{
-			if (XpressNet->NoComToXpressNet())			
-				Set_Weiche(Data);
+			Data = WeichenAntrieb[Wert].GetInvBit();
+			if (XpressNet->NoComToXpressNet())
+				return (Set_Weiche(Data));
 			else 
 				XpressNet->SendeWeicheDaten(Data);
-			return;
+			return false;
 		}
 		if (Ergebnis == 2)
 		{
+			Data = B.Get_Relais_Data(true);
 			if (XpressNet->NoComToXpressNet())
 				Set_Relais(Data);
 			else 
 				BlockMelder->SetBlockPower(Data);
-			return;
+			return false;
+		}
+	}
+	return (false);
+}
+
+bool CGleisPlan::Set_Weiche(TrainCon_Paar WeichenData)
+{
+	if (WeichenData.GetWert() < MAX_WEICHEN_MOTOR)
+	{
+		WeichenAntrieb[WeichenData.GetWert()].SetBit(WeichenData.GetBit());
+		return true;
+	}
+	return false;
+}
+
+bool CGleisPlan::Get_Weiche(TrainCon_Paar WeichenDaten)
+{
+	return WeichenAntrieb[WeichenDaten.GetWert()].GetBit();
+}
+
+bool CGleisPlan::Set_Relais(TrainCon_Paar RelayData)
+{
+	for (auto& B : Block)
+	{
+		if (Block[&B - &Block[0]].set_Relais(RelayData))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void CGleisPlan::Schalte_Relais(byte Nr, bool Bit)
+{
+	if (Nr > 0)
+	{
+		TrainCon_Paar Relais;
+		Relais = Block[Nr].Get_Relais_Data(false);
+		Relais.SetBit(Bit);
+		BlockMelder->SetBlockPower(Relais);
+		if (BlockMelder->NoComToBlockNet())
+		{
+			Block[Nr].set_Relais(Relais);
 		}
 	}
 }
 
-void CGleisPlan::Set_Weiche(TrainCon_Paar WeichenData)
+void CGleisPlan::GetAnschlussBlocks(byte Nr, std::vector<byte>* EinBlocks, std::vector<byte>* AusBlocks)
 {
-	for (auto& B : Block)
+	Block[Nr].GetAnschlussBlocks(EinBlocks,AusBlocks);
+}
+
+bool CGleisPlan::Weg_Von_bis_frei(byte Nr, byte BlockTo, std::vector<byte>*WegeBlocks)
+{
+	return Block[Nr].Weg_zuBlock(true, &WeichenAntrieb, WegeBlocks);
+}
+
+bool CGleisPlan::Weg_nach_von_Block(byte BlockNr, bool Richtung, std::vector<byte>* WegeBlocks)
+{
+	if (!WegeBlocks->empty())
 	{
-		auto i = &B - &Block[0];
-		if (Block[i].set_Weiche(WeichenData))
+		WegeBlocks->clear();
+	}
+	return Block[BlockNr].Weg_zuBlock(Richtung, &WeichenAntrieb, WegeBlocks);
+}
+
+bool CGleisPlan::isWeg_frei(std::vector<byte> WegeBlocks)
+{
+	bool Result = true;
+	for (auto Nr : WegeBlocks)
+	{
+		Result = Result && Block[Nr].ist_frei();
+	}
+	return Result;
+}
+
+bool CGleisPlan::Besetze_Weg_mit_Lok(CDataXpressNet* Lok, std::vector<byte> WegeBlocks)
+{
+	for (auto Nr : WegeBlocks)
+	{
+		Block[Nr].bestetzen(Lok);
+	}
+	return false;
+}
+
+CString CGleisPlan::Get_LokName_in_Block(byte Nr)
+{
+	return Block[Nr].GetLok_NameonBlock();
+}
+
+BlockStatus CGleisPlan::GetStatus_Block(byte Nr, CString* Lok_Name)
+{
+	bool Richtung;
+	return Block[Nr].GetStatus_Block(Lok_Name,&Richtung);
+}
+
+BlockDebugData CGleisPlan::Get_DebugData(byte Nr)
+{
+	if (Block.size() > Nr)
+	{
+		return Block[Nr].Get_Debug();
+	}
+	return Block[0].Get_Debug();;
+}
+
+void CGleisPlan::TestBlock_mitZug(byte Nr, bool Bit, bool leeren)
+{
+	CDataXpressNet *Zug_L, *Zug_R;
+	Zug_L = &Züge->Get_aktiveLok_Pointer(1);
+	Zug_R = &Züge->Get_aktiveLok_Pointer(2);
+	if(leeren)
+	{
+		Block[Nr].freimachen();
+		Block[Nr].bestetzen(false);
+	}
+	else
+	{
+		if (Bit)
 		{
-			return;
+			Block[Nr].bestetzen(Zug_L);
+			Block[Nr].bestetzen(true);
+		}
+		else
+		{
+			Block[Nr].bestetzen(Zug_R);
+			Block[Nr].bestetzen(true);
 		}
 	}
 }
 
-void CGleisPlan::Set_Relais(TrainCon_Paar RelayData)
+CDataXpressNet* CGleisPlan::TestZug(bool Bit)
 {
-	for (auto& B : Block)
+	if(Bit)
+	{ 
+		return &Züge->Get_aktiveLok_Pointer(1);
+	}
+	else
 	{
-		auto i = &B - &Block[0];
-		if (Block[i].set_Relais(RelayData))
-		{
-			return;
-		}
+		return &Züge->Get_aktiveLok_Pointer(2);
 	}
 }
 
@@ -391,7 +493,7 @@ void CGleisPlan::Lade_Daten()
 	CString			strIn, Text;
 	CPoint			Step;
 	int				Nr;
-
+	std::vector<CBlock_Weg> alle_Wege;
 	const int Rect_X = 1600;
 	const int Rect_Y = 660;
 
@@ -472,6 +574,7 @@ void CGleisPlan::Lade_Daten()
 		file.ReadString(strIn);
 		do
 		{
+			alle_Wege.push_back(CBlock_Weg(strIn));
 			file.ReadString(strIn);
 		} while (strIn.Mid(0, 2) != "##");
 	}
@@ -487,5 +590,12 @@ void CGleisPlan::Lade_Daten()
 		{
 			Block[Nr].bestetzen(&Züge->Get_aktiveLok_Pointer(i));
 		}
+	}
+	TRACE(_T("-------- Alle Wege --------------\n"));
+	for (auto Weg : alle_Wege)
+	{
+		TRACE(_T("Von %i --- %i ---- %i nach \n"), Weg.VonBlock(),Weg.ZwiBlock(),Weg.NachBlock());
+		Block[Weg.VonBlock()].AddWeg(true,Weg);
+		Block[Weg.NachBlock()].AddWeg(false,Weg);
 	}
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "ComXpressNet.h"
+#include "Com_XpressNet.h"
 #include "CDataFahrplan.h"
 #include "VC_TableInfo.h"
 #include <vector>

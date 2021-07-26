@@ -115,6 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -188,15 +189,17 @@
     <ClInclude Include="CDataFahrplan.h" />
     <ClInclude Include="CDataXpressNet.h" />
     <ClInclude Include="CDatenBankLok.h" />
+    <ClInclude Include="CDlg_Block_Info.h" />
     <ClInclude Include="CDlg_Debug_Mega.h" />
     <ClInclude Include="CDlg_Fahrplan.h" />
+    <ClInclude Include="CDlg_Lok_Schuppen.h" />
     <ClInclude Include="CDlg_RunCam_Train.h" />
     <ClInclude Include="Com_BlockMelderNet.h" />
     <ClInclude Include="CGleisPlan.h" />
     <ClInclude Include="CBlockInfo.h" />
     <ClInclude Include="CustomTrace.h" />
     <ClInclude Include="CBlock.h" />
-    <ClInclude Include="DlgTrainRun.h" />
+    <ClInclude Include="CDlg_Train_Run.h" />
     <ClInclude Include="Dlg_CV_Action.h" />
     <ClInclude Include="Dlg_Liste_Funktion.h" />
     <ClInclude Include="Dlg_Liste_Train.h" />
@@ -207,6 +210,7 @@
     <ClInclude Include="EditableListCtrl.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="InPlaceEdit.h" />
+    <ClInclude Include="MaskedBitmap.h" />
     <ClInclude Include="MemDC.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
@@ -214,7 +218,7 @@
     <ClInclude Include="TrainControll_Fahrplan.h" />
     <ClInclude Include="TrainControll_FahrplanDlg.h" />
     <ClInclude Include="VC_TableInfo.h" />
-    <ClInclude Include="ComXpressNet.h" />
+    <ClInclude Include="Com_XpressNet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3DMeterGleis.cpp" />
@@ -222,24 +226,27 @@
     <ClCompile Include="CDataFahrplan.cpp" />
     <ClCompile Include="CDataXpressNet.cpp" />
     <ClCompile Include="CDatenBankLok.cpp" />
+    <ClCompile Include="CDlg_Block_Info.cpp" />
     <ClCompile Include="CDlg_Debug_Mega.cpp" />
     <ClCompile Include="CDlg_Fahrplan.cpp" />
+    <ClCompile Include="CDlg_Lok_Schuppen.cpp" />
     <ClCompile Include="CDlg_RunCam_Train.cpp" />
     <ClCompile Include="Com_BlockMelderNet.cpp" />
     <ClCompile Include="CGleisPlan.cpp" />
     <ClCompile Include="CBlockInfo.cpp" />
     <ClCompile Include="CustomTrace.cpp" />
     <ClCompile Include="CBlock.cpp" />
-    <ClCompile Include="DlgTrainRun.cpp" />
-    <ClCompile Include="Dlg_CV_Action.cpp" />
-    <ClCompile Include="Dlg_Liste_Funktion.cpp" />
-    <ClCompile Include="Dlg_Liste_Train.cpp" />
-    <ClCompile Include="Dlg_Lok_Funktionen.cpp" />
-    <ClCompile Include="Dlg_Plan_Liste_Train.cpp" />
-    <ClCompile Include="Dlg_Setup_Train.cpp" />
-    <ClCompile Include="Dlg_Test_Weiche.cpp" />
+    <ClCompile Include="CDlg_Train_Run.cpp" />
+    <ClCompile Include="CDlg_CV_Action.cpp" />
+    <ClCompile Include="CDlg_Liste_Funktion.cpp" />
+    <ClCompile Include="CDlg_Liste_Train.cpp" />
+    <ClCompile Include="CDlg_Lok_Funktionen.cpp" />
+    <ClCompile Include="CDlg_Plan_Liste_Train.cpp" />
+    <ClCompile Include="CDlg_Setup_Train.cpp" />
+    <ClCompile Include="CDlg_Test_Weiche.cpp" />
     <ClCompile Include="EditableListCtrl.cpp" />
     <ClCompile Include="InPlaceEdit.cpp" />
+    <ClCompile Include="MaskedBitmap.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -249,7 +256,7 @@
     <ClCompile Include="TrainControll_Fahrplan.cpp" />
     <ClCompile Include="TrainControll_FahrplanDlg.cpp" />
     <ClCompile Include="VC_TableInfo.cpp" />
-    <ClCompile Include="ComXpressNet.cpp" />
+    <ClCompile Include="Com_XpressNet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TrainControllFahrplan.rc" />
@@ -258,8 +265,12 @@
     <None Include="res\TrainControllFahrplan.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Images\No Power.png" />
     <Image Include="res\bitlok_g.bmp" />
     <Image Include="res\bitlok_h.bmp" />
+    <Image Include="res\bitmap3.bmp" />
+    <Image Include="res\bitmap4.bmp" />
+    <Image Include="res\bmp00001.bmp" />
     <Image Include="res\f14_i.bmp" />
     <Image Include="res\f14_o.bmp" />
     <Image Include="res\f15_i.bmp" />
@@ -268,10 +279,14 @@
     <Image Include="res\f16_o.bmp" />
     <Image Include="res\icon1.ico" />
     <Image Include="res\icon2.ico" />
+    <Image Include="res\icon3.ico" />
+    <Image Include="res\icon_9A8_icon.ico" />
     <Image Include="res\LOK gegen Uhr.bmp" />
     <Image Include="res\LOK in Uhr.bmp" />
     <Image Include="res\Pfeil_L.bmp" />
     <Image Include="res\Pfeil_R.bmp" />
+    <Image Include="res\Signal_gruen.bmp" />
+    <Image Include="res\Signal_Rot.bmp" />
     <Image Include="res\Tacho.bmp" />
     <Image Include="res\TrainControll_Fahrplan.ico" />
   </ItemGroup>

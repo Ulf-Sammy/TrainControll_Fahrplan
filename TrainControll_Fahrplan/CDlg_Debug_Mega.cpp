@@ -29,6 +29,7 @@ CDlg_Debug_Mega::CDlg_Debug_Mega(CWnd* pParent /*=nullptr*/)
 {
 	m_pParent = pParent;
 	m_nID = CDlg_Debug_Mega::IDD;
+	//COM_status = COMSTAT::;
 
 	Font_Info.CreateFontIndirectW(&FontType_Ar_15_0);
 	

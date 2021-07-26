@@ -30,9 +30,7 @@
 
 
 #include "CustomTrace.h"
-
-
-
+#include <vector>
 
 #ifdef _UNICODE
 #if defined _M_IX86
@@ -123,6 +121,8 @@
 #define MAX_WEI_GRUPPE 20
 #define MAX_TASTER_IN_GRUPPE 10
 #define MAX_FAHRPLAN 2
+#define MAX_BLOCK_MELDER 4 // angeschlossenen Block Melder
+#define MAX_WEICHEN_MOTOR (MAX_BLOCK_MELDER * 8)
 
 const COLORREF colorHinterGrund = RGB(186, 252, 189);
 const COLORREF GleisGruen = RGB(6, 233, 13);
@@ -130,10 +130,29 @@ const COLORREF GleisOrange = RGB(232,104,13);
 const COLORREF GleisRot = RGB(225, 24, 32);
 const COLORREF GleisGelb = RGB(255, 242, 0);
 const COLORREF GleishellRot = RGB(242, 141, 147);
-const COLORREF colorWeiss = RGB(255, 255, 255);
+const COLORREF GleisWeiss = RGB(255, 255, 255);
+const COLORREF GleisErrorA = RGB(  0, 255, 255);
+const COLORREF GleisErrorB = RGB(255, 255,   0);
 const COLORREF colorGelb = RGB(253, 240, 2);
 const COLORREF colorRot = RGB(255, 0, 0);
 const COLORREF colorSchwarz = RGB(0, 0, 0);
+const COLORREF colorWeiss = RGB(255, 255, 255);
+const COLORREF colorSchuppen = RGB(128, 0, 0);
+const COLORREF colorSchuppenTor = RGB(255, 128, 0);
+const COLORREF colorDunkelGrau = RGB(150, 150, 150);
+
+const tagLOGPEN Stift_Schwarz = { PS_SOLID , 1 , 1, colorSchwarz };
+
+const tagLOGPEN StiftGleis_frei    = { PS_SOLID , 5 , 5, GleisGruen };
+const tagLOGPEN StiftGleis_besetzt = { PS_SOLID , 5 , 5, GleisOrange };
+const tagLOGPEN StiftGleis_ErrorA  = { PS_SOLID , 5 , 5, GleisErrorA };
+const tagLOGPEN StiftGleis_ErrorB  = { PS_SOLID , 5 , 5, GleisErrorB };
+
+const tagLOGPEN StiftGleisRot    = { PS_SOLID , 4 , 4, GleisRot};
+const tagLOGPEN StiftGleisGelb   = { PS_SOLID , 5 , 5, GleisGelb };
+const tagLOGPEN StiftGleisNull  = { PS_SOLID , 5 , 5, GleisWeiss };
+const tagLOGPEN StiftLokSchuppen = { PS_SOLID , 3,  3, colorSchuppen };
+const tagLOGPEN StiftTorSchuppen = { PS_SOLID , 1,  1, colorSchuppenTor };
 
 const tagLOGFONTW FontType_Ar_9_0 =  {  9, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial") };
 const tagLOGFONTW FontType_Ar_14_0 = { 14, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
@@ -142,10 +161,16 @@ const tagLOGFONTW FontType_Ar_16_0 = { 16, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_C
 const tagLOGFONTW FontType_Ar_11_270 = { 11, 0, 2700, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
 const tagLOGFONTW FontType_Ar_14_270 = { 14, 0, 2700, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Narrow") };
 
+const tagLOGFONTW FontType_ArR_20_0 = { 20, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Rounded MT Bold") };
+
+
+
+
+
 const int Rect_X = 1600;
 const int Rect_Y = 660;
 
-
+enum class BlockStatus {Frei, Besetzt, BesetztError_A, BesetztError_B};
 enum class ControlStatus { No_Arduino = -1, Setup =0, Program, Fahren, Ende_COM };
 enum class XpNSendwas { FGruppe0 = 0, FGruppe1, FGruppe2, FGruppe3, FGruppe4, FGruppe5 };
 enum class BlockType { isWeiche, isBlock, isGleis };
@@ -154,7 +179,7 @@ enum class StreckenType {Strecke, Gleis, Abstellgleis};
 
 enum class FahrPlanDo { begin_Block, stoppen, vorwaerz_fahren, rueckwaerz_fahren, warten_fahren, warten_stoppen, schalten_Funk, schalten_Weiche, letzte_Zeile };
 
-enum class Zug_Status { Zug_Stopped = 0, Zug_faehrt_vor = 1, Zug_faehrt_rueck = 2, Zug_haelt = 3 };
+enum class Zug_Status { Zug_Stopped = 0, Zug_faehrt_vor = 1, Zug_faehrt_rueck = 2, Zug_haelt = 3};
 enum class Zug_Steuerung { nicht_Betriebs_bereit, Hand_Betrieb, Automatik_Betrieb };
 
 enum class BlockRueckmeldung { Frei_Fahrt = 0, Weichenweg_nichtfrei = 1, Block_besetzt = 9 };
@@ -221,6 +246,11 @@ public:
 		Wert = _ttoi(T.Mid(0, 2));
 		Bit = (bool)_ttoi(T.Mid(2, 1));
 	}
+	void Set_Paar(TrainCon_Paar TP)
+	{
+		Wert = TP.GetWert();
+		Bit = TP.GetBit();
+	}
 	void Set_Paar(byte W, bool B)
 	{
 		Wert = W;
@@ -233,6 +263,10 @@ public:
 	void SetBit(bool B)
 	{
 		Bit = B;
+	}
+	TrainCon_Paar GetInvBit()
+	{
+		return(TrainCon_Paar(Wert, !Bit));
 	}
 	byte GetWert()
 	{
@@ -262,6 +296,30 @@ protected:
 	bool Bit = false;
 };
 
+struct BlockDebugData
+{
+	byte Block_Nr;
+	CString Gleis_Name;
+	CString Lok_Name;
+	bool Lok_Richtung;
+	byte Relais_Nr;
+	bool Relais_Power;
+	bool Block_gemeldet;
+	byte Weichen_Anzahl;
+	std::vector<byte> EinBlock;
+	std::vector<byte> AusBlock;
+	std::vector<byte> Block_Wege_nach;
+	std::vector<byte> Block_Wege_von;
+	BlockDebugData()
+	{
+		Block_Nr = 0;
+		Lok_Richtung = false;
+		Relais_Nr = 0;
+		Relais_Power = false;
+		Block_gemeldet = false ;
+		Weichen_Anzahl = 0 ;
+	};
+};
 
 #define BUFFER 16
 struct RingBuffer

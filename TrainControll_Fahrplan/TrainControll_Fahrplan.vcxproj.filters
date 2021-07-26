@@ -84,9 +84,6 @@
     <ClInclude Include="Dlg_Test_Weiche.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="DlgTrainRun.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="EditableListCtrl.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -94,9 +91,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="MemDC.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="ComXpressNet.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Com_BlockMelderNet.h">
@@ -109,6 +103,21 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="CDlg_Debug_Mega.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CDlg_Lok_Schuppen.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="MaskedBitmap.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CDlg_Block_Info.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Com_XpressNet.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CDlg_Train_Run.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -149,40 +158,13 @@
     <ClCompile Include="CustomTrace.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Dlg_CV_Action.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="VC_TableInfo.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dlg_Liste_Funktion.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dlg_Liste_Train.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dlg_Lok_Funktionen.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dlg_Plan_Liste_Train.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dlg_Setup_Train.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dlg_Test_Weiche.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="DlgTrainRun.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="EditableListCtrl.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="InPlaceEdit.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="ComXpressNet.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="CBlockInfo.cpp">
@@ -195,6 +177,42 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Com_BlockMelderNet.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Lok_Schuppen.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="MaskedBitmap.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Block_Info.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_CV_Action.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Liste_Funktion.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Liste_Train.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Lok_Funktionen.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Plan_Liste_Train.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Setup_Train.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Test_Weiche.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Train_Run.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Com_XpressNet.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -255,6 +273,30 @@
       <Filter>Ressourcendateien</Filter>
     </Image>
     <Image Include="res\bitlok_h.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="Images\No Power.png">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\bitmap3.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\bitmap4.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\bmp00001.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\icon3.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\icon_9A8_icon.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\Signal_Rot.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\Signal_gruen.bmp">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

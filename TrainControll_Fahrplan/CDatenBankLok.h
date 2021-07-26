@@ -23,6 +23,7 @@ public:
 	byte Get_max_Aktiv_Loks();
 	
 	CDataXpressNet &Get_aktiveLok_Pointer(byte Nr);
+	byte Get_Dialog_Nr(byte Lok_Nr);
 	bool is_Zug_Pointer(byte Nr);
 	void Ask_aktivLok_Data(byte Lok_Nr);
 	void New_Lok_Data();

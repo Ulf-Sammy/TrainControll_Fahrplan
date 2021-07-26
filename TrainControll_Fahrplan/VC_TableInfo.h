@@ -159,8 +159,16 @@ protected:
 class CDecoderInfo_CV 
 {
 public:
-	CDecoderInfo_CV (){}
-	CDecoderInfo_CV(byte cv) { CV = cv; }
+	CDecoderInfo_CV ()
+	{
+		Anhang = 0;
+		CV = 0;
+	}
+	CDecoderInfo_CV(byte cv) 
+	{
+		Anhang = 0;
+		CV = cv;
+	}
 	~CDecoderInfo_CV (){}
 	byte Get_CV()            { return CV; }
 	byte Get_Anhang()        { return Anhang; }

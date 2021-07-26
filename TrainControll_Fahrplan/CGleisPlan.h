@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "CBlock.h"
-#include "ComXpressNet.h"
+#include "Com_XpressNet.h"
 #include "Com_BlockMelderNet.h"
 #include "CDatenBankLok.h"
 #include "TrainControll_Fahrplan.h"
@@ -45,16 +45,30 @@ public:
 	void SetStatusPower();
 	bool Schalte_Power_LVZ();
 	bool isPower_onGleis();
+	bool isPower_onBlock(byte Nr);
 	void Setup_TrainControl();
 	void Setup_MelderControl();
 	void ZeicheStrecke(CDC* pDC);
-	void ZeicheBlock(byte Nr, CDC* pDC);
-	void Kick_Block(CPoint Klick);
-	void Set_Weiche(TrainCon_Paar WeichenData);
-	void Set_Relais(TrainCon_Paar RelayData);
+	bool Kick_Block(CPoint Klick);
+	bool Set_Weiche(TrainCon_Paar WeichenData);
+	bool Get_Weiche(TrainCon_Paar WeichenDaten);
+	bool Set_Relais(TrainCon_Paar RelayData);
+	void Schalte_Relais(byte Nr, bool Bit);
+	void GetAnschlussBlocks(byte Nr, std::vector<byte>* EinBlocks, std::vector<byte>* AusBlocks);
+	bool Weg_Von_bis_frei(byte BlockNr, byte BlockTo, std::vector<byte>*WegeBlocks);
+	bool Weg_nach_von_Block(byte BlockNr, bool Richtung,std::vector<byte>* WegeBlocks);
+	bool isWeg_frei(std::vector<byte> WegeBlocks);
+	bool Besetze_Weg_mit_Lok(CDataXpressNet* XpressNet, std::vector<byte> WegeBlocks);
+	CString Get_LokName_in_Block(byte Nr);
+	BlockStatus GetStatus_Block(byte Nr, CString *Lok_Name );
+	BlockDebugData Get_DebugData(byte Nr);
+	void TestBlock_mitZug(byte Nr, bool Bit, bool leeren );
+	CDataXpressNet* TestZug(bool Bit);
 
 protected:
 	std::vector <CBlock> Block;
+	std::vector<TrainCon_Paar> WeichenAntrieb;
+
 	CCom_XpressNet      *XpressNet	  = NULL;
 	CDatenBankLok       *Züge		  = NULL;
 	CCom_BlockMelderNet * BlockMelder = NULL;

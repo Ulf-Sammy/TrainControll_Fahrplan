@@ -4,7 +4,7 @@
 
 #include "pch.h"
 #include "TrainControll_Fahrplan.h"
-#include "DlgTrainRun.h"
+#include "CDlg_Train_Run.h"
 #include "TrainControll_FahrplanDlg.h"
 
 
@@ -27,8 +27,32 @@ END_MESSAGE_MAP()
 
 CTrainControll_FahrplanApp::CTrainControll_FahrplanApp()
 {
-	// TODO: Hier Code zur Konstruktion einfügen
-	// Alle wichtigen Initialisierungen in InitInstance positionieren
+	Stift_SW_1.CreatePenIndirect((LPLOGPEN)&Stift_Schwarz);
+
+	Gleis_Frei.CreatePenIndirect((LPLOGPEN)&StiftGleis_frei);
+	Gleis_Besetzt.CreatePenIndirect((LPLOGPEN)&StiftGleis_besetzt);
+	Gleis_PowerOff.CreatePenIndirect((LPLOGPEN)&StiftGleisRot);
+	Gleis_Null.CreatePenIndirect((LPLOGPEN)&StiftGleisNull);
+	Gleis_ErrorA.CreatePenIndirect((LPLOGPEN)&StiftGleis_ErrorA);
+	Gleis_ErrorB.CreatePenIndirect((LPLOGPEN)&StiftGleis_ErrorB);
+
+	Font_Info_s.CreateFontIndirectW(&FontType_Ar_15_0);
+	Font_Info_small.CreateFontIndirectW(&FontType_Ar_9_0);
+
+	Uberschrift_0.CreateFontIndirectW(&FontType_ArR_20_0);
+	BeschriftungBlock_0.CreateFontIndirectW(&FontType_Ar_16_0);
+	GleisBeschriftung_0.CreateFontIndirectW(&FontType_Ar_14_0);
+	BeschriftungBlock_270.CreateFontIndirectW(&FontType_Ar_14_270);
+	GleisBeschriftung_270.CreateFontIndirectW(&FontType_Ar_11_270);;
+
+	Brush_White.CreateSolidBrush(colorWeiss);
+	Brush_Yellow.CreateSolidBrush(RGB(255, 255, 0));
+	Brush_Red.CreateSolidBrush(RGB(255, 0, 0));
+	Brush_Green.CreateSolidBrush(RGB(0, 140, 0));
+	Brush_Weiche.CreateSolidBrush(colorHinterGrund);
+
+
+
 }
 
 
@@ -55,8 +79,6 @@ BOOL CTrainControll_FahrplanApp::InitInstance()
 {
 	CWinApp::InitInstance();
 
-	Font_Info_s.CreateFontIndirectW(&FontType_Ar_15_0);
-	Font_Info_small.CreateFontIndirectW(&FontType_Ar_9_0);
 	// Shell-Manager erstellen, falls das Dialogfeld
 	// Shellstrukturansicht- oder Shelllistenansicht-Steuerelemente enthält.
 	//CShellManager *pShellManager = new CShellManager;

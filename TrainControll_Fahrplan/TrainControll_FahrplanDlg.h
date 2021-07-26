@@ -2,9 +2,11 @@
 #include "pch.h"
 #include "CGleisPlan.h"
 #include "3DMeterGleis.h"
-#include "DlgTrainRun.h"
+#include "CDlg_Train_Run.h"
 #include "CDlg_RunCam_Train.h"
 #include "CDlg_Debug_Mega.h"
+#include "CDlg_Lok_Schuppen.h"
+#include "CDlg_Block_Info.h"
 #include "afxwin.h"
 #include "Resource.h"
 
@@ -19,10 +21,12 @@ public:
 
 // Dialogfelddaten
 	enum { IDD = IDD_TRAINCONTROLL_FAHRPLAN_DIALOG };
-	CDlg_Run_Train*    pDlgTrainRun[5]   = { NULL,NULL,NULL,NULL,NULL };
-	int				   ButtonTrainRun[5] = { 0, 0, 0, 0, 0 };
+	CDlg_Run_Train*    pDlgTrainRun[7]   = { NULL,NULL,NULL,NULL,NULL,NULL,NULL };
+	int				   ButtonTrainRun[7] = { 0, 0, 0, 0, 0, 0, 0 };
 	CDlg_RunCam_Train* pDlgTrainRunCam   = NULL;
 	CDlg_Debug_Mega*   pDlgDebugInfo  = NULL;
+	CDlg_Lok_Schuppen* pDlgSchuppen =	NULL;
+	CDlg_Block_Info*   pDlgBlockInfo = NULL;
 
 protected:
 	
@@ -57,10 +61,8 @@ protected:
 	void InitDlg();
 
 public:
-	byte				Anzahl_Dlg_Run = 0;
 	CGleisPlan			Gleis_Data;
 	C3DMeterGleis		m_3DGleis;
-	//C3DMeterStatus		m_3DStatus;
 	CDatenBankLok		meineLoks;
 	CCom_XpressNet		XpressNet;
 	CCom_BlockMelderNet	BlockMelder;

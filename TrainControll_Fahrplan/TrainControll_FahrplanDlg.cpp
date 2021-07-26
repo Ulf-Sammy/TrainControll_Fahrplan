@@ -52,7 +52,6 @@ CTrainControll_FahrplanDlg::CTrainControll_FahrplanDlg(CWnd* pParent /*=NULL*/)
 	CString DateiName;
 
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	Anzahl_Dlg_Run = 0;
 	StaticImage_Mega = new CStatic;
 	Image_Mega.OffsetRect(CPoint(10, 725));
 	StaticImage_Uno = new CStatic;
@@ -61,14 +60,14 @@ CTrainControll_FahrplanDlg::CTrainControll_FahrplanDlg(CWnd* pParent /*=NULL*/)
 	Image_Modus.OffsetRect(CPoint(190, 724));
 	StaticImage_LVZ = new CStatic;
 	Image_LVZ.OffsetRect(CPoint(1400, 730));
-	LED_rot.Load(_T("Images\\traffic_red.png"));
-	LED_gruen.Load(_T("Images\\traffic_green.png"));
-	LED_gelb.Load(_T("Images\\traffic_yellow.png"));
+	LED_rot.Load(_T("Images\\LED_Rot.png"));
+	LED_gruen.Load(_T("Images\\LED_green.png"));
+	LED_gelb.Load(_T("Images\\LED_Orange.png"));
 	Bild_Fahren.Load(_T("Images\\Train_RUN.png"));
-	Bild_Progam.Load(_T("Images\\Train_Prog.png"));
-	LVZ_ON.Load(_T("Images\\Power_ON.png"));
-	LVZ_OFF.Load(_T("Images\\Power_OFF.png"));
-	LVZ_PROG.Load(_T("Images\\Power_PROG.png"));
+	Bild_Progam.Load(_T("Images\\Train_PROG.png"));
+	LVZ_ON.Load(_T("Images\\Button_on.png"));
+	LVZ_OFF.Load(_T("Images\\Button_off.png"));
+	LVZ_PROG.Load(_T("Images\\Button_prog.png"));
 }
 
 void CTrainControll_FahrplanDlg::DoDataExchange(CDataExchange* pDX)
@@ -99,33 +98,38 @@ void CTrainControll_FahrplanDlg::DlgTrainRunDone(int Dlg_Nr)
 {
 	if (Dlg_Nr == CDlg_Run_Train::IDD)
 	{
-		{
-			pDlgTrainRun[0]->ShowWindow(SW_HIDE);
-			GetDlgItem(ButtonTrainRun[0])->EnableWindow(true);
-		}
+		pDlgTrainRun[0]->ShowWindow(SW_HIDE);
+		GetDlgItem(ButtonTrainRun[0])->EnableWindow(true);
 	}
 	if (Dlg_Nr == CDlg_Run_Train::IDD1)
 	{
-		{
-			pDlgTrainRun[1]->ShowWindow(SW_HIDE);
-			GetDlgItem(ButtonTrainRun[1])->EnableWindow(true);
-		}
+		pDlgTrainRun[1]->ShowWindow(SW_HIDE);
+		GetDlgItem(ButtonTrainRun[1])->EnableWindow(true);
 	}
 	if (Dlg_Nr == CDlg_Run_Train::IDD2)
 	{
-	
-		{
-			pDlgTrainRun[2]->ShowWindow(SW_HIDE);
-			GetDlgItem(ButtonTrainRun[2])->EnableWindow(true);
-		}
+		pDlgTrainRun[2]->ShowWindow(SW_HIDE);
+		GetDlgItem(ButtonTrainRun[2])->EnableWindow(true);
 	}
 	if (Dlg_Nr == CDlg_Run_Train::IDD3)
 	{
-
-		{
-			pDlgTrainRun[3]->ShowWindow(SW_HIDE);
-			GetDlgItem(ButtonTrainRun[3])->EnableWindow(true);
-		}
+		pDlgTrainRun[3]->ShowWindow(SW_HIDE);
+		GetDlgItem(ButtonTrainRun[3])->EnableWindow(true);
+	}
+	if (Dlg_Nr == CDlg_Run_Train::IDD4)
+	{
+		pDlgTrainRun[4]->ShowWindow(SW_HIDE);
+		GetDlgItem(ButtonTrainRun[4])->EnableWindow(true);
+	}
+	if (Dlg_Nr == CDlg_Run_Train::IDD5)
+	{
+		pDlgTrainRun[5]->ShowWindow(SW_HIDE);
+		GetDlgItem(ButtonTrainRun[5])->EnableWindow(true);
+	}
+	if (Dlg_Nr == CDlg_Run_Train::IDD6)
+	{
+		pDlgTrainRun[6]->ShowWindow(SW_HIDE);
+		GetDlgItem(ButtonTrainRun[6])->EnableWindow(true);
 	}
 }
 
@@ -152,23 +156,36 @@ BOOL CTrainControll_FahrplanDlg::OnInitDialog()
 //##########################################################################
 	pDlgDebugInfo = new CDlg_Debug_Mega(this);
 	pDlgDebugInfo->Create();
-	pDlgDebugInfo->ShowWindow(SW_SHOW);
 
-	StaticImage_Mega->Create(_T("A bitmap Mega"), WS_CHILD  | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Mega, this);
-	StaticImage_Uno->Create(_T("A bitmap Uno")  , WS_CHILD  | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Uno, this);
+	pDlgSchuppen = new CDlg_Lok_Schuppen(this);
+	pDlgSchuppen->Create();
+
+	pDlgBlockInfo = new CDlg_Block_Info(this);
+
+	StaticImage_Mega->Create(_T("A bitmap Mega"),  WS_CHILD  | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Mega, this);
+	StaticImage_Uno->Create(_T("A bitmap Uno")  ,  WS_CHILD  | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Uno, this);
 	StaticImage_Modus->Create(_T("A bitmap Mode"), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Modus, this);
-	StaticImage_LVZ->Create(_T("A bitmap LVZ"), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_LVZ, this);
-
-	DoStartDialog(false);
+	StaticImage_LVZ->Create(_T("A bitmap LVZ"),    WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_LVZ, this);
+	theApp.Lok_in_Uhr.LoadBitmap(IDB_BITLOK_MUHR);
+	theApp.Lok_ge_Uhr.LoadBitmap(IDB_BITLOK_GUHR);
+	theApp.Lok_Hoch.LoadBitmap(IDB_BITLOK_HOCH);
+	theApp.Lok_Runter.LoadBitmap(IDB_BITLOK_RUNTER);
+	theApp.Signal_G.LoadBitmap(IDB_BITSIGNAL_GRU);
+	theApp.Signal_R.LoadBitmap(IDB_BITSIGNAL_ROT);
+	theApp.WarnungNotAus.LoadBitmap(IDB_BIT_WARNUNG);
+	theApp.LokSchuppen.LoadBitmap(IDB_BITMAP_SCHUPPEN);
 	XpressNet.OpenCom(3);
 	BlockMelder.OpenCom(5);
 	Gleis_Data.Init();
 
+	pDlgBlockInfo->Create();
+	pDlgSchuppen->OnInitDialog(&Gleis_Data);
 	m_3DGleis.OnInitDialog(&Gleis_Data);
 
 	InitDlg();
 	Gleis_Data.Start_Com_Thread();
 	Sleep(200);
+	//pDlgDebugInfo->ShowWindow(SW_SHOW);
 	return TRUE; 
 }
 void CTrainControll_FahrplanDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -228,7 +245,8 @@ void CTrainControll_FahrplanDlg::OnPaint()
 	default:
 		break;
 	}
-	dc.TextOutW(60, 725, Text);
+	SetBkMode(dc, TRANSPARENT);
+	dc.TextOutW(60, 735, Text);
 	switch (BlockMelder.Get_VersionInfo(&Text))
 	{
 	case 0:
@@ -243,7 +261,8 @@ void CTrainControll_FahrplanDlg::OnPaint()
 	default:
 		break;
 	}
-	dc.TextOutW(60, 770, Text);
+	dc.TextOutW(60, 780, Text);
+	SetBkMode(dc, OPAQUE);
 	BlockMelder.ZeichneBlockMeldung(&dc);
 	XpressNet.ZeichneWeichenMeldung(&dc);
 	dc.MoveTo(180, 700);
@@ -388,17 +407,15 @@ void CTrainControll_FahrplanDlg::OnBnClickedButtonZug(UINT nID)
 			//	SetDlgItemTextW(IDC_STATIC_ZUG0_1 + index, _T("fährt jetzt nach Fahrplan Nr.:0"));
 			//}
 			//else
-				SetDlgItemTextW(IDC_STATIC_ZUG0_1 + index, _T("konnte nicht gestartet werden"));
+			SetDlgItemTextW(IDC_STATIC_ZUG0_1 + index, _T("konnte nicht gestartet werden"));
 
 		}
 	}
 	else
 	{
-		byte Dlg_Nr = 0xFF;
-		if (meineLoks.Get_aktiveLok_Pointer(Lok_Nr).Dlg_Nr != 0xFF)
+		byte Dlg_Nr = meineLoks.Get_Dialog_Nr(Lok_Nr);
+		if (Dlg_Nr != 0xFF)
 		{
-			Dlg_Nr = meineLoks.Get_aktiveLok_Pointer(Lok_Nr).Dlg_Nr;
-
 			if (pDlgTrainRun[Dlg_Nr] == NULL)
 			{
 				ButtonTrainRun[Dlg_Nr] = IDC_BUTTON_ZUG0 + index;
@@ -425,6 +442,11 @@ void CTrainControll_FahrplanDlg::OnBnClickedButtonZug(UINT nID)
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonTest()
 {
+	if (pDlgBlockInfo->IsWindowVisible())
+		pDlgBlockInfo->ShowWindow(SW_HIDE);
+	else
+		pDlgBlockInfo->ShowWindow(SW_SHOW);
+
 }
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche()
@@ -436,21 +458,13 @@ void CTrainControll_FahrplanDlg::OnClose()
 {
 	XpressNet.CloseCom();
 	BlockMelder.CloseCom();
-
-	if (pDlgTrainRun[0] != NULL) 
+	for (int i = 0; i < 7; i++)
 	{
-		pDlgTrainRun[0]->DestroyWindow();
-		delete pDlgTrainRun[0];	
-	}
-	if (pDlgTrainRun[1] != NULL)
-	{
-		pDlgTrainRun[1]->DestroyWindow();
-		delete pDlgTrainRun[1];
-	}
-	if (pDlgTrainRun[2] != NULL) 
-	{
-		pDlgTrainRun[2]->DestroyWindow();
-		delete pDlgTrainRun[2];
+		if (pDlgTrainRun[i] != NULL)
+		{
+			pDlgTrainRun[i]->DestroyWindow();
+			delete pDlgTrainRun[i];
+		}
 	}
 	if (pDlgTrainRunCam != NULL)
 	{
@@ -462,9 +476,21 @@ void CTrainControll_FahrplanDlg::OnClose()
 		pDlgDebugInfo->DestroyWindow();
 		delete pDlgDebugInfo;
 	}
+	if (pDlgSchuppen != NULL)
+	{
+		pDlgSchuppen->DestroyWindow();
+		delete pDlgSchuppen;
+	}
+	if (pDlgBlockInfo != NULL)
+	{
+		pDlgBlockInfo->DestroyWindow();
+		delete pDlgBlockInfo;
+	}
+
 	delete StaticImage_Mega;
 	delete StaticImage_Uno;
 	delete StaticImage_Modus;
+	delete StaticImage_LVZ;
 	Gleis_Data.Stop_Com_Thread();
 	CDialogEx::OnClose();
 }

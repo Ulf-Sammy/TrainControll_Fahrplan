@@ -1,7 +1,8 @@
 #include "pch.h"
-#include ".\3dmetergleis.h"
+#include "3dmetergleis.h"
 #include "math.h"
 #include "TrainControll_Fahrplan.h"
+#include "TrainControll_FahrplanDlg.h"
 
 
 C3DMeterGleis::C3DMeterGleis(void)
@@ -12,36 +13,15 @@ C3DMeterGleis::C3DMeterGleis(void)
 	Zeige[Zeichne_Weichen_Nr] = false;
 	Zeige[Zeichne_Melder_Nr] = false;
 	Zeige[Zeichne_Tasten_Nr] = true; 
-
 	
-	Pen_Gr.CreatePen(PS_SOLID, 5, RGB(  6,233,    13)); // Grün
-	Pen_Ro.CreatePen(PS_SOLID, 5, RGB(225,  24,   32)); // Rot
-	Pen_hR.CreatePen(PS_SOLID, 5, RGB(243, 141,  147)); // hell Rot
-	Pen_Or.CreatePen(PS_SOLID, 5, RGB(232, 104,   13)); // Orange
-	Pen_Ge.CreatePen(PS_SOLID, 5, RGB(255, 242,    0)); // Gelb
-	Pen_Ga.CreatePen(PS_SOLID, 5, RGB(155,155,155)); // Grau
-	Pen_White.CreatePen(PS_SOLID,5,RGB(255,255,255)); 
-	Pen_Bl.CreatePen    (PS_SOLID,5,RGB( 42, 13,232)); // Blau
-	Pen_SW.CreatePen    (PS_SOLID,1,RGB( 0,  0,  0)); // Schwarz
-	Pen_Melder.CreatePen(PS_SOLID,2,RGB( 0,  0,  0)) ;
-	Pen_Taster.CreatePen(PS_SOLID, 3, RGB(0, 0, 0));
+	Pen_SW.CreatePen    (PS_SOLID, 1, RGB( 0, 0, 0)); // Schwarz
+	Pen_Melder.CreatePen(PS_SOLID, 2, RGB( 0, 0, 0)) ;
+	Pen_Taster.CreatePen(PS_SOLID, 3, RGB( 0, 0, 0));
+
 	Brush_Hinterg.CreateSolidBrush(colorHinterGrund);
-	Brush_Weiche.CreateSolidBrush(colorHinterGrund);
-	Brush_Melder_O.CreateSolidBrush(RGB(255,217,179)) ;
-	Brush_Melder_I.CreateSolidBrush(RGB(255,  0,  0)) ;
-	Brush_White.CreateSolidBrush(RGB(255,255,255));
-	Brush_Yellow.CreateSolidBrush(RGB(255, 255, 0));
-	Brush_Red.CreateSolidBrush(RGB(255, 0, 0));
-	Brush_Green.CreateSolidBrush(RGB(0, 140, 0));
 
-
-
-	
-	
-	Lok_in_Uhr = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_MUHR));
-	Lok_ge_Uhr = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_GUHR));
-	Lok_Hoch   = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_HOCH));
-	Lok_Runter = (HBITMAP)::LoadBitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BITLOK_RUNTER));
+	LokButton = CRect(0, 0, 70, 151);
+	LokButton.OffsetRect(0, 498);
 }
 //
 C3DMeterGleis::~C3DMeterGleis(void)
@@ -58,6 +38,9 @@ END_MESSAGE_MAP()
 void C3DMeterGleis::OnInitDialog(CGleisPlan *pPlan)
 {
 	DataPlan = pPlan;
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+	pDlgSchuppen = APP->pDlgSchuppen;
+	pDlgBlockInfo = APP->pDlgBlockInfo;
 }
 
 void C3DMeterGleis::OnSize(UINT nType, int cx, int cy)
@@ -72,32 +55,26 @@ void C3DMeterGleis::OnPaint(void)
 	GetClientRect (&m_rectCtrl) ;
 	CMem_DC memDC(&dc, &m_rectCtrl);
 	pDC = &memDC;
-	CMem_DC Test_DC(&dc, &m_rectCtrl);
-	static int Kick = 0;
-	CString Text;
 
-	if ((m_dcBackground.GetSafeHdc() == NULL) || (m_bitmapBackground.m_hObject == NULL))
-	{
-		m_dcBackground.CreateCompatibleDC(&dc) ;
-		m_bitmapBackground.CreateCompatibleBitmap(&dc,m_rectCtrl.Width(), m_rectCtrl.Height()) ;
-		m_pBitmapOldBackground = m_dcBackground.SelectObject(&m_bitmapBackground) ;
-		ZeichenHintergrund(&m_dcBackground, m_rectCtrl) ;				
-	}
+
+	
+	ZeichenHintergrund(&dc, &m_dcBackground, Zeige[Zeichne_Gitter]);
+
 	// drop in the background
 	memDC.BitBlt(0, 0, m_rectCtrl.Width(), m_rectCtrl.Height(),&m_dcBackground, 0, 0, SRCCOPY) ;
 	
-	
-	Pen_Old   = pDC->SelectObject(&Pen_SW);
-	Brush_Old = pDC->SelectObject(&Brush_Weiche) ;
-	Font_Old  = pDC->SelectObject(&Font_Block_0) ;
-	//ZeichenTest();
+
 	DataPlan->ZeicheStrecke(pDC);
-	Text.Format(_T(" gezeichnet %i mal !"), Kick);
-	pDC->TextOutW(10, 10, Text);
-	pDC->SelectObject(&Pen_Old);
-	pDC->SelectObject(&Brush_Old);
-	pDC->SelectObject(&Font_Old) ;
-	Kick++;
+	
+	theApp.LokSchuppen.DrawTransparent(pDC, 0, 498, RGB(255, 255, 255));
+	if (!DataPlan->isPower_onGleis())
+	{
+		theApp.WarnungNotAus.DrawTransparent(pDC, 800, 250, RGB(255, 255, 255));
+	}
+
+
+
+	//ZeicheLok(&memDC, 0);
 }
 void C3DMeterGleis::ReconstructControl()
 {
@@ -111,17 +88,24 @@ void C3DMeterGleis::ReconstructControl()
 }
 void C3DMeterGleis::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	DataPlan->Kick_Block(point);
+	if (DataPlan->Kick_Block(point))
+	{
+		Invalidate();
+		pDlgBlockInfo->NeueDaten();
+	}
 //	DataBlock->KlickTasterSchalten(point);
+	if (LokButton.PtInRect(point))
+	{
+		if (pDlgSchuppen->IsWindowVisible()) pDlgSchuppen->ShowWindow(SW_HIDE);
+		else pDlgSchuppen->ShowWindow(SW_SHOW);
+	}
 	
 	CStatic::OnLButtonDown(nFlags, point);
 }
 
-void C3DMeterGleis::ZeichenHintergrund(CDC * pDC_H, CRect &rect)
+void C3DMeterGleis::ZeichenHintergrund(CPaintDC *dc,  CDC* pDC_H, bool Gitter)
 {
    
-	COLORREF Back_Pen = RGB(115, 115, 115);
-	CPen	 Pen_Back  ;
 	
 	CBrush*  pOldBrush ;
 	CPen*	 pOldPen   ;
@@ -132,16 +116,21 @@ void C3DMeterGleis::ZeichenHintergrund(CDC * pDC_H, CRect &rect)
 	int X_Lang = 40;
 	int Y_Lang = 30;
    //Brush_Back.CreateSolidBrush(colorHinterGrund);
-   Pen_Back.CreatePen(PS_SOLID, 1,Back_Pen);
 
+   if ((m_dcBackground.GetSafeHdc() == NULL) || (m_bitmapBackground.m_hObject == NULL))
+   {
+	   m_dcBackground.CreateCompatibleDC(dc);
+	   m_bitmapBackground.CreateCompatibleBitmap(dc, m_rectCtrl.Width(), m_rectCtrl.Height());
+	   m_pBitmapOldBackground = m_dcBackground.SelectObject(&m_bitmapBackground);
+   }
    pOldBrush = pDC_H->SelectObject(&Brush_Hinterg);
-   pOldPen   = pDC_H->SelectObject(&Pen_Back);
-   pOldFont  = pDC_H->SelectObject(&theApp.Font_Info_s) ;
-   pDC_H->Rectangle(rect);
-   if (Zeige[Zeichne_Gitter])
+   pOldPen = pDC_H->SelectObject(&theApp.Stift_SW_1);
+   pOldFont = pDC_H->SelectObject(&theApp.Font_Info_s);
+   pDC_H->Rectangle(m_rectCtrl);
+   if (Gitter)
    {
 	   pDC_H->SetBkColor(colorHinterGrund);
-	   pDC_H->SetTextColor(Back_Pen);
+	   pDC_H->SetTextColor(colorSchwarz);
 	   for(int x=0;x < X_Lang ;x++)
 		{
 			Text.Format(_T("%i"),x);
@@ -160,7 +149,7 @@ void C3DMeterGleis::ZeichenHintergrund(CDC * pDC_H, CRect &rect)
 			pDC_H->LineTo( m_rectCtrl.right,P.y );
 		}
    }
-   pDC_H->SelectObject(pOldBrush);
+//   pDC_H->SelectObject(pOldBrush);
    pDC_H->SelectObject(pOldPen);
    pDC_H->SelectObject(pOldFont);
 }
@@ -170,10 +159,10 @@ void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
 	CString TextNr, TextInfo;
 	for (int i = 0; i < 2; i++)
 	{
-		/*
-		if (DataBlock->Show_Taster(Block_Nr, (bool) i))
+		
+		//if (DataBlock->Show_Taster(Block_Nr, (bool) i))
 		{
-			CBrush Bneu;
+			/*CBrush Bneu;
 
 			switch (DataBlock->GetCol_Taster(Block_Nr,(bool) i))
 			{
@@ -195,8 +184,8 @@ void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
 				break;
 			}
 			pDC->Ellipse(DataBlock->Get_Taster_Position(Block_Nr, (bool) i));
-			
-		} */
+			*/
+		} 
 	}
 }
 
@@ -205,6 +194,7 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 {
 	CBrush BCol ;
 	COLORREF colorWert; // , , Gelb = RGB(253, 240, 2);
+	colorWert = RGB(0, 0, 0);
 	if (Block == BlockType::isBlock)
 	{
 		if (Zeige[Zeichne_Block_Nr])
@@ -268,79 +258,8 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 
 }
 
-void C3DMeterGleis::SetzeBlockFarbe(byte Nr)
-{
-	/*
-	if (DataBlock->ist_frei(Nr))
-		pDC->SelectObject(&Pen_Gr);
-	else
-	{
-		switch (DataBlock->Get_Block_Lok(Nr)->Get_Status())
-		{
-		case Zug_Status::Zug_Stopped:
-			pDC->SelectObject(&Pen_Or);
-			break;
-		case Zug_Status::Zug_faehrt_vor:
-		case Zug_Status::Zug_faehrt_rueck:
-		case Zug_Status::Zug_haelt:
-			if (DataBlock->ist_Lok_onBlock(Nr))
-				pDC->SelectObject(&Pen_Ro);
-			else
-				pDC->SelectObject(&Pen_hR);
-			break;
-		default:
-			pDC->SelectObject(&Pen_hR);
-			break;
-		}
-	} */
-}
-void C3DMeterGleis::ZeicheLok(CMem_DC LokBitmap, int Nr)
-{
-	/*
-	if (DataBlock->Get_BlockType(Nr) == BlockType::isGleis)
-	{
-		if (DataBlock->ist_besetzt(Nr))
-		{
-			CPoint P;
-			if (DataBlock->GetWerte_Block(Nr).GliesPos == 'U')
-			{
-				if (DataBlock->Get_Block_Lok(Nr)->Blick)
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_in_Uhr));
-				else	
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_ge_Uhr));
-				P = DataBlock->GetWerte_Block(Nr).TextPos + CPoint(12, -30);
 
-			}
-			if (DataBlock->GetWerte_Block(Nr).GliesPos == 'O')
-			{
-				if (DataBlock->Get_Block_Lok(Nr)->Blick)
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_ge_Uhr));
-				else
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_in_Uhr));
-				P = DataBlock->GetWerte_Block(Nr).TextPos + CPoint(12, -30);
-			}
-			if (DataBlock->GetWerte_Block(Nr).GliesPos == 'L')
-			{
-				if (DataBlock->Get_Block_Lok(Nr)->Blick)
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_Hoch));
-				else
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_Runter));
-				P = DataBlock->GetWerte_Block(Nr).TextPos + CPoint(-22, 13);
-			}
-			if (DataBlock->GetWerte_Block(Nr).GliesPos == 'R')
-			{
-				if (DataBlock->Get_Block_Lok(Nr)->Blick)
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_Runter));
-				else
-					LokBitmap->SelectObject(CBitmap::FromHandle(Lok_Hoch));
-				P = DataBlock->GetWerte_Block(Nr).TextPos + CPoint(-22, 13);
-			}
 
-			pDC->SelectObject(&Brush_Hinterg);
-			pDC->BitBlt(P.x, P.y, 100, 50, LokBitmap, 0, 0, MERGECOPY); // RCCOPY);
-		}
-	} */
-}
 
 void C3DMeterGleis::ZeichenTest()
 {

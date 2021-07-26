@@ -219,6 +219,11 @@ CDataXpressNet & CDatenBankLok::Get_aktiveLok_Pointer(byte Lok_Nr)
 	return MeineZüge[aktiveLoks[Lok_Nr]];
 }
 
+byte CDatenBankLok::Get_Dialog_Nr(byte Lok_Nr)
+{
+	return MeineZüge[aktiveLoks[Lok_Nr]].Dlg_Nr;
+}
+
 bool CDatenBankLok::is_Zug_Pointer(byte Nr)
 {
 	return (aktiveLoks.size()> Nr);
@@ -398,11 +403,11 @@ HBITMAP CDatenBankLok::Get_aktiveLok_Image(byte Nr)
 bool CDatenBankLok::Set_Zug_Dlg_Nr(byte Nr)
 {
 	static byte Dlg_nNr = 0;
-	if (Anzahl_Dlg_Run < 3)
+	if (Anzahl_Dlg_Run < 5)
 	{
 		if ((MeineZüge[aktiveLoks[Nr]].Name == "grüne Stainz"))
 	    {
-		    MeineZüge[aktiveLoks[Nr]].Dlg_Nr = 3;
+		    MeineZüge[aktiveLoks[Nr]].Dlg_Nr = 6;
 	    }
 		else
 		{

@@ -2,7 +2,7 @@
 ## ZugPos ##- use | Block | Blick     |Plan16:02 09.02.2019
 Spreewald       |H|025 Zug gegen Uhrzei|01|
 Niki & Frank S  |H|026 Zug gegen Uhrzei|00|
-996001          |H|027 Zug gegen Uhrzei|01|	
+996001          |H|027 Zug in Uhrzeiger|01|	
 Feuerwehr Lok   |H|028 Zug gegen Uhrzei|00|
 grüne Stainz    |H|029 Zug gegen Uhrzei|00
 rote Stainz     |A|000 Zug in Uhrzeiger|00

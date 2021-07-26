@@ -1,10 +1,10 @@
 #include "pch.h"
+#include "TrainControll_Fahrplan.h"
 #include "CBlockInfo.h"
 
 CBlock_Weiche::CBlock_Weiche()
 {
 	Antrieb_Nr = 0;
-	Stellung = false;
 }
 
 CBlock_Weiche::CBlock_Weiche(CString InText, CPoint Step)
@@ -12,8 +12,7 @@ CBlock_Weiche::CBlock_Weiche(CString InText, CPoint Step)
 	CString Text = InText.Mid(8, 8);
 	char Richtung = (char)InText[27];
 	char Antrieb = (char)InText[17];
-	Stellung = false;
-
+	
 	Antrieb_Nr = _ttoi(InText.Mid(4, 3));
 	EinPos[0] = CPoint(_ttoi(InText.Mid(19, 3)), _ttoi(InText.Mid(23, 3)));
 	TextPos   = CPoint(_ttoi(InText.Mid(31, 3)), _ttoi(InText.Mid(35, 3)));
@@ -155,12 +154,10 @@ CBlock_Weiche::CBlock_Weiche(CString InText, CPoint Step)
 
 }
 
-void CBlock_Weiche::zeichneWeiche(CDC* pDC, CPen *Penstatus)
+void CBlock_Weiche::zeichneWeiche(CDC* pDC, BlockStatus Bl_Status, std::vector<TrainCon_Paar>* Weichen)
 {
-	CPen PenWhite_B(PS_SOLID, 5, RGB(255, 255, 255));
-
 	byte S0, S1;
-	if (Stellung)
+	if (Weichen->at(Antrieb_Nr).GetBit())
 	{
 		S0 = 0;
 		S1 = 1;
@@ -170,24 +167,38 @@ void CBlock_Weiche::zeichneWeiche(CDC* pDC, CPen *Penstatus)
 		S0 = 1;
 		S1 = 0;
 	}
-	pDC->SelectObject(&PenWhite_B);
-	if ((Type == WeichenType::L_DoppelWeiche) ||(Type == WeichenType::R_DoppelWeiche))
-	{ 
+	pDC->SelectObject(&theApp.Gleis_Null);
+	pDC->MoveTo(MitPos[0]);
+	pDC->LineTo(AusPos[S0]);
+
+	switch (Bl_Status)
+	{
+		case BlockStatus::Frei:
+			pDC->SelectObject(&theApp.Gleis_Frei);
+			break;
+		case BlockStatus::Besetzt:
+			pDC->SelectObject(&theApp.Gleis_Besetzt);
+			break;
+		case BlockStatus::BesetztError_A:
+			pDC->SelectObject(&theApp.Gleis_ErrorA);
+			break;
+		case BlockStatus::BesetztError_B:
+			pDC->SelectObject(&theApp.Gleis_ErrorB);
+			break;
+		default:
+			pDC->SelectObject(&theApp.Gleis_Null);
+			break;
+	}	
+	if ((Type == WeichenType::L_DoppelWeiche) || (Type == WeichenType::R_DoppelWeiche))
+	{
 		pDC->MoveTo(MitPos[0]);
-		pDC->LineTo(AusPos[S0]);
-		pDC->SelectObject(Penstatus);
-		pDC->MoveTo(MitPos[0]);
-		pDC->LineTo(AusPos[S1]);
 	}
 	else
-	{ // Weichen
-		pDC->MoveTo(MitPos[0]);
-		pDC->LineTo(AusPos[S0]);
-		pDC->SelectObject(Penstatus);
+	{
 		pDC->MoveTo(EinPos[0]);
 		pDC->LineTo(MitPos[0]);
-		pDC->LineTo(AusPos[S1]);
 	}
+	pDC->LineTo(AusPos[S1]);
 }
 
 bool CBlock_Weiche::klickedWeiche(CPoint KlickP)
@@ -197,18 +208,14 @@ bool CBlock_Weiche::klickedWeiche(CPoint KlickP)
 
 bool CBlock_Weiche::SetWeiche(TrainCon_Paar WeichenDaten)
 {
-	if (WeichenDaten.GetWert() == Antrieb_Nr)
-	{
-		Stellung = WeichenDaten.GetBit();
-		return true;
-	}
+	if (WeichenDaten.GetWert() == Antrieb_Nr) {	return true;}
 	return false;
 }
 
 
-TrainCon_Paar CBlock_Weiche::Weichenantrieb()
+byte CBlock_Weiche::Weichenantrieb()
 {
-	return TrainCon_Paar(Antrieb_Nr,Stellung);
+	return Antrieb_Nr;
 }
 
 CBlock_Weiche::~CBlock_Weiche()
@@ -217,12 +224,22 @@ CBlock_Weiche::~CBlock_Weiche()
 //###############################################################################
 //
 //###############################################################################
-CBlock_Strecke::CBlock_Strecke(){}
+CBlock_Strecke::CBlock_Strecke()
+{
+	CBlock_Strecke::Relais_Nr = 0;
+	CBlock_Strecke::Relais_Power = 0;
+}
 
-CBlock_Strecke::CBlock_Strecke(const CBlock_Strecke&){}
+CBlock_Strecke::CBlock_Strecke(const CBlock_Strecke&)
+{
+	CBlock_Strecke::Relais_Nr = 0;
+	CBlock_Strecke::Relais_Power = 0;
+}
 
 CBlock_Strecke::CBlock_Strecke(CString InText, CPoint Step)
 {
+	CBlock_Strecke::Relais_Nr = 0;
+	CBlock_Strecke::Relais_Power = 0;
 	Setup(InText, Step);
 }
 
@@ -237,7 +254,7 @@ void CBlock_Strecke::Setup(CString InText, CPoint Step)
 	Relais_Power = false;
 	CString Text = InText.Mid(4, 7);
 	Relais_Nr = _ttoi(InText.Mid(12, 2));
-	char box = (char)InText[23]; // Richtung der Box
+	box = (char)InText[23]; // Richtung der Box
 	GliesPos = (char)InText[27]; // Position der Beschriftung
 	TextPos = CPoint(_ttoi(InText.Mid(16, 3)), _ttoi(InText.Mid(20, 3)));
 	TextPos.x = TextPos.x * Step.x;
@@ -265,21 +282,17 @@ void CBlock_Strecke::Setup(CString InText, CPoint Step)
 	}
 	if ((Type == StreckenType::Gleis) || (Type == StreckenType::Abstellgleis))
 	{
-		if (box == '-')
+		if (box == '-') // 0°
 		{
 			KlickRechteck = CRect(TextPos + CPoint(70, -10), TextPos + CPoint(_ttoi(InText.Mid(24, 3)), 10));
 			TextPos = TextPos + CPoint(74, -8);
 			TextBes = TextPos + CPoint(0, 20);
-			BeschriftungBlock.CreateFontIndirectW(&FontType_Ar_16_0);
-			GleisBeschriftung.CreateFontIndirectW(&FontType_Ar_14_0);
 		}
-		if (box == '|')
+		if (box == '|') // 270°
 		{
 			KlickRechteck = CRect(TextPos + CPoint(-10, 65), TextPos + CPoint(10, _ttoi(InText.Mid(24, 3))));
 			TextPos = TextPos + CPoint(8, 68);
 			TextBes = TextPos + CPoint(-20, 0);
-			BeschriftungBlock.CreateFontIndirectW(&FontType_Ar_14_270);
-			GleisBeschriftung.CreateFontIndirectW(&FontType_Ar_11_270);
 		}
 	}
 
@@ -289,15 +302,30 @@ CBlock_Strecke::~CBlock_Strecke()
 {
 }
 
-void CBlock_Strecke::zeichneStrecke(CDC* pDC, CPen* Penstatus, CString LokName)
+void CBlock_Strecke::zeichneStrecke(CDC* pDC, BlockStatus Bl_Status, CString LokName, bool LokDir)
 {
-	CPen Pen_SW(PS_SOLID,1,colorSchwarz);
 	CPen Pen_PowerOn(PS_SOLID, 5, colorGelb);
 	CPen Pen_PowerOFF(PS_SOLID, 5, colorRot);
-	CBrush Brush_White(colorWeiss);
 
 	byte i = 0;
-	pDC->SelectObject(Penstatus);
+	switch (Bl_Status)
+	{
+	case BlockStatus::Frei:
+		pDC->SelectObject(theApp.Gleis_Frei);
+		break;
+	case BlockStatus::Besetzt:
+		pDC->SelectObject(theApp.Gleis_Besetzt);
+		break;
+	case BlockStatus::BesetztError_A:
+		pDC->SelectObject(theApp.Gleis_ErrorA);
+		break;
+	case BlockStatus::BesetztError_B:
+		pDC->SelectObject(theApp.Gleis_ErrorB);
+		break;
+	default:
+		pDC->SelectObject(theApp.Gleis_Null);
+		break;
+	}
 	for (CPoint P : StreckePunkte)
 	{
 		if (i == 0) pDC->MoveTo(P);
@@ -306,22 +334,96 @@ void CBlock_Strecke::zeichneStrecke(CDC* pDC, CPen* Penstatus, CString LokName)
 	}
 	if ((Type == StreckenType::Gleis) || (Type == StreckenType::Abstellgleis))
 	{ 
+		CPoint LokPosH = TextBes;
+		CPoint LokPosV = TextBes;
+		
 		if (Relais_Nr != 0)
 		{
 			if(Relais_Power) pDC->SelectObject(&Pen_PowerOn);
 			else pDC->SelectObject(&Pen_PowerOFF);
 			pDC->Rectangle(KlickRechteck);
 		}
-		pDC->SelectObject(&Brush_White);
-		pDC->SelectObject(&Pen_SW);
+		pDC->SelectObject(&theApp.Brush_White);
+		pDC->SelectObject(&theApp.Stift_SW_1);
 		pDC->Rectangle(KlickRechteck);
-		pDC->SelectObject(BeschriftungBlock);
+		if (box == '|') 	pDC->SelectObject(&theApp.BeschriftungBlock_270);
+		if (box == '-')     pDC->SelectObject(&theApp.BeschriftungBlock_0);
 		pDC->SetTextAlign(TA_LEFT);
-		pDC->SetBkColor(colorWeiss);
+		pDC->SetBkColor(GleisWeiss);
 		pDC->TextOutW(TextPos.x, TextPos.y, LokName); // Lok in Block text
-		pDC->SelectObject(GleisBeschriftung);
+		if (box == '|') 	pDC->SelectObject(&theApp.GleisBeschriftung_270);
+		if (box == '-')     pDC->SelectObject(&theApp.GleisBeschriftung_0);
 		pDC->SetBkColor(colorHinterGrund);
 		pDC->TextOutW(TextBes.x, TextBes.y, Gleis_Name); // Beschreibung Gleis
+		if (!LokName.IsEmpty())
+		{
+			if (box == '-')
+			{
+				if (TextBes.y > 400)
+				{
+					if (LokDir)
+					{
+						LokPosH.Offset(CPoint(75, -50));
+						if(Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_ge_Uhr.DrawTransparent(pDC, LokPosH.x, LokPosH.y, RGB(255, 255, 255));
+					}
+					else
+					{
+						LokPosH.Offset(CPoint(-52, -50));
+						if (Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_in_Uhr.DrawTransparent(pDC, LokPosH.x, LokPosH.y, RGB(255, 255, 255));
+					}
+				}
+				else
+				{
+					if (LokDir)
+					{
+						LokPosH.Offset(CPoint(-52, -50));
+						if (Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_in_Uhr.DrawTransparent(pDC, LokPosH.x, LokPosH.y, RGB(255, 255, 255));
+					}
+					else
+					{
+						LokPosH.Offset(CPoint(75, -50));
+						if (Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_ge_Uhr.DrawTransparent(pDC, LokPosH.x, LokPosH.y, RGB(255, 255, 255));
+					}
+			}
+			}
+			if (box == '|')
+			{
+				if (TextBes.x > 800)
+				{
+					if (LokDir)
+					{
+						LokPosV.Offset(CPoint(-25, -52));
+						if (Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_Hoch.DrawTransparent(pDC, LokPosV.x, LokPosV.y, RGB(255, 255, 255));
+					}
+					else
+					{
+						LokPosV.Offset(CPoint(-25, 82));
+						if (Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_Runter.DrawTransparent(pDC, LokPosV.x, LokPosV.y, RGB(255, 255, 255));
+					}
+				}
+				else
+				{
+					if (LokDir)
+					{
+						LokPosV.Offset(CPoint(-25, +81));
+						if (Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_Runter.DrawTransparent(pDC, LokPosV.x, LokPosV.y, RGB(255, 255, 255));
+					}
+					else
+					{
+						LokPosV.Offset(CPoint(-25, -52));
+						if (Bl_Status == BlockStatus::Besetzt)
+							theApp.Lok_Hoch.DrawTransparent(pDC, LokPosV.x, LokPosV.y, RGB(255, 255, 255));
+					}
+				}
+			}
+		}
 
 
 	}
@@ -347,8 +449,104 @@ TrainCon_Paar CBlock_Strecke::Relais()
 	return TrainCon_Paar(Relais_Nr, Relais_Power);
 }
 
+byte CBlock_Strecke::Get_Relais_Nr()
+{
+	return Relais_Nr;
+}
+
 void CBlock_Strecke::SetRelais(TrainCon_Paar Relais)
 {
 	Relais_Nr   = Relais.GetWert();
 	Relais_Power = Relais.GetBit();
+}
+
+void CBlock_Strecke::GetDebugData(BlockDebugData *Data)
+{
+	Data->Gleis_Name = Gleis_Name;
+	Data->Relais_Nr = Relais_Nr;
+	Data->Relais_Power = Relais_Power;
+}
+
+CBlock_Weg::CBlock_Weg()
+{
+	Block_von = 0;
+	Block_nach = 0;
+	Block_zwich = 0;
+}
+
+CBlock_Weg::CBlock_Weg(CString InText)
+{
+	Block_zwich = 0;
+	Block_von = _ttoi(InText.Mid(0,2));
+	Block_nach = _ttoi(InText.Mid(10, 2));
+	
+	int Reads = (InText.GetLength() - 10) / 4;
+	int i = 0; 
+	if ('B' == InText[InText.GetLength() - 3])
+	{
+		Block_zwich = _ttoi(InText.Mid(InText.GetLength() - 2, 2));
+		Reads--;
+	}
+	do
+	{
+		WeichenWeg.push_back(TrainCon_Paar(InText.Mid((i * 4 + 13), 3)));
+		i++;
+	} while (Reads != i);
+}
+
+void CBlock_Weg::WechselRichtung()
+{
+	byte tmp = Block_nach;
+	Block_nach = Block_von;
+	Block_von = tmp;
+}
+
+bool CBlock_Weg::isvonBlock(byte EBlock,byte ABlock)
+{
+	return ((EBlock == Block_von) && (ABlock == Block_nach));
+}
+
+bool CBlock_Weg::isWeg_geschaltet(std::vector<TrainCon_Paar>* Weichen)
+{
+	bool result = true;
+	bool bit;
+
+	for (auto N : WeichenWeg)
+	{
+		bit = (N.GetBit() == Weichen->at(N.GetWert()).GetBit());
+		result = result && bit;
+	}
+	return result;
+}
+
+bool CBlock_Weg::isWeg_nachgeschaltet(byte Block, std::vector<TrainCon_Paar>* Weichen)
+{
+	if (isWeg_geschaltet(Weichen))
+	{
+		if (Block == Block_von) return true;
+		if (Block == Block_nach) return true;
+	}
+	return false;
+}
+
+void CBlock_Weg::Blocksaufweg(std::vector<byte>* Block)
+{
+	if (Block_zwich != 0) Block->push_back(Block_zwich);
+	Block->push_back(Block_nach);
+}
+
+
+byte CBlock_Weg::VonBlock()
+{
+	return Block_von;
+}
+
+byte CBlock_Weg::ZwiBlock()
+{
+	return Block_zwich;
+}
+
+byte CBlock_Weg::NachBlock()
+{
+	return Block_nach;
 }
