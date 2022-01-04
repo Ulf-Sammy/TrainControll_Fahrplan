@@ -9,8 +9,7 @@ class CDatenBankLok
 public:
 	CDatenBankLok();
 	~CDatenBankLok();
-	byte Init();
-	CCom_XpressNet *Get_XpressNet();
+	void Init();
 	void Test_Data();
 	void Load_Zug_Data();
 	void Save_Zug_Data();
@@ -26,8 +25,6 @@ public:
 	byte Get_Dialog_Nr(byte Lok_Nr);
 	bool is_Zug_Pointer(byte Nr);
 	void Ask_aktivLok_Data(byte Lok_Nr);
-	void New_Lok_Data();
-	
 
 	void Fill_Liste_Zug(CComboBox* Data, DecoderTypen Decoder_Type);
 	void Fill_Liste_Zug(CComboBox* Data);
@@ -76,6 +73,5 @@ protected:
 	byte			Prog_CV = 0;
 	bool			Zug_wartet_auf_Data = false;
 	bool			Do_Save_Data = false;
-	CCom_XpressNet   *XpressNet = NULL;
 };
 

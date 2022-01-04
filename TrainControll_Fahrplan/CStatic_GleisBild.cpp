@@ -1,13 +1,13 @@
 #include "pch.h"
-#include "3dmetergleis.h"
+#include "CStatic_GleisBild.h"
 #include "math.h"
 #include "TrainControll_Fahrplan.h"
 #include "TrainControll_FahrplanDlg.h"
 
 
-C3DMeterGleis::C3DMeterGleis(void)
+CStatic_GleisBild::CStatic_GleisBild(void)
 {
-	Zeige[Zeichne_Gitter] = true;
+	Zeige[Zeichne_Gitter] = false;
 	Zeige[Zeichne_Block_Nr] = false;
 	Zeige[Zeichne_Gleis_Nr] = false;
 	Zeige[Zeichne_Weichen_Nr] = false;
@@ -24,69 +24,56 @@ C3DMeterGleis::C3DMeterGleis(void)
 	LokButton.OffsetRect(0, 498);
 }
 //
-C3DMeterGleis::~C3DMeterGleis(void)
+CStatic_GleisBild::~CStatic_GleisBild(void)
 {
 }
 
 //
-BEGIN_MESSAGE_MAP(C3DMeterGleis, CStatic)
+BEGIN_MESSAGE_MAP(CStatic_GleisBild, CStatic)
 	ON_WM_PAINT()
-	ON_WM_SIZE()
 	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
-void C3DMeterGleis::OnInitDialog(CGleisPlan *pPlan)
+void CStatic_GleisBild::Init()
 {
-	DataPlan = pPlan;
+	
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 	pDlgSchuppen = APP->pDlgSchuppen;
 	pDlgBlockInfo = APP->pDlgBlockInfo;
+	DataPlan = &APP->Gleis_Data;
+	
+	GetClientRect(&m_rectCtrl);
 }
 
-void C3DMeterGleis::OnSize(UINT nType, int cx, int cy)
-{
-	CStatic::OnSize(nType, cx, cy);
-	ReconstructControl() ;
-}
 
-void C3DMeterGleis::OnPaint(void)
+void CStatic_GleisBild::OnPaint(void)
 {
-	CPaintDC dc(this); 
-	GetClientRect (&m_rectCtrl) ;
+	CPaintDC dc(this);
 	CMem_DC memDC(&dc, &m_rectCtrl);
 	pDC = &memDC;
 
+	pOldBrush = pDC->SelectObject(&Brush_Hinterg);
 
+	pDC->Rectangle(m_rectCtrl);
+	if (!DataPlan->isPower_onGleis()) 	{ theApp.WarnungNotAus.DrawTransparent(pDC, 800, 250, RGB(255, 255, 255));}
 	
-	ZeichenHintergrund(&dc, &m_dcBackground, Zeige[Zeichne_Gitter]);
 
-	// drop in the background
-	memDC.BitBlt(0, 0, m_rectCtrl.Width(), m_rectCtrl.Height(),&m_dcBackground, 0, 0, SRCCOPY) ;
-	
+	pOldPen = pDC->SelectObject(&theApp.Stift_SW_1);
+	pOldFont = pDC->SelectObject(&theApp.Font_Info_s);
+
+	if(Zeige[Zeichne_Gitter]) ZeichenHintergrund(pDC);
 
 	DataPlan->ZeicheStrecke(pDC);
-	
+
 	theApp.LokSchuppen.DrawTransparent(pDC, 0, 498, RGB(255, 255, 255));
-	if (!DataPlan->isPower_onGleis())
-	{
-		theApp.WarnungNotAus.DrawTransparent(pDC, 800, 250, RGB(255, 255, 255));
-	}
+	
+	pDC->SelectObject(pOldPen);
+	pDC->SelectObject(pOldFont);
+	pDC->SelectObject(pOldBrush);
 
-
-
-	//ZeicheLok(&memDC, 0);
 }
-void C3DMeterGleis::ReconstructControl()
-{
-	if ((m_pBitmapOldBackground) && (m_bitmapBackground.GetSafeHandle()) && (m_dcBackground.GetSafeHdc()))
-	{
-			m_dcBackground.SelectObject(m_pBitmapOldBackground);
-			m_dcBackground.DeleteDC() ;
-			m_bitmapBackground.DeleteObject();
-	}
-	Invalidate () ;
-}
-void C3DMeterGleis::OnLButtonDown(UINT nFlags, CPoint point)
+
+void CStatic_GleisBild::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	if (DataPlan->Kick_Block(point))
 	{
@@ -96,39 +83,34 @@ void C3DMeterGleis::OnLButtonDown(UINT nFlags, CPoint point)
 //	DataBlock->KlickTasterSchalten(point);
 	if (LokButton.PtInRect(point))
 	{
-		if (pDlgSchuppen->IsWindowVisible()) pDlgSchuppen->ShowWindow(SW_HIDE);
-		else pDlgSchuppen->ShowWindow(SW_SHOW);
+		if (pDlgSchuppen->IsWindowVisible())
+		{
+			pDlgSchuppen->ShowWindow(SW_HIDE);
+		}
+		else
+		{
+			DataPlan->Ask_Door_Status();
+			pDlgSchuppen->ShowWindow(SW_SHOW);
+		}
 	}
 	
 	CStatic::OnLButtonDown(nFlags, point);
 }
 
-void C3DMeterGleis::ZeichenHintergrund(CPaintDC *dc,  CDC* pDC_H, bool Gitter)
+void CStatic_GleisBild::neueDaten()
 {
-   
-	
-	CBrush*  pOldBrush ;
-	CPen*	 pOldPen   ;
-	CFont*	 pOldFont  ;
+	Invalidate();
+}
+
+void CStatic_GleisBild::ZeichenHintergrund(CDC* pDC_H)
+{
 	CString  Text;
 	CPoint   P;
 	CPoint   Step = CPoint(40,22);
 	int X_Lang = 40;
 	int Y_Lang = 30;
-   //Brush_Back.CreateSolidBrush(colorHinterGrund);
+  
 
-   if ((m_dcBackground.GetSafeHdc() == NULL) || (m_bitmapBackground.m_hObject == NULL))
-   {
-	   m_dcBackground.CreateCompatibleDC(dc);
-	   m_bitmapBackground.CreateCompatibleBitmap(dc, m_rectCtrl.Width(), m_rectCtrl.Height());
-	   m_pBitmapOldBackground = m_dcBackground.SelectObject(&m_bitmapBackground);
-   }
-   pOldBrush = pDC_H->SelectObject(&Brush_Hinterg);
-   pOldPen = pDC_H->SelectObject(&theApp.Stift_SW_1);
-   pOldFont = pDC_H->SelectObject(&theApp.Font_Info_s);
-   pDC_H->Rectangle(m_rectCtrl);
-   if (Gitter)
-   {
 	   pDC_H->SetBkColor(colorHinterGrund);
 	   pDC_H->SetTextColor(colorSchwarz);
 	   for(int x=0;x < X_Lang ;x++)
@@ -148,13 +130,9 @@ void C3DMeterGleis::ZeichenHintergrund(CPaintDC *dc,  CDC* pDC_H, bool Gitter)
 			pDC_H->MoveTo( m_rectCtrl.left ,P.y );
 			pDC_H->LineTo( m_rectCtrl.right,P.y );
 		}
-   }
-//   pDC_H->SelectObject(pOldBrush);
-   pDC_H->SelectObject(pOldPen);
-   pDC_H->SelectObject(pOldFont);
 }
 
-void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
+void CStatic_GleisBild::ZeicheTaster(byte Block_Nr)
 {
 	CString TextNr, TextInfo;
 	for (int i = 0; i < 2; i++)
@@ -190,7 +168,7 @@ void C3DMeterGleis::ZeicheTaster(byte Block_Nr)
 }
 
 
-void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
+void CStatic_GleisBild::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 {
 	CBrush BCol ;
 	COLORREF colorWert; // , , Gelb = RGB(253, 240, 2);
@@ -261,7 +239,7 @@ void C3DMeterGleis::ZeicheAchteck(CPoint P, byte Nr, BlockType Block)
 
 
 
-void C3DMeterGleis::ZeichenTest()
+void CStatic_GleisBild::ZeichenTest()
 {
 	pDC->SelectObject(&Font_Block_0);
 	pDC->TextOutW(100, 100, _T(" 0° gedreht "));

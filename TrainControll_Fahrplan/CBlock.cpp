@@ -205,12 +205,9 @@ BlockStatus CBlock::GetStatus_Block(CString *Lok_Name, bool *Lok_Dir)
 	return Status;
 }
 
-TrainCon_Paar CBlock::Get_Relais_Data(bool Inv)
+TrainCon_Paar CBlock::Get_Relais_Data()
 {
-	if (Inv)
-		return GleisStrecke.Relais().GetInvBit();
-	else
-		return GleisStrecke.Relais();
+	return GleisStrecke.Relais();
 }
 
 BlockDebugData CBlock::Get_Debug()

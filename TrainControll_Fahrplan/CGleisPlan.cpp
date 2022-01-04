@@ -2,67 +2,12 @@
 #include "CGleisPlan.h"
 #include "TrainControll_FahrplanDlg.h"
 
-UINT Thread_Update_Time(LPVOID pParam)
-{
-	CGleisPlan * Info = (CGleisPlan*)pParam;
-	TRACE(_T("starte Time Thread .....\n"));
-
-	do
-	{
-		Info->NewTimeZug(clock());
-	} while (Info->ListentoCom);
-
-	TRACE(_T("ende Time Thread .....\n"));
-	return 0;
-}
-
-UINT Thread_Update_UNO(LPVOID pParam)
-{
-	CGleisPlan* Info = (CGleisPlan*)pParam;
-	byte Data;
-	Info->Setup_MelderControl();
-	TRACE(_T("starte update Thread Uno.....\n"));
-	do
-	{
-		Data = Info->GetNextMessage_Uno();
-		if (Data)
-		{
-			Info->Verarbeite_Uno_Daten(Data);
-		}
-	} while (Info->ListentoCom);
-	TRACE(_T("ende Update Thread Uno.....\n"));
-	return 0;
-}
-
-UINT Thread_Update_MEGA(LPVOID pParam)
-{
-	CGleisPlan * Info = (CGleisPlan*)pParam;
-	byte Data;
-	TRACE(_T("starte update Thread Mega.....\n"));
-	 Info->Setup_TrainControl();
-	TRACE(_T("run Thread   .....\n"));
-	Info->Thread_Run = true;
-	do
-	{
-		// Daten Empfangen
-		Data = Info->GetNextMessage_Mega();
-		if(Data)
-		{
-			Info->Verarbeite_Mega_Daten(Data);
-		}
-		// Daten Senden
-		Info->New_Daten_Senden();
-	} while (Info->ListentoCom);
-	Info->Thread_Run = false;
-	TRACE(_T("ende Update Thread Mega.....\n"));
-	return 0;
-}
-
-
 
 
 CGleisPlan::CGleisPlan()
 {
+	Tor.Tor_frei = false;
+	Tor.Tor_offen = false;
 
 }
 CGleisPlan::~CGleisPlan()
@@ -75,7 +20,6 @@ void CGleisPlan::Init()
 	Züge = &APP->meineLoks;
 	XpressNet = &APP->XpressNet;
 	BlockMelder = &APP->BlockMelder;
-	max_active_Loks = Züge->Init();
 	for (int i = 0; i <= MAX_WEICHEN_MOTOR; i++)
 	{
 		WeichenAntrieb.push_back(TrainCon_Paar(i, false));
@@ -84,45 +28,17 @@ void CGleisPlan::Init()
 
 }
 
-byte CGleisPlan::GetNextMessage_Mega()
+void CGleisPlan::GetNextMessage_Mega()
 {
-	return XpressNet->GetNextMessage();
+	BlockMelder->verarbeite_Meldung_Zentrale();
 }
 
-byte CGleisPlan::GetNextMessage_Uno()
+void CGleisPlan::GetNextMessage_LZV()
 {
-	return BlockMelder->GetNextMessage();
+	XpressNet->verarbeite_Meldung_Zentrale();
 }
 
-void CGleisPlan::Start_Com_Thread()
-{
-	 // damit hört der Task zu
-	if (XpressNet->NoComToXpressNet() && BlockMelder->NoComToBlockNet())
-	{
-		ListentoCom = false;
-		TRACE(_T(" Thread nicht gestart Kein Uno & Mega !!\n"));
-	}
-	else
-	{
-		ListentoCom = true;
-		AfxBeginThread(Thread_Update_MEGA, this);
-		AfxBeginThread(Thread_Update_UNO, this);
-		AfxBeginThread(Thread_Update_Time, this);
-		TRACE(_T(" Thread's gestart für Uno und Mega !!\n"));
-	}
-	Set_Weiche(TrainCon_Paar(17, true));
-}
 
-void CGleisPlan::Stop_Com_Thread()
-{
-	if (ListentoCom)
-	{
-		ListentoCom = false; // damit hört der Task zu
-		{
-		} while (Thread_Run);
-		TRACE(_T("So bin fertig mit dem Thread \n"));
-	}
-}
 
 
 void CGleisPlan::DoCheckIt(byte Lok_Nr, clock_t Zeit)
@@ -155,66 +71,24 @@ bool CGleisPlan::isNewUpdate_Taster()
 }
 
 
-void CGleisPlan::Verarbeite_Mega_Daten(byte neueInfo)
-{
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	TrainCon_Paar DatenPaar;
-
-	switch (neueInfo)
-	{
-	case COM_SEND_LVZ_STA:
-		// Status der LVZ Zentrale
-		StatusZentrale = XpressNet->HoleStatus_LZV();
-		APP->Invalidate();
-		break;
-	case COM_SEND_WEICHE:
-		DatenPaar = XpressNet->HoleWeicheData();
-		Set_Weiche(DatenPaar);
-		APP->Invalidate();
-		break;
-	case COM_SEND_ZUG_DA:// Zug antwortet
-		Züge->New_Lok_Data();
-		APP->Invalidate();
-		break;
-	case COM_SEND_CV:
-		APP->meineLoks.PRG_Set_CV();
-		APP->Invalidate();
-		break;
-	}
-}
-
-void CGleisPlan::Verarbeite_Uno_Daten(byte neueInfo)
-{
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	TrainCon_Paar DatenPaar;
-	switch (neueInfo)
-	{
-	case COM_SEND_BLOCK:
-		DatenPaar = BlockMelder->HoleBlockData();
-		Block[DatenPaar.GetWert()].bestetzen(DatenPaar.GetBit());
-		APP->Invalidate();
-		break;
-	case COM_SEND_RELAIS:
-		DatenPaar = BlockMelder->HoleRelayData();
-		Set_Relais(DatenPaar);
-		APP->Invalidate();
-		break;
-	}
-}
 
 void CGleisPlan::NewTimeZug(clock_t Zeit)
 {
 	static byte Lok_Nr = 0;
+	byte		max_active_Loks = Züge->Get_max_Aktiv_Loks();;
 
-	DoCheckIt(Lok_Nr, Zeit);
-	Lok_Nr = (Lok_Nr + 1) % (max_active_Loks);
+	if (Lok_Nr >= max_active_Loks)
+	{
+		Lok_Nr = 0;
+	}
+	else
+	{ 
+		DoCheckIt(Lok_Nr, Zeit);
+		Lok_Nr = (Lok_Nr + 1) % (max_active_Loks);
+	}
 }
 
 
-void CGleisPlan::New_Daten_Senden()
-{
-	XpressNet->SendeNeueDaten();
-}
 
 
 
@@ -247,65 +121,16 @@ void CGleisPlan::Set_Lok_Geschwindigkeit(byte Lok_Nr, Zug_Status SetTo, byte Ges
 }
 
 
-byte CGleisPlan::GetStatusZentrale()
-{
-	return StatusZentrale;
-}
-
-void CGleisPlan::SetStatusPower()
-{
-	
-}
-bool CGleisPlan::Schalte_Power_LVZ()
-{
-	if (StatusZentrale == 1)
-	{// Power is on Power -> ausschalten
-		XpressNet->SendeLVZ_Power(false);
-		return true;
-	}
-	if (StatusZentrale == 2||StatusZentrale == 0)
-	{// Power is off Power -> einschalten
-		XpressNet->SendeLVZ_Power(true);
-	}
-	// was mache ich sonst ?? 
-	return false;
-}
 bool CGleisPlan::isPower_onGleis()
 {
-	return (StatusZentrale == 1);
+	return (XpressNet->Get_Power_onGleis());
 }
 
 bool CGleisPlan::isPower_onBlock(byte Nr)
 {
-	return Block[Nr].Get_Relais_Data(false).GetBit();
+	return Block[Nr].Get_Relais_Data().GetBit();
 }
 
-void CGleisPlan::Setup_TrainControl()
-{
-	if (XpressNet->NoComToXpressNet())
-	{
-		TRACE(_T(" Kein Setup weil keine Com Schnitstelle \n"));
-		return;
-	}
-	else
-	{
-		XpressNet->StartKomunikation();
-	}	
-}
-
-void CGleisPlan::Setup_MelderControl()
-{
-	if (BlockMelder->NoComToBlockNet())
-	{
-
-		TRACE(_T(" Kein Setup weil keine Com UNO Schnittstelle \n"));
-		return;
-	}
-	else
-	{
-		BlockMelder->StartKomunikation();
-	}
-}
 
 void CGleisPlan::ZeicheStrecke(CDC* pDC)
 	
@@ -329,30 +154,47 @@ bool CGleisPlan::Kick_Block(CPoint Klick)
 		if(Ergebnis== 1)
 		{
 			Data = WeichenAntrieb[Wert].GetInvBit();
-			if (XpressNet->NoComToXpressNet())
+			if (BlockMelder->NoComToBlockNet())
 				return (Set_Weiche(Data));
 			else 
-				XpressNet->SendeWeicheDaten(Data);
+				BlockMelder->Send_WeichenData(Data);
 			return false;
 		}
 		if (Ergebnis == 2)
 		{
-			Data = B.Get_Relais_Data(true);
-			if (XpressNet->NoComToXpressNet())
+			Data = B.Get_Relais_Data();
+			if (BlockMelder->NoComToBlockNet())
 				Set_Relais(Data);
 			else 
-				BlockMelder->SetBlockPower(Data);
+				BlockMelder->Send_BlockPower(Data);
 			return false;
 		}
 	}
 	return (false);
 }
 
-bool CGleisPlan::Set_Weiche(TrainCon_Paar WeichenData)
+bool CGleisPlan::Set_Block(byte* Data)
 {
-	if (WeichenData.GetWert() < MAX_WEICHEN_MOTOR)
+	if (Data[1] < Block.size())
 	{
-		WeichenAntrieb[WeichenData.GetWert()].SetBit(WeichenData.GetBit());
+		byte Block_Nr = Data[1];
+		bool Bit = (bool)Data[2];
+		Block[Block_Nr].bestetzen(Bit);
+		return true;
+	}
+	return false;
+}
+
+bool CGleisPlan::Set_Weiche(byte* Data)
+{
+	return Set_Weiche(TrainCon_Paar(Data));
+}
+
+bool CGleisPlan::Set_Weiche(TrainCon_Paar WeichenDaten)
+{
+	if (WeichenDaten.GetWert() < MAX_WEICHEN_MOTOR)
+	{
+		WeichenAntrieb[WeichenDaten.GetWert()].SetBit(WeichenDaten.GetBit());
 		return true;
 	}
 	return false;
@@ -361,6 +203,16 @@ bool CGleisPlan::Set_Weiche(TrainCon_Paar WeichenData)
 bool CGleisPlan::Get_Weiche(TrainCon_Paar WeichenDaten)
 {
 	return WeichenAntrieb[WeichenDaten.GetWert()].GetBit();
+}
+
+byte CGleisPlan::Get_Weichen_Anzahl()
+{
+	return (byte) WeichenAntrieb.size();
+}
+
+bool CGleisPlan::Set_Relais(byte* Data) 
+{//
+	return Set_Relais(TrainCon_Paar(Data));
 }
 
 bool CGleisPlan::Set_Relais(TrainCon_Paar RelayData)
@@ -375,14 +227,36 @@ bool CGleisPlan::Set_Relais(TrainCon_Paar RelayData)
 	return false;
 }
 
+void CGleisPlan::Set_Door( byte* Data)
+{
+		Tor.Tor_offen = (bool)Data[1];
+		Tor.Tor_frei = Data[2];
+}
+
+void CGleisPlan::Ask_Door_Status()
+{
+	BlockMelder->Send_Door_Status();
+}
+
+
+bool CGleisPlan::Get_Door_open()
+{
+	return Tor.Tor_offen;
+}
+
+bool CGleisPlan::Get_Door_free()
+{
+	return Tor.Tor_frei;
+}
+
 void CGleisPlan::Schalte_Relais(byte Nr, bool Bit)
 {
 	if (Nr > 0)
 	{
 		TrainCon_Paar Relais;
-		Relais = Block[Nr].Get_Relais_Data(false);
+		Relais = Block[Nr].Get_Relais_Data();
 		Relais.SetBit(Bit);
-		BlockMelder->SetBlockPower(Relais);
+		BlockMelder->Send_BlockPower(Relais);
 		if (BlockMelder->NoComToBlockNet())
 		{
 			Block[Nr].set_Relais(Relais);
@@ -441,6 +315,7 @@ BlockStatus CGleisPlan::GetStatus_Block(byte Nr, CString* Lok_Name)
 
 BlockDebugData CGleisPlan::Get_DebugData(byte Nr)
 {
+	if (Block.size() == 0) return BlockDebugData();
 	if (Block.size() > Nr)
 	{
 		return Block[Nr].Get_Debug();

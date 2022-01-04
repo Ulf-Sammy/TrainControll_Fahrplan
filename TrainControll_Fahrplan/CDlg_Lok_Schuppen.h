@@ -30,13 +30,14 @@ public:
 	CDlg_Lok_Schuppen(CWnd* pParent = nullptr);   // Standardkonstruktor
 	virtual ~CDlg_Lok_Schuppen();
 	BOOL Create();
-	virtual BOOL OnInitDialog(CGleisPlan* pBlock);
+	BOOL Init();
 	afx_msg	void OnPaint();
 
 // Dialogfelddaten
 	enum { IDD = IDD_DIALOG_LOKSCHUPPEN };
 
 protected:
+	CCom_BlockMelderNet* BlockNet = NULL;
 	CPen StiftTor;
 	CPen StiftHaus;
 
@@ -60,7 +61,11 @@ protected:
 	CRect SchuppenTor;
 	CRect SchuppenTor_L;
 	CRect SchuppenTor_R;
-	bool SchuppenTor_auf;
+
+	CRect SchuppenTor_G0;
+	CRect SchuppenTor_G1;
+	CRect SchuppenTor_G2;
+
 	CRect Weiche_Platz[6];
 	TrainCon_Paar  Weiche_Nummer[6];
 	byte Weiche_Block[6];

@@ -48,45 +48,32 @@
 #define bitSet(value, bit) ((value) |= (1UL << (bit)))
 #define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
 #define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
+#define lowByte(w) ((WORD) ((w) & 0xff))
+#define highByte(w) ((WORD) ((w) >> 8))
 
 
-#define COM_LEN(L)      (L & 0x07)     //                       Setup - Test - Auto - Program
-#define COM_WRITE_MOD       0x08+0x03  // 1 MOD	+ Sub				| S | T | A | P | modus des Prog
-#define COM_ACKN_MOD        0x10+0x04  // 3 MOD + Sub + STA			| S | T | A | P |
-#define COM_SEND_LVZ_STA    0x18+0x02  // 3 Status					| S | T | A | P | Status vom LVZ
-#define COM_SEND_ERROR      0x20+0x03  // 4 ADR + Error				| S | T | A | P |
-#define COM_SEND_DISPLAY    0x28+0x07  // 5 Test 1H2o3l4l5o			| S | T | A | P |
+#define COM_LEN(L)          (L & 0x07)     //                       Setup - Test - Auto - Program
+#define COM_SEND_MOD          0x08+0x02  // 1 MOD-status			    | 
+#define COM_SEND_GLPOWER      0x18+0x03  // 2 Power on Gleis  over I2C  | 
+#define COM_SEND_RELAIS       0x20+0x03  // 3 Relais Nr + Bit			| New
+#define COM_SEND_DOOR         0x28+0x04  // 4 fahern					|
+#define COM_SEND_DOOR_STAT    0x30+0x04  // 5 offen + belegt			| 
+#define COM_SEND_WEICHE       0x38+0x03  // 6 Weiche + Wert			    |
+#define COM_TC_WIRTE_BLOCK	  0x40+0x03  // 7 BLOCK + Wert			    | New											
 
-#define COM_WRITE_ZUG_D0    0x30+0x03  // 6 ADR + Speed-Dir			| _ | T | A | _ |
-#define COM_WRITE_ZUG_D1    0x38+0x03  // 7 ADR + GRUPPE 1			| _ | T | A | _ |
-#define COM_WRITE_ZUG_D2    0x40+0x03  // 8 ADR + GRUPPE 2			| _ | T | A | _ |
-#define COM_WRITE_ZUG_D3    0x48+0x03  // 9 ADR + GRUPPE 3			| _ | T | A | _ |
-#define COM_WRITE_ZUG_D4    0x50+0x03  //10 ADR + GRUPPE 4			| _ | T | A | _ |
-#define COM_WRITE_ZUG_D5    0x58+0x03  //11 ADR + GRUPPE 5			| _ | T | A | _ |
-#define COM_WRITE_WEICHE    0x60+0x03  //12 Weiche + Wert			| _ | T | A | _ |
-#define COM_READ_ZUG_DA     0x68+0x03  //13 ADR	+ Lok_Nr_Liste		| _ | T | A | _ |
-#define COM_READ_ZUG_D1     0x70+0x02  //14 ADR	(frei)					| _ | T | A | _ |
-#define COM_SEND_RELAIS     0x78+0x02  //15 Relais + Bit						| _ | T | A | _ |
-#define COM_WRITE_RELAIS    0x80+0x02  //16 Relais + Bit						| _ | T | A | _ |;
-#define COM_SEND_TIME	    0x88+0x02  //17 TIME + Wert				| _ | T | A | _ | Timer ist aus gelöst
-#define COM_SEND_BLOCK      0x90+0x03  //18 Block + Wert			| _ | T | A | _ |
-#define COM_SEND_WEICHE     0x98+0x03  //19 Weiche + Wert			| _ | T | A | _ |
-#define COM_SEND_ZUG_DA     0xA0+0x07  //20 Gr0 .. Gr5 + Nr			| _ | T | A | _ |
-#define COM_SEND_ZUG_D1     0xA8+0x03  //21 ADR + GRUPPE 1			| _ | T | A | _ |
-#define COM_SEND_ZUG_D2     0xB0+0x03  //22 ADR + GRUPPE 2			| _ | T | A | _ |
-#define COM_SEND_ZUG_D3     0xB8+0x03  //23 ADR + GRUPPE 3			| _ | T | A | _ |
-#define COM_SEND_ZUG_D4     0xC0+0x03  //24 ADR + GRUPPE 4			| _ | T | A | _ |
-#define COM_SEND_ZUG_D5     0xC8+0x03  //25 ADR + GRUPPE 5			| _ | T | A | _ |
+#define COM_I2C_DEV1		  0x50+0x03  // 8 Melder Info
+#define COM_I2C_DEV2		  0x58+0x03  // 9 Gleis Power Info
+#define COM_I2C_DEV3          0x60+0x03  //10 Gleis Position Info
 
-#define COM_WRITE_MELDER_TI	0xD0+0x02  //26 Wert für Zeit			| S | _ | _ | _ |
-#define COM_WRITE_MELDER_ST 0xD8+0x02  //27 Melderanzahl		   	| S | _ | _ | _ |
-#define COM_WRITE_WEICHE_ST 0xE0+0x02  //28 Weichenanzahl			| S | _ | _ | _ |
-#define COM_WRITE_LVZ_POWER 0xE8+0x02  //30 Wert LVZ ON/OFF			| S | _ | _ | _ |
 
-#define COM_SEND_CV         0xE8+0x04  //30 CV + Wert + MOD 		| _ | _ | _ | P |
-#define COM_WRITE_CV        0xF0+0x03  //32 CV + Wert				| _ | _ | _ | P |
-#define COM_READ_CV         0xF8+0x03  //33 CV + Wert				| _ | _ | _ | P |
+#define COM_TC_WRITE_CUR1     0xB0+0x02  //11 Strom abfragen | A.A in Ampere
+#define COM_TC_WRITE_CUR2     0xB8+0x02  //12 Strom abfragen | 
 
+
+#define COM_PC_ASK_VERSION    0xD0+0x03  //13 Frage SoftwareVersion 3 - 0 |
+#define COM_PC_WRITE_WEICHE   0xE0+0x02  //14 setze WeichenAnzahl		  |
+#define COM_PC_WRITE_BC_ALL   0xE8+0x02  //15 NotAus LED / Normal LED     | LED Rot und Grün
+#define COM_PC_WRITE_DISPLAY  0xF0+0x07  //16 Test 1H2o3l4l5o			  |
 
 #define WM_NOTIFY_DESCRIPTION_EDITED             WM_APP + 1
 //#define TESTSTRECKE 
@@ -103,8 +90,13 @@
 #endif // TESTSTRECKE
 
 #define FILE_ALLE_ZUEGE   "Daten\\ULF_%d_ZUGDATA.txt"
-#define FILE_ALLE_ZUEGE_BILDER "Images\\%s.bmp"
+#define FILE_ALLE_ZUEGE_BILDER "Images\\"
 #define FILE_ALLE_BILDER "Images\\%s"
+
+#define COM_MAX_LISTE 10
+#define COM_MEGA_PC 3
+#define COM_MEGA_LOG 9
+#define	COM_LZV200 20
 
 #define MAXARRAY 100
 #define MAXDECODERTYPE 5
@@ -123,7 +115,10 @@
 #define MAX_FAHRPLAN 2
 #define MAX_BLOCK_MELDER 4 // angeschlossenen Block Melder
 #define MAX_WEICHEN_MOTOR (MAX_BLOCK_MELDER * 8)
+#define MAX_STROM_ZEIT 255
 
+
+const byte DCC_SPEED_coded[] = { 0x00,0x02,0x12,0x03,0x13,0x04,0x14,0x05,0x15,0x06,0x16,0x07,0x17,0x08,0x18,0x09,0x19,0x0A,0x1A,0x0B,0x1B,0x0C,0x1C,0x0D,0x1D,0x0E,0x1E,0x0F,0x1F };
 const COLORREF colorHinterGrund = RGB(186, 252, 189);
 const COLORREF GleisGruen = RGB(6, 233, 13);
 const COLORREF GleisOrange = RGB(232,104,13);
@@ -135,6 +130,7 @@ const COLORREF GleisErrorA = RGB(  0, 255, 255);
 const COLORREF GleisErrorB = RGB(255, 255,   0);
 const COLORREF colorGelb = RGB(253, 240, 2);
 const COLORREF colorRot = RGB(255, 0, 0);
+const COLORREF colorgruen = RGB(10,233,20);
 const COLORREF colorSchwarz = RGB(0, 0, 0);
 const COLORREF colorWeiss = RGB(255, 255, 255);
 const COLORREF colorSchuppen = RGB(128, 0, 0);
@@ -164,23 +160,27 @@ const tagLOGFONTW FontType_Ar_14_270 = { 14, 0, 2700, 0, 200, FALSE, FALSE, 0, A
 const tagLOGFONTW FontType_ArR_20_0 = { 20, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Rounded MT Bold") };
 
 
-
-
-
 const int Rect_X = 1600;
 const int Rect_Y = 660;
 
-enum class BlockStatus {Frei, Besetzt, BesetztError_A, BesetztError_B};
-enum class ControlStatus { No_Arduino = -1, Setup =0, Program, Fahren, Ende_COM };
-enum class XpNSendwas { FGruppe0 = 0, FGruppe1, FGruppe2, FGruppe3, FGruppe4, FGruppe5 };
-enum class BlockType { isWeiche, isBlock, isGleis };
-enum class WeichenType { linksWeiche, rechtsWeiche, L_DoppelWeiche, R_DoppelWeiche};
-enum class StreckenType {Strecke, Gleis, Abstellgleis};
+const CString LED_Images[] = { L"Images\\LED_Rot.png" ,L"Images\\LED_greun.png",L"Images\\LED_blau.png",L"Images\\LED_Orange.png", L"Images\\LED_Violet.png" };
+const CString LVZ_Images[] = { L"Images\\Button_off.png",L"Images\\Button_on.png" };
+const CString MOD_Images[] = { L"Images\\Train_Test.png",L"Images\\Train_RUN.png",L"Images\\Train_PROG.png" };
+
+enum class COM_Status  { No_Com, Com_Found, Com_Timeout, Com_Error};
+
+enum class BlockStatus  { Frei, Besetzt, BesetztError_A, BesetztError_B};
+enum class BC_Meldungen {  BC_Alles_Aus,BC_Alles_An,	BC_Alles_Loks_Aus,	BC_Programmiermode,	BC_Rueckmeldung};
+enum class XpNSendwas   { FGruppe0 = 0, FGruppe1, FGruppe2, FGruppe3, FGruppe4, FGruppe5 };
+enum class BlockType    { isWeiche, isBlock, isGleis };
+enum class WeichenType  { linksWeiche, rechtsWeiche, L_DoppelWeiche, R_DoppelWeiche};
+enum class StreckenType { Strecke, Gleis, Abstellgleis};
 
 enum class FahrPlanDo { begin_Block, stoppen, vorwaerz_fahren, rueckwaerz_fahren, warten_fahren, warten_stoppen, schalten_Funk, schalten_Weiche, letzte_Zeile };
 
 enum class Zug_Status { Zug_Stopped = 0, Zug_faehrt_vor = 1, Zug_faehrt_rueck = 2, Zug_haelt = 3};
 enum class Zug_Steuerung { nicht_Betriebs_bereit, Hand_Betrieb, Automatik_Betrieb };
+enum class ControlStatus { Begin_COM = 0, Setup, Fahren, Program, Ende_COM };
 
 enum class BlockRueckmeldung { Frei_Fahrt = 0, Weichenweg_nichtfrei = 1, Block_besetzt = 9 };
 enum class DecoderHersteller { Tams = 0, Massoth };
@@ -215,6 +215,58 @@ protected:
 
 };
 
+struct COM_Info
+{
+	CString COM_FriendlyName;
+	CString COM_PORT;
+	CString COM_Status;
+	CString COM_Conect;
+	bool COM_Active = false;
+	bool COM_Error = false;
+	HANDLE COM_Handel = NULL;
+	DWORD BaudRate;
+	void Com_off()
+	{
+		;
+	}
+};
+
+class DoorInfo
+{
+	public:	
+		bool Tor_offen;
+		byte Tor_frei;
+};
+
+class Lok_Adresse
+{
+	public:
+		Lok_Adresse()
+		{
+			Adr = 0;
+			Adr_H = 0;
+			Adr_L = 0;
+		}
+		Lok_Adresse(DWORD adr)
+		{
+			Adr = adr;
+			Adr_H = (byte)highByte(Adr);
+			Adr_L = (byte)lowByte(Adr);
+		}
+	byte LowAdr()
+		{
+			return Adr_L;
+		}
+		byte HighAdr()
+		{
+			return Adr_H;
+		}
+	protected:
+		DWORD Adr;
+		byte Adr_L;
+		byte Adr_H;
+};
+
 class BlockInfo
 {
 public:
@@ -241,6 +293,13 @@ public:
 		Wert = W;
 		Bit = B;
 	}
+
+	TrainCon_Paar(byte* D)
+	{
+		Wert = D[1];
+		Bit = (bool)D[2];
+	}
+
 	TrainCon_Paar(CString T)
 	{// "011" Wert = 1 Bit = true
 		Wert = _ttoi(T.Mid(0, 2));

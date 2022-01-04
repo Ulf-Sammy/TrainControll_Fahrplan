@@ -29,14 +29,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -44,14 +44,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -184,19 +184,24 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="3DMeterGleis.h" />
+    <ClInclude Include="CStatic_DrawBMP.h" />
+    <ClInclude Include="CStatic_GleisBild.h" />
     <ClInclude Include="CaptureGraph.h" />
     <ClInclude Include="CDataFahrplan.h" />
     <ClInclude Include="CDataXpressNet.h" />
     <ClInclude Include="CDatenBankLok.h" />
     <ClInclude Include="CDlg_Block_Info.h" />
+    <ClInclude Include="CDlg_Com_Liste.h" />
     <ClInclude Include="CDlg_Debug_Mega.h" />
     <ClInclude Include="CDlg_Fahrplan.h" />
     <ClInclude Include="CDlg_Lok_Schuppen.h" />
     <ClInclude Include="CDlg_RunCam_Train.h" />
-    <ClInclude Include="Com_BlockMelderNet.h" />
+    <ClInclude Include="CStaticDraw.h" />
+    <ClInclude Include="COM_BlockMelderNet.h" />
     <ClInclude Include="CGleisPlan.h" />
     <ClInclude Include="CBlockInfo.h" />
+    <ClInclude Include="COM_LZV200.h" />
+    <ClInclude Include="CStaticText.h" />
     <ClInclude Include="CustomTrace.h" />
     <ClInclude Include="CBlock.h" />
     <ClInclude Include="CDlg_Train_Run.h" />
@@ -218,22 +223,26 @@
     <ClInclude Include="TrainControll_Fahrplan.h" />
     <ClInclude Include="TrainControll_FahrplanDlg.h" />
     <ClInclude Include="VC_TableInfo.h" />
-    <ClInclude Include="Com_XpressNet.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="3DMeterGleis.cpp" />
+    <ClCompile Include="CStatic_DrawBMP.cpp" />
+    <ClCompile Include="CStatic_GleisBild.cpp" />
     <ClCompile Include="CaptureGraph.cpp" />
     <ClCompile Include="CDataFahrplan.cpp" />
     <ClCompile Include="CDataXpressNet.cpp" />
     <ClCompile Include="CDatenBankLok.cpp" />
     <ClCompile Include="CDlg_Block_Info.cpp" />
+    <ClCompile Include="CDlg_Com_Liste.cpp" />
     <ClCompile Include="CDlg_Debug_Mega.cpp" />
     <ClCompile Include="CDlg_Fahrplan.cpp" />
     <ClCompile Include="CDlg_Lok_Schuppen.cpp" />
     <ClCompile Include="CDlg_RunCam_Train.cpp" />
-    <ClCompile Include="Com_BlockMelderNet.cpp" />
+    <ClCompile Include="CStaticDraw.cpp" />
+    <ClCompile Include="COM_BlockMelderNet.cpp" />
     <ClCompile Include="CGleisPlan.cpp" />
     <ClCompile Include="CBlockInfo.cpp" />
+    <ClCompile Include="COM_LZV200.cpp" />
+    <ClCompile Include="CTextStatic.cpp" />
     <ClCompile Include="CustomTrace.cpp" />
     <ClCompile Include="CBlock.cpp" />
     <ClCompile Include="CDlg_Train_Run.cpp" />
@@ -256,12 +265,12 @@
     <ClCompile Include="TrainControll_Fahrplan.cpp" />
     <ClCompile Include="TrainControll_FahrplanDlg.cpp" />
     <ClCompile Include="VC_TableInfo.cpp" />
-    <ClCompile Include="Com_XpressNet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TrainControllFahrplan.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
     <None Include="res\TrainControllFahrplan.rc2" />
   </ItemGroup>
   <ItemGroup>

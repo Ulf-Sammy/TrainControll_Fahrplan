@@ -16,6 +16,75 @@
 #define new DEBUG_NEW
 #endif
 
+
+
+UINT Thread_Update_MEGA(LPVOID pParam)
+{
+	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
+	TRACE(_T("starte update Thread MEGA.....\n"));
+	while (Info->COM_MEGA_Data.COM_Active)
+	{
+		Info->Gleis_Data.GetNextMessage_Mega();
+	} 
+	TRACE(_T("ende Update Thread MEGA.....\n"));
+	return 0;
+}
+
+UINT Thread_Update_Time(LPVOID pParam)
+{
+	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
+	TRACE(_T("starte Time Thread .....\n"));
+
+	while (Info->COM_MEGA_Data.COM_Active)
+	{
+		Info->Gleis_Data.NewTimeZug(clock());
+	} 
+	TRACE(_T("ende Time Thread .....\n"));
+	return 0;
+}
+
+UINT Thread_Update_LZV(LPVOID pParam)
+{
+	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
+	TRACE(_T("starte update Thread LZV200.....\n"));
+	
+	while (Info->COM_LZV_Data.COM_Active)
+	{
+		Info->Gleis_Data.GetNextMessage_LZV();
+	} 
+	TRACE(_T("ende Update Thread LZV200.....\n"));
+	return 0;
+}
+
+
+
+UINT Thread_Update_Debug(LPVOID pParam)
+{
+	// CDlg_Debug_Mega* Info = (CDlg_Debug_Mega*)pParam;
+	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
+
+	TRACE(_T("starte update Thread Debug.....\n"));
+
+	while (Info->COM_DEBUG_Data.COM_Active)
+	{
+		Info->pDlgDebugInfo->Get_Message();
+	} 
+	TRACE(_T("ende update Thread Debug.....\n"));
+	return 0;
+}
+
+
+UINT Thread_Start_Prozess(LPVOID pParam)
+{
+	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
+	Info->InfoPower.Set_Status(255);
+	Sleep(5000); // 5 sec
+	Info->BlockMelder.StartProcess();
+	Info->XpressNet.StartProcess();
+	return 0;
+}
+
+
 // CAboutDlg-Dialogfeld für Anwendungsbefehl "Info"
 class CAboutDlg : public CDialogEx
 {
@@ -49,31 +118,44 @@ END_MESSAGE_MAP()
 CTrainControll_FahrplanDlg::CTrainControll_FahrplanDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CTrainControll_FahrplanDlg::IDD, pParent)
 {
-	CString DateiName;
-
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	StaticImage_Mega = new CStatic;
-	Image_Mega.OffsetRect(CPoint(10, 725));
-	StaticImage_Uno = new CStatic;
-	Image_Uno.OffsetRect(CPoint(10, 770));
-	StaticImage_Modus = new CStatic;
-	Image_Modus.OffsetRect(CPoint(190, 724));
-	StaticImage_LVZ = new CStatic;
-	Image_LVZ.OffsetRect(CPoint(1400, 730));
-	LED_rot.Load(_T("Images\\LED_Rot.png"));
-	LED_gruen.Load(_T("Images\\LED_green.png"));
-	LED_gelb.Load(_T("Images\\LED_Orange.png"));
-	Bild_Fahren.Load(_T("Images\\Train_RUN.png"));
-	Bild_Progam.Load(_T("Images\\Train_PROG.png"));
-	LVZ_ON.Load(_T("Images\\Button_on.png"));
-	LVZ_OFF.Load(_T("Images\\Button_off.png"));
-	LVZ_PROG.Load(_T("Images\\Button_prog.png"));
+
+	theApp.Lok_in_Uhr.LoadBitmap(IDB_BITLOK_MUHR);
+	theApp.Lok_ge_Uhr.LoadBitmap(IDB_BITLOK_GUHR);
+	theApp.Lok_Hoch.LoadBitmap(IDB_BITLOK_HOCH);
+	theApp.Lok_Runter.LoadBitmap(IDB_BITLOK_RUNTER);
+	theApp.Signal_G.LoadBitmap(IDB_BITSIGNAL_GRU);
+	theApp.Signal_R.LoadBitmap(IDB_BITSIGNAL_ROT);
+	theApp.WarnungNotAus.LoadBitmap(IDB_BIT_WARNUNG);
+	theApp.LokSchuppen.LoadBitmap(IDB_BITMAP_SCHUPPEN);
+
+	pDlgDebugInfo = new CDlg_Debug_Mega(this);
+	pDlgSchuppen = new CDlg_Lok_Schuppen(this);
+	pDlgBlockInfo = new CDlg_Block_Info(this);
+	pDlgComListe = new CDlg_Com_Liste(this);
+	
+	pDlgDebugInfo->Create(&COM_DEBUG_Data.COM_Handel);
+	pDlgSchuppen->Create();
+	pDlgBlockInfo->Create();
+	pDlgComListe->Create(ComListe);
+
+	XpressNet.Set_Com(&COM_LZV_Data);
+
+	BlockMelder.Set_Com(&COM_MEGA_Data);
 }
 
 void CTrainControll_FahrplanDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_GLEISE, m_3DGleis);
+	DDX_Control(pDX, IDC_STATIC_GLEISE, InfoGleisBild);
+	DDX_Control(pDX, IDC_STATIC_MEGA, InfoMega);
+	DDX_Control(pDX, IDC_STATIC_LVZ2, InfoLVZ200);
+    DDX_Control(pDX, IDC_STATIC_MODUS, InfoModus);
+    DDX_Control(pDX, IDC_STATIC_ZUGI, StromKurve);
+	DDX_Control(pDX, IDC_STATIC_MELD, InfoMelder);
+	DDX_Control(pDX, IDC_STATIC_WEIC, InfoWeiche);
+	DDX_Control(pDX, IDC_STATIC_POWER, InfoPower);
+	//DDX_Control(pDX, IDC_STATIC_MODUS, Info_BC);
 }
 
 BEGIN_MESSAGE_MAP(CTrainControll_FahrplanDlg, CDialogEx)
@@ -85,9 +167,10 @@ BEGIN_MESSAGE_MAP(CTrainControll_FahrplanDlg, CDialogEx)
 	ON_COMMAND(ID_SETUP_MEINEZUGLISTE, &CTrainControll_FahrplanDlg::OnSetupMeinezugliste)
 	ON_COMMAND(ID_SETUP_TESTEDIEWEICHE, &CTrainControll_FahrplanDlg::OnSetupTestedieweiche)
 	ON_COMMAND(ID_SETUP_FAHRPLAN_EDIT, &CTrainControll_FahrplanDlg::OnSetupFahrplanEdit)
+	ON_COMMAND(ID_SETUP_MEGADEBUGDATA, &CTrainControll_FahrplanDlg::OnSetupMegadebugdata)
+	ON_COMMAND(ID_SETUP_COMLISTEINFO, &CTrainControll_FahrplanDlg::OnSetupComlisteInfo)
 
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_BUTTON_ZUG0, IDC_BUTTON_ZUG4, &CTrainControll_FahrplanDlg::OnBnClickedButtonZug)
-
 	ON_BN_CLICKED(IDC_BUTTON_TEST, &CTrainControll_FahrplanDlg::OnBnClickedButtonTest)
 	ON_BN_CLICKED(IDC_BUTTON_WEICHE, &CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche)
 	ON_WM_CLOSE()
@@ -152,42 +235,35 @@ BOOL CTrainControll_FahrplanDlg::OnInitDialog()
 	}
 	SetIcon(m_hIcon, TRUE);			// Großes Symbol verwenden
 	SetIcon(m_hIcon, FALSE);		// Kleines Symbol verwenden
-
+	ShowWindow(SW_SHOWMAXIMIZED);
 //##########################################################################
-	pDlgDebugInfo = new CDlg_Debug_Mega(this);
-	pDlgDebugInfo->Create();
-
-	pDlgSchuppen = new CDlg_Lok_Schuppen(this);
-	pDlgSchuppen->Create();
-
-	pDlgBlockInfo = new CDlg_Block_Info(this);
-
-	StaticImage_Mega->Create(_T("A bitmap Mega"),  WS_CHILD  | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Mega, this);
-	StaticImage_Uno->Create(_T("A bitmap Uno")  ,  WS_CHILD  | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Uno, this);
-	StaticImage_Modus->Create(_T("A bitmap Mode"), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_Modus, this);
-	StaticImage_LVZ->Create(_T("A bitmap LVZ"),    WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_CENTERIMAGE, Image_LVZ, this);
-	theApp.Lok_in_Uhr.LoadBitmap(IDB_BITLOK_MUHR);
-	theApp.Lok_ge_Uhr.LoadBitmap(IDB_BITLOK_GUHR);
-	theApp.Lok_Hoch.LoadBitmap(IDB_BITLOK_HOCH);
-	theApp.Lok_Runter.LoadBitmap(IDB_BITLOK_RUNTER);
-	theApp.Signal_G.LoadBitmap(IDB_BITSIGNAL_GRU);
-	theApp.Signal_R.LoadBitmap(IDB_BITSIGNAL_ROT);
-	theApp.WarnungNotAus.LoadBitmap(IDB_BIT_WARNUNG);
-	theApp.LokSchuppen.LoadBitmap(IDB_BITMAP_SCHUPPEN);
-	XpressNet.OpenCom(3);
-	BlockMelder.OpenCom(5);
+	meineLoks.Init();
 	Gleis_Data.Init();
+	InfoGleisBild.Init();
 
-	pDlgBlockInfo->Create();
-	pDlgSchuppen->OnInitDialog(&Gleis_Data);
-	m_3DGleis.OnInitDialog(&Gleis_Data);
+	StromKurve.Init();
+	InfoMega.Init(sizeof(LED_Images), LED_Images);
+	InfoLVZ200.Init(sizeof(LED_Images), LED_Images);
+	InfoPower.Init(sizeof(LVZ_Images), LVZ_Images);
+	InfoModus.Init(sizeof(MOD_Images), MOD_Images);
+	InfoMelder.Init(L"Melder");
+	InfoWeiche.Init(L"Weiche");
+
+	XpressNet.Init(&InfoMega);
+	BlockMelder.Init(&InfoLVZ200,&InfoModus,Gleis_Data.Get_Weichen_Anzahl());
+
+	pDlgSchuppen->Init();
 
 	InitDlg();
-	Gleis_Data.Start_Com_Thread();
-	Sleep(200);
+//##########################################################################
+	// los gehts !
+	Start_Com_Thread();
+	
 	//pDlgDebugInfo->ShowWindow(SW_SHOW);
+
 	return TRUE; 
 }
+
 void CTrainControll_FahrplanDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
@@ -200,73 +276,10 @@ void CTrainControll_FahrplanDlg::OnSysCommand(UINT nID, LPARAM lParam)
 		CDialogEx::OnSysCommand(nID, lParam);
 	}
 }
+
 void CTrainControll_FahrplanDlg::OnPaint()
 {
-	CString Text;
 	CPaintDC dc(this);
-
-	switch (XpressNet.GetStatus_LZV())
-	{ 
-		case 0: // Status nicht bekannt
-			StaticImage_LVZ->SetBitmap(HBITMAP(LVZ_OFF));
-			break;
-		case 1: // Status power on
-			StaticImage_LVZ->SetBitmap(HBITMAP(LVZ_ON));
-			break;
-		case 2: // Status power off / NotAus
-			StaticImage_LVZ->SetBitmap(HBITMAP(LVZ_OFF));
-			break;
-		case 4: // Status Programming
-			StaticImage_LVZ->SetBitmap(HBITMAP(LVZ_PROG));
-			break;
-		default:
-		break;
-	}
-
-	if (XpressNet.Get_Mode_Run())
-	{
-		StaticImage_Modus->SetBitmap(HBITMAP(Bild_Fahren));
-	}
-	else
-	{
-		StaticImage_Modus->SetBitmap(HBITMAP(Bild_Progam));
-	}
-	switch (XpressNet.Get_VersionInfo(&Text))
-	{
-	case 0:
-		StaticImage_Mega->SetBitmap(HBITMAP(LED_rot));
-		break;
-	case 1:
-		StaticImage_Mega->SetBitmap(HBITMAP(LED_gruen));
-		break;
-	case 2:
-		StaticImage_Mega->SetBitmap(HBITMAP(LED_gelb));
-		break;
-	default:
-		break;
-	}
-	SetBkMode(dc, TRANSPARENT);
-	dc.TextOutW(60, 735, Text);
-	switch (BlockMelder.Get_VersionInfo(&Text))
-	{
-	case 0:
-		StaticImage_Uno->SetBitmap(HBITMAP(LED_rot));
-		break;
-	case 1:
-		StaticImage_Uno->SetBitmap(HBITMAP(LED_gruen));
-		break;
-	case 2:
-		StaticImage_Uno->SetBitmap(HBITMAP(LED_gelb));
-		break;
-	default:
-		break;
-	}
-	dc.TextOutW(60, 780, Text);
-	SetBkMode(dc, OPAQUE);
-	BlockMelder.ZeichneBlockMeldung(&dc);
-	XpressNet.ZeichneWeichenMeldung(&dc);
-	dc.MoveTo(180, 700);
-	dc.LineTo(180, 900);
 
 	if (IsIconic())
 	{
@@ -290,11 +303,11 @@ void CTrainControll_FahrplanDlg::OnPaint()
 		CDialogEx::OnPaint();
 	}
 }
+
 HCURSOR CTrainControll_FahrplanDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-
 
 void CTrainControll_FahrplanDlg::InitDlg()
 {
@@ -354,41 +367,219 @@ void CTrainControll_FahrplanDlg::InitDlg()
 	}
 }
 
-void CTrainControll_FahrplanDlg::DoStartDialog(bool Zeige)
+void CTrainControll_FahrplanDlg::EnumSerialPortFriendlyName()
 {
-	for (int DlgNr = 0; DlgNr < 5; DlgNr++)
+	DWORD bufsize;
+	DWORD dword_regtype;
+	size_t sizet_string;
+	TCHAR tcsz_string[256];
+	TCHAR tcsz_portname_friendly[NUI32_TEXTLAENGE_SERPORTENUM_FRIENDLYNAME + 1]{}; //+1
+	HDEVINFO hdevinfoset;
+	HKEY hkey_device;
+	GUID guid_DevInterfaceComport;
+	SP_DEVINFO_DATA s_spdevinfodata{};
+	SP_DEVICE_INTERFACE_DATA s_spdeviceinterfacedata;
+	PSP_DEVICE_INTERFACE_DETAIL_DATA ps_spdeviceinterfacedetaildata;
+	const GUID S_GUID_DEVINTERFACE_COMPORT = { 0x86E0D1E0L, 0x8089, 0x11D0, 0x9C, 0xE4, 0x08, 0x00, 0x3E, 0x30, 0x1F, 0x73 };
+
+
+	guid_DevInterfaceComport = S_GUID_DEVINTERFACE_COMPORT;
+	hdevinfoset = SetupDiGetClassDevsW(&guid_DevInterfaceComport, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+
+	if (hdevinfoset != INVALID_HANDLE_VALUE)
 	{
-		GetDlgItem(IDC_BUTTON_ZUG0 + DlgNr)->EnableWindow(Zeige);
-		GetDlgItem(IDC_BUTTON_ZUG0 + DlgNr)->EnableWindow(Zeige);
+		byte device_idx = 0;
+		bool b_result;
+		do
+		{
+			s_spdeviceinterfacedata.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
+			b_result = SetupDiEnumDeviceInterfaces(hdevinfoset, NULL, &guid_DevInterfaceComport, device_idx, &s_spdeviceinterfacedata);
+			//Enumerates the device interfaces that
+			//are contained in a device information set.
+			if (b_result != FALSE)
+			{
+				SetupDiGetDeviceInterfaceDetail(hdevinfoset, &s_spdeviceinterfacedata, NULL, 0, &bufsize, NULL);
+
+				if (bufsize >= sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA))
+				{
+					ps_spdeviceinterfacedetaildata = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(bufsize);
+					if (ps_spdeviceinterfacedetaildata != NULL)
+					{
+						ps_spdeviceinterfacedetaildata->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+						s_spdevinfodata.cbSize = sizeof(SP_DEVINFO_DATA);
+						if (SetupDiGetDeviceInterfaceDetail(hdevinfoset, &s_spdeviceinterfacedata, ps_spdeviceinterfacedetaildata, bufsize, NULL, &s_spdevinfodata) == TRUE)
+						{
+							if (SetupDiGetDeviceRegistryProperty(hdevinfoset, &s_spdevinfodata, SPDRP_FRIENDLYNAME, NULL, (PBYTE)tcsz_portname_friendly, NUI32_TEXTLAENGE_SERPORTENUM_FRIENDLYNAME * sizeof(TCHAR), NULL))
+							{
+								hkey_device = SetupDiOpenDevRegKey(hdevinfoset, &s_spdevinfodata, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_QUERY_VALUE);
+								if (hkey_device != INVALID_HANDLE_VALUE)
+								{
+									sizet_string = sizeof(tcsz_string);
+									dword_regtype = 0;
+									if (RegQueryValueEx(hkey_device, TEXT("PortName"), NULL, &dword_regtype, (LPBYTE)tcsz_string, (LPDWORD)&sizet_string) == ERROR_SUCCESS)
+									{
+										if ((dword_regtype == REG_SZ)&&(device_idx < COM_MAX_LISTE))
+										{
+											ComListe[device_idx].COM_PORT = CString(tcsz_string);
+											ComListe[device_idx].COM_FriendlyName = CString(tcsz_portname_friendly);
+										}
+									}
+									RegCloseKey(hkey_device);
+								}//pdlg->Set_Com_Info(tcsz_portname_friendly,SerPortName_GetPortNr(hdevinfoset, &s_spdevinfodata));
+							}
+						}
+						free(ps_spdeviceinterfacedetaildata);
+					}
+				}
+			}
+			device_idx++;
+		} while (b_result != FALSE);
+		SetupDiDestroyDeviceInfoList(hdevinfoset);          //Device information set aus Speicher entfernen.
 	}
 }
 
-void CTrainControll_FahrplanDlg::OnSetupProgrammierezug()
+void CTrainControll_FahrplanDlg::Get_Com_Handel()
 {
-	CDlg_Setup_Train Dlg;
-	XpressNet.Sende_Setto_Prog(true); //ChangeMode(Program);
-	Invalidate();
-	Dlg.SetPointer(&meineLoks);
-	Dlg.DoModal();
-	XpressNet.Sende_Setto_Prog(false); //ChangeMode(Testen);
-	Invalidate();
-	meineLoks.Set_aktiveLok_FuntiontoRun();
+	for (byte i = 0; i < COM_MAX_LISTE; i++)
+	{
+		ComListe[i].COM_Handel = NULL;
+		ComListe[i].COM_Conect = "!!!";
+		if(ComListe[i].COM_PORT =="COM20")
+		{// Komunikation LZV2000 
+			if(ComListe[i].COM_FriendlyName == L"USB Serial Port (COM20)") // pürfen auf richtigen Namen
+			{ //{COM_FriendlyName = L"USB Serial Port (COM20)" COM_PORT = L"COM20" COM_Status = L"" ...}
+				
+				ComListe[i].COM_Status = "OK mit LZV200";
+				COM_LZV_Data = ComListe[i];
+				COM_LZV_Data.BaudRate = 57600; 
+				Open_Setup_Com(&COM_LZV_Data);
+			}
+			else
+			{
+				ComListe[i].COM_Status = " No LZV200 found";
+			}
+		}
+		if (ComListe[i].COM_PORT == "COM3")
+		{// Komunikation zu MEGA   
+			if (ComListe[i].COM_FriendlyName == L"USB-SERIAL CH340 (COM3)") // pürfen auf richtigen Namen
+			{
+				ComListe[i].COM_Status = "OK mit MEGA";
+				COM_MEGA_Data = ComListe[i];
+				COM_MEGA_Data.BaudRate = 115200;
+				Open_Setup_Com(&COM_MEGA_Data);
+			}
+			else			
+			{
+				ComListe[i].COM_Status = "No MEGA found";
+			}
+		}
+		if (ComListe[i].COM_PORT == "COM4")
+		{// Komunikation Debug vom MEGA
+			if (ComListe[i].COM_FriendlyName == L"USB-SERIAL CH340 (COM4)") // pürfen auf richtigen Namen
+			{
+				ComListe[i].COM_Status = "OK mit Debug";
+				COM_DEBUG_Data = ComListe[i];
+				COM_DEBUG_Data.BaudRate = 115200;
+				Open_Setup_Com(&COM_DEBUG_Data);
+			}
+			else
+			{
+				ComListe[i].COM_Status = "No Debug";
+			}
+		}
+	}
 }
-void CTrainControll_FahrplanDlg::OnSetupMeinezugliste()
+
+bool CTrainControll_FahrplanDlg::Open_Setup_Com(COM_Info* p_COM_I)
 {
-	CDlg_Liste_Train Dlg;
-	Dlg.Set_TrainData(&meineLoks);
-	Dlg.DoModal();
+	CString TxT = (L"\\\\.\\" + p_COM_I->COM_PORT);
+	p_COM_I->COM_Handel = ::CreateFile((L"\\\\.\\"+p_COM_I->COM_PORT), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if (p_COM_I->COM_Handel != INVALID_HANDLE_VALUE)
+	{
+		DCB dcbSerialParams = { 0 };
+
+		dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+
+		if (!::GetCommState(p_COM_I->COM_Handel, &dcbSerialParams))
+		{
+			p_COM_I->COM_Conect.Format(_T("not Open (%i) "), GetLastError());
+			TRACE(_T(" 1.ERROR COM \n"));
+		}
+		else
+		{
+			dcbSerialParams.BaudRate = p_COM_I->BaudRate;
+			dcbSerialParams.ByteSize = 8;
+			dcbSerialParams.Parity = NOPARITY;
+			dcbSerialParams.StopBits = ONESTOPBIT;
+			if (!SetCommState(p_COM_I->COM_Handel, &dcbSerialParams))
+			{
+				p_COM_I->COM_Error = true;
+				TRACE(_T(" 2. ERROR COM Set Com Parameter \n"));
+			}
+			COMMTIMEOUTS timeouts = { 0 };
+			GetCommTimeouts(p_COM_I->COM_Handel, &timeouts);
+			//
+
+			timeouts.ReadIntervalTimeout = 50;
+			timeouts.ReadTotalTimeoutConstant = 200;
+			timeouts.ReadTotalTimeoutMultiplier = 10;
+
+			timeouts.WriteTotalTimeoutConstant = 50;
+			timeouts.WriteTotalTimeoutMultiplier = 10;
+			//
+			if (!SetCommTimeouts(p_COM_I->COM_Handel, &timeouts))
+			{
+				p_COM_I->COM_Error = true;
+				TRACE(_T(" 3.ERROR COM \n"));
+			}
+		}
+		p_COM_I->COM_Active = true;
+		p_COM_I->COM_Conect = "Open";
+		if (p_COM_I->COM_Error == true)
+		{
+			p_COM_I->COM_Conect = "Open & Error";
+		}
+		return true;
+	}
+
+	return false;
 }
-void CTrainControll_FahrplanDlg::OnSetupTestedieweiche()
+
+void CTrainControll_FahrplanDlg::Start_Com_Thread()
 {
-	CDlg_Test_Weiche Dlg;
-	Dlg.DoModal();
+	AfxBeginThread(Thread_Update_LZV, this);
+
+	AfxBeginThread(Thread_Update_MEGA, this);
+	//AfxBeginThread(Thread_Update_Time, this);
+
+	AfxBeginThread(Thread_Update_Debug, this);
+	
+	AfxBeginThread(Thread_Start_Prozess, this);
 }
-void CTrainControll_FahrplanDlg::OnSetupFahrplanEdit()
+
+void CTrainControll_FahrplanDlg::Close_Com_Handel()
 {
-	CDlg_Plan_Liste_Train Dlg;
-	Dlg.DoModal();
+	if (COM_LZV_Data.COM_Active)
+	{
+		COM_LZV_Data.COM_Active = false;
+		COM_LZV_Data.COM_Conect = "closed";
+		::CloseHandle(COM_LZV_Data.COM_Handel);
+	}
+	if (COM_MEGA_Data.COM_Active)
+	{
+		COM_MEGA_Data.COM_Active = false;
+		COM_MEGA_Data.COM_Conect = "closed";
+		::CloseHandle(COM_MEGA_Data.COM_Handel);
+	}
+	if (COM_DEBUG_Data.COM_Active)
+	{
+		COM_DEBUG_Data.COM_Active = false;
+		COM_DEBUG_Data.COM_Conect = "closed";
+		::CloseHandle(COM_DEBUG_Data.COM_Handel);
+
+	}
+
+
 }
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonZug(UINT nID)
@@ -439,25 +630,24 @@ void CTrainControll_FahrplanDlg::OnBnClickedButtonZug(UINT nID)
 	}
 }
 
-
 void CTrainControll_FahrplanDlg::OnBnClickedButtonTest()
 {
+	pDlgBlockInfo->NeueDaten();
 	if (pDlgBlockInfo->IsWindowVisible())
 		pDlgBlockInfo->ShowWindow(SW_HIDE);
 	else
 		pDlgBlockInfo->ShowWindow(SW_SHOW);
-
 }
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche()
 {
-}
 
+}
 
 void CTrainControll_FahrplanDlg::OnClose()
 {
-	XpressNet.CloseCom();
-	BlockMelder.CloseCom();
+	XpressNet.SendeLVZ_Power(false);
+	BlockMelder.CloseComunikation();
 	for (int i = 0; i < 7; i++)
 	{
 		if (pDlgTrainRun[i] != NULL)
@@ -486,23 +676,94 @@ void CTrainControll_FahrplanDlg::OnClose()
 		pDlgBlockInfo->DestroyWindow();
 		delete pDlgBlockInfo;
 	}
-
-	delete StaticImage_Mega;
-	delete StaticImage_Uno;
-	delete StaticImage_Modus;
-	delete StaticImage_LVZ;
-	Gleis_Data.Stop_Com_Thread();
+	if (pDlgComListe != NULL)
+	{
+		pDlgComListe->DestroyWindow();
+		delete pDlgComListe;
+	}
+	Close_Com_Handel();
 	CDialogEx::OnClose();
 }
 
 void CTrainControll_FahrplanDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: Fügen Sie hier Ihren Meldungshandlercode ein, und/oder benutzen Sie den Standard.
-	if (Image_LVZ.PtInRect(point))
+	//if (Image_LVZ.PtInRect(point))
 	{
-		Gleis_Data.Schalte_Power_LVZ();
-		Invalidate();
+		if (XpressNet.Get_Power_onGleis())
+		{// Power is on Power -> ausschalten
+			XpressNet.SendeLVZ_Power(false);
+		}
+		else
+		{// Power is off Power -> einschalten
+			XpressNet.SendeLVZ_Power(true);
+		}
+		XpressNet.WarteDaten();
 	}
 
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
+
+void CTrainControll_FahrplanDlg::DoStartDialog(bool Zeige)
+{
+	for (int DlgNr = 0; DlgNr < 5; DlgNr++)
+	{
+		GetDlgItem(IDC_BUTTON_ZUG0 + DlgNr)->EnableWindow(Zeige);
+		GetDlgItem(IDC_BUTTON_ZUG0 + DlgNr)->EnableWindow(Zeige);
+	}
+}
+
+void CTrainControll_FahrplanDlg::updatePowerOn(bool Bit)
+{
+	InfoPower.Set_Status((byte)Bit);
+	InfoGleisBild.Invalidate();
+	
+}
+
+
+void CTrainControll_FahrplanDlg::OnSetupProgrammierezug()
+{ // wie schalte ich zu progrmmodus um 
+	CDlg_Setup_Train Dlg;
+	//XpressNet.Sende_Setto_Prog(true); //ChangeMode(Program);
+	Invalidate();
+	Dlg.SetPointer(&meineLoks);
+	Dlg.DoModal();
+	//XpressNet.Sende_Setto_Prog(false); //ChangeMode(Fahren);
+	Invalidate();
+	meineLoks.Set_aktiveLok_FuntiontoRun();
+}
+
+void CTrainControll_FahrplanDlg::OnSetupMegadebugdata()
+{
+	if (pDlgDebugInfo->IsWindowVisible())
+		pDlgDebugInfo->ShowWindow(SW_HIDE);
+	else
+		pDlgDebugInfo->ShowWindow(SW_SHOW);
+}
+
+void CTrainControll_FahrplanDlg::OnSetupComlisteInfo()
+{
+	if (pDlgComListe->IsWindowVisible())
+		pDlgComListe->ShowWindow(SW_HIDE);
+	else
+		pDlgComListe->ShowWindow(SW_SHOW);
+}
+
+void CTrainControll_FahrplanDlg::OnSetupMeinezugliste()
+{
+	CDlg_Liste_Train Dlg;
+	Dlg.Set_TrainData(&meineLoks);
+	Dlg.DoModal();
+}
+void CTrainControll_FahrplanDlg::OnSetupTestedieweiche()
+{
+	CDlg_Test_Weiche Dlg;
+	Dlg.DoModal();
+}
+void CTrainControll_FahrplanDlg::OnSetupFahrplanEdit()
+{
+	CDlg_Plan_Liste_Train Dlg;
+	Dlg.DoModal();
+}
+
+

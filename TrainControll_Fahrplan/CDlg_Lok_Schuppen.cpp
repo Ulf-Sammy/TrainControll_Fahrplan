@@ -18,7 +18,6 @@ CDlg_Lok_Schuppen::CDlg_Lok_Schuppen(CWnd* pParent /*=nullptr*/)
 {
 	m_pParent = pParent;
 	m_nID = CDlg_Lok_Schuppen::IDD;
-	SchuppenTor_auf = false;
 	last_On_Block = 0;
 
 	Weiche_Platz[4] = CRect(300, 100, 340, 140);
@@ -57,13 +56,15 @@ CDlg_Lok_Schuppen::~CDlg_Lok_Schuppen()
 
 BOOL CDlg_Lok_Schuppen::Create()
 {
-	return CDialog::Create(m_nID, m_pParent);;
+	return CDialog::Create(m_nID, m_pParent);
 }
 
-BOOL CDlg_Lok_Schuppen::OnInitDialog(CGleisPlan* pBlock)
+BOOL CDlg_Lok_Schuppen::Init()
 {
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+	BlockNet = &APP->BlockMelder;
 	Gleise = &APP->Gleis_Data;
+
 	SetWindowPos(NULL, 10, 300, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 
 	Weiche_Nummer[0] = TrainCon_Paar(18, false);
@@ -89,9 +90,13 @@ BOOL CDlg_Lok_Schuppen::OnInitDialog(CGleisPlan* pBlock)
 	Weiche_Block[4] = 24;
 	Weiche_Block[5] = 24;
 
-	SchuppenTor = CRect(455,200,462,320);
-	SchuppenTor_L = CRect(455, 200, 462, 210);;
-	SchuppenTor_R = CRect(455, 310, 462, 320);;
+	SchuppenTor = CRect(455,180,462,340);
+	SchuppenTor_L = CRect(455, 180, 462, 200);
+	SchuppenTor_R = CRect(455, 320, 462, 340);
+
+	SchuppenTor_G2 = CRect(455, 200, 462, 240);
+	SchuppenTor_G1 = CRect(455, 241, 462, 280);
+	SchuppenTor_G0 = CRect(455, 281, 462, 320);
 	return 0;
 }
 
@@ -113,6 +118,25 @@ void CDlg_Lok_Schuppen::OnPaint()
 
 	pDC->TextOutW(10, 20, _T("Lok-Schuppen"));
 
+	if (Gleise->Get_Door_open())
+	{
+		CBrush f_Tor;
+		CBrush b_Tor;
+
+
+		byte Tor_pos = 1;
+		f_Tor.CreateSolidBrush(colorgruen);
+		b_Tor.CreateSolidBrush(colorRot);
+		pDC->SelectObject(StiftTor);
+		pDC->SelectObject(f_Tor);
+		if (Tor_pos == 3) pDC->SelectObject(b_Tor);
+		pDC->Rectangle(SchuppenTor_G2);
+		if (Tor_pos == 2) pDC->SelectObject(b_Tor);
+		pDC->Rectangle(SchuppenTor_G1);
+		if (Tor_pos == 1) pDC->SelectObject(b_Tor);
+		pDC->Rectangle(SchuppenTor_G0);
+
+	}
 
 	pDC->SelectObject(&theApp.Gleis_Frei);
 
@@ -145,15 +169,14 @@ void CDlg_Lok_Schuppen::OnPaint()
 	}
 	pDC->SelectObject(PinselTor);
 	pDC->SelectObject(StiftTor);
-
-	if (!SchuppenTor_auf)
-	{
-		pDC->Rectangle(SchuppenTor);
-	}
-	else
+	if (Gleise->Get_Door_open())
 	{
 		pDC->Rectangle(SchuppenTor_L);
 		pDC->Rectangle(SchuppenTor_R);
+	}
+	else
+	{
+		pDC->Rectangle(SchuppenTor);
 	}
 	pDC->SelectObject(theApp.Brush_White);
 	for (int i = 0; i < 6; i++)
@@ -340,11 +363,12 @@ void CDlg_Lok_Schuppen::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	if (SchuppenTor.PtInRect(point))
 	{
-		SchuppenTor_auf = !SchuppenTor_auf;
+		bool SchuppenTor_auf = !Gleise->Get_Door_open();
+		BlockNet->Send_Door_open(SchuppenTor_auf);
 		Invalidate();
 		return;
 	}
-	if (SchuppenTor_auf)
+	if (Gleise->Get_Door_open())
 	{
 		for (int i = 0; i < 6; i++)
 		{

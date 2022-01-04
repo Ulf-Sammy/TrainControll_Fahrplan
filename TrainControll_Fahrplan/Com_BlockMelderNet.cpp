@@ -1,259 +1,328 @@
 #include "pch.h"
 #include "Com_BlockMelderNet.h"
-#include "TrainControll_Fahrplan.h"
+#include "TrainControll_FahrplanDlg.h"
+
 
 CCom_BlockMelderNet::CCom_BlockMelderNet(void)
 {
-	PortNr = 0;
-	m_hCom = NULL;
-	bytesSend = 0;
-	ComInfo = _T("Kein Uno");
-	ComInfo_Nr = 0;
-	
+	p_hCom = NULL;
+	p_aCom = NULL;
+
+	Softwareversion = L"Kein Mega";
 }
 
 CCom_BlockMelderNet::~CCom_BlockMelderNet(void)
 {
 }
 
-bool CCom_BlockMelderNet::OpenCom(int Port)
+void CCom_BlockMelderNet::Set_Com(COM_Info* Port)
 {
-	CString strPortName;
-	PortNr = Port;
-	strPortName.Format(_T("COM%d"), PortNr);
+	p_hCom = &Port->COM_Handel;
+	p_aCom = &Port->COM_Active;
+}
 
-	m_hCom = ::CreateFile(strPortName,
-		GENERIC_READ | GENERIC_WRITE,
-		0, NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
-	if (m_hCom == INVALID_HANDLE_VALUE)
+void CCom_BlockMelderNet::Init(CStatic_DrawBMP* LED, CStatic_DrawBMP* MOD,  size_t Weichen)
+{
+	p_StaticCom = LED;
+	p_StaticMod = MOD;
+	AnzahlWeichen = Weichen;
+	if (*p_aCom)
 	{
-		strPortName.Format(_T(" Serieller Port Com%d: kann nicht geöffnet werden "), Port);
-		TRACE(_T("ERROR %s !!\n"), strPortName);
-		//AfxMessageBox(strPortName,MB_OK | MB_ICONSTOP   );
-		return (false);
+		p_StaticCom->Set_Status(1, L" Com on Mega");
 	}
 	else
 	{
-		DCB dcbSerialParams = { 0 };
-
-		dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-
-		if (!::GetCommState(m_hCom, &dcbSerialParams))
-		{
-			TRACE(_T(" 1.ERROR COM \n"));
-		}
-		else
-		{
-			dcbSerialParams.BaudRate = 115200;
-			dcbSerialParams.ByteSize = 8;
-			dcbSerialParams.Parity = NOPARITY;
-			dcbSerialParams.StopBits = ONESTOPBIT;
-			if (!SetCommState(m_hCom, &dcbSerialParams))
-			{
-				TRACE(_T(" 2.ERROR COM \n"));
-			}
-			COMMTIMEOUTS timeouts = { 0 };
-			GetCommTimeouts(m_hCom, &timeouts);
-			//*
-
-			timeouts.ReadIntervalTimeout = 50;
-			timeouts.ReadTotalTimeoutConstant = 200;
-			timeouts.ReadTotalTimeoutMultiplier = 10;
-
-			timeouts.WriteTotalTimeoutConstant = 50;
-			timeouts.WriteTotalTimeoutMultiplier = 10;
-			//*/
-			if (!SetCommTimeouts(m_hCom, &timeouts))
-			{
-				TRACE(_T(" 3.ERROR COM \n"));
-			}
-		}
+		p_StaticCom->Set_Status(0, L" no Mega");
 	}
-	EscapeCommFunction(m_hCom,SETDTR); // Reset Arduino 
-	EscapeCommFunction(m_hCom,CLRDTR);
-	byte  c;
-	DWORD bytesRead;
-	for (;;)
+}
+
+void CCom_BlockMelderNet::CloseComunikation()
+{
+	Send_Mod_TC(ControlStatus::Ende_COM);
+	Sleep(500);
+}
+
+bool CCom_BlockMelderNet::NoComToBlockNet()
+{
+	return !(*p_aCom);
+}
+
+void CCom_BlockMelderNet::Send_Message()
+{
+	DWORD bytesSend;
+	byte l = COM_LEN(Befehl_Send[0]);
+	if (!WriteFile(*p_hCom, &Befehl_Send, l, &bytesSend, 0))
 	{
-		if (::ReadFile(m_hCom, &c, 1, &bytesRead, NULL) == 0)
-		{
-			TRACE(_T("Lesefehler Com"));
-			ComInfo_Nr = 2;
-		}
-		if (c == '\r')
-		{
-			ComInfo_Nr = 1;
-			TRACE2(" - Serieller Com Port %i geöffnet von Uno [ %s ] \n", PortNr, ComInfo);
-			return(true);
-		}
-		ComInfo.AppendChar(c);
-		if (c =='\n')
-		{
-			ComInfo.Empty();
-		}
+		ClearCommError(*p_hCom, &Error_Com, &COM_status);
+		p_StaticCom->Set_Status(3, L" Error Senden !");
 	}
-	return(true);
-
 }
 
-void CCom_BlockMelderNet::CloseCom()
+bool CCom_BlockMelderNet::Read_Message(byte* RD)
 {
-	::CloseHandle(m_hCom);
-}
-
-bool CCom_BlockMelderNet::GetTC_Message()
-{
-	byte  c;
+	byte  c = 0;
 	DWORD bytesRead;
 	byte Nr = 0;
 	byte Len;
 	BOOL Error;
 	for (;;)
 	{
-		Error = ::ReadFile(m_hCom, &c, 1, &bytesRead, NULL);
+		Error = ::ReadFile(*p_hCom, &c, 1, &bytesRead, NULL);
 		if (!Error)
 		{
-			ComInfo_Nr = 2;
+			p_StaticCom->Set_Status(3, L" Error Read !");
 		}
 		if (bytesRead == 1)
 		{
 			if (Nr == 0) Len = (c & 0x07);
-			Read_Melder[Nr] = c;
+			*(RD +  Nr) = c;
 			Nr++;
-			if (Nr == (Len))
-			{
-				Nr = 0;
-				return(true);
-			}
+			if (Nr == Len)	return(true);
 		}
 		else
 		{
 			return(false);
 		}
 	}
+	return false;
 }
 
-void CCom_BlockMelderNet::SetTC_Message()
+void CCom_BlockMelderNet::WarteDaten()
 {
-}
+	unsigned int Timer = MAXUINT;
+	Neue_Daten = false;
 
-void CCom_BlockMelderNet::Set_Debug_Text(byte Block, bool Bit)
-{
-	CString Text;
-	static byte Pos = 0;
-	if (Bit)
-	{ 
-		Text.Format(_T("Block %2i : I"), Block);
-	}
-	else
+	do
 	{
-		Text.Format(_T("Block %2i : o"), Block);
-	}
-	Text = theApp.Get_Time(Text);
-	if (Pos == 11)
-	{
-		for (int i = 0; i < 10; i++)
+		Timer--;
+		if (Timer == 0)
 		{
-			Debug_Text[i] = Debug_Text[i + 1];
+			Neue_Daten = true;
+			p_StaticCom->Set_Status(2, L"Time Out !!");
 		}
-		Debug_Text[10] = Text;
-	}
-	else
+	} while (!Neue_Daten);
+}
+
+void CCom_BlockMelderNet::verarbeite_Meldung_Zentrale()
+{
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+	
+	static byte Data[11];
+	if (Read_Message(Data))
 	{
-		Debug_Text[Pos] = Text;
-		Pos++;
+		switch (Data[0])
+		{
+		case COM_SEND_MOD:
+			verarbeite_Mod(Data);
+			break;
+		case COM_SEND_GLPOWER:
+			APP->Gleis_Data.Set_Relais(Data);
+			APP->pDlgSchuppen->Invalidate();
+			break;
+		case COM_SEND_RELAIS:
+			break;
+		case COM_SEND_DOOR:
+			// Tür öffnen Rückmeldung
+			APP->Gleis_Data.Set_Door(Data);
+			APP->pDlgSchuppen->Invalidate();
+			break;
+		case COM_SEND_DOOR_STAT:
+			// Abfrag ist Tür Status Rückmeldung
+			APP->Gleis_Data.Set_Door(Data);
+			APP->pDlgSchuppen->Invalidate();
+			break;
+		case COM_SEND_WEICHE:
+			APP->Gleis_Data.Set_Weiche(Data);
+			APP->InfoWeiche.Set_Debug_Text(Data);
+			APP->InfoGleisBild.Invalidate();
+			break;
+		case COM_TC_WIRTE_BLOCK:
+			if (APP->Gleis_Data.Set_Block(Data))
+			{
+				APP->InfoMelder.Set_Debug_Text(Data);
+				APP->InfoGleisBild.Invalidate();
+			}
+			break;
+		case COM_I2C_DEV1:
+			Set_Melder_Adr(Data);
+			break;
+		case COM_I2C_DEV2:
+			Set_Relais_Adr(Data);
+			break;
+		case COM_I2C_DEV3:
+			Set_Positi_Adr(Data);
+			break;
+		case COM_TC_WRITE_CUR1:
+			APP->StromKurve.Set_Strom_Wert(Data);
+			break;
+		case COM_PC_ASK_VERSION:
+			Set_SoftwareVersion(Data);
+			break;
+		}
+		Neue_Daten = true;
 	}
 }
 
-byte CCom_BlockMelderNet::GetNextMessage()
+void CCom_BlockMelderNet::verarbeite_Mod(byte* Data)
 {
-	/*static bool BlBit = true;
-	static byte BlNr = 0;
-	if (BlBit) BlNr++;
-
-	if (BlNr == 31) BlNr = 1;
-	Read_Melder[0] = COM_SEND_BLOCK;
-	Read_Melder[1] = BlNr;
-	Read_Melder[2] = (byte)BlBit;
-	Sleep(500);
-	return Read_Melder[0];
-	*/
-	if (GetTC_Message())
+	switch ((ControlStatus)Data[1])
 	{
-		TRACE3(" Neue Meldung | %x | %x | %x  \n", Read_Melder[0], Read_Melder[1], Read_Melder[2]);
-		return Read_Melder[0];
+	case ControlStatus::Begin_COM:
+		// BeginCom abgeschlossen
+		Send_Mod_TC(ControlStatus::Setup);
+		Send_Max_Weiche(AnzahlWeichen);
+		Send_SoftVersion();
+
+		break;
+	case ControlStatus::Setup:
+		// Sleep(300);
+		p_StaticMod->Set_Status(0);
+		Send_Mod_TC(ControlStatus::Fahren);
+		break;
+	case ControlStatus::Fahren:
+		p_StaticMod->Set_Status(1);
+
+		break;
+	case ControlStatus::Program:
+		p_StaticMod->Set_Status(2);
+		break;
+	case ControlStatus::Ende_COM:
+
+		break;
 	}
-	else
-		return false;
 }
 
-void CCom_BlockMelderNet::StartKomunikation()
+void CCom_BlockMelderNet::Get_VersionInfo(CString* Text)
 {
-	DWORD bytesSend;
-	Befehl_Send[0] = COM_WRITE_MOD;
-	if (!WriteFile(this->m_hCom, &Befehl_Send, 1, &bytesSend, 0))
+	*Text = Softwareversion;
+}
+
+void CCom_BlockMelderNet::StartProcess()
+{
+	Send_Mod_TC(ControlStatus::Begin_COM);
+	Send_SoftVersion();
+}
+
+void CCom_BlockMelderNet::Set_SoftwareVersion(byte* Data)
+{
+	Softwareversion.Format(L"Train Controll V%d.%2d",Data[1],Data[2]);
+	p_StaticCom->Set_Status(1, Softwareversion);
+}
+
+void CCom_BlockMelderNet::Set_Melder_Adr(byte* Data)
+{
+	byte Adr = Data[1];
+	byte IOData = Data[2];
+	bool notIN = true;
+	for (auto inAdr : MelderGruppe_Adr)
 	{
-		ClearCommError(this->m_hCom, &this->Error_Com, &this->COM_status);
-		TRACE(_T("Fehler beim Senden !!!  StartKomunikation-CComBlockMelderNet \n"));
+		if (Data[1] == inAdr)
+		{
+			notIN = false;
+		}
 	}
-}
-
-bool CCom_BlockMelderNet::NoComToBlockNet()
-{
-	if (m_hCom == NULL) return (true);
-	return (m_hCom == INVALID_HANDLE_VALUE);
-}
-
-byte CCom_BlockMelderNet::Get_VersionInfo(CString* Text)
-{
-	*Text = ComInfo;
-	return ComInfo_Nr;
-}
-
-void CCom_BlockMelderNet::ZeichneBlockMeldung(CDC* pDC)
-{
-	CFont* pOldFont;
-	pOldFont = pDC->SelectObject(&theApp.Font_Info_small);
-
-	for (int i = 0; i < 11; i++)
+	if (notIN)
 	{
-		pDC->TextOutW(300, ((i * 8) + 725), Debug_Text[i]);
+		MelderGruppe_Adr.push_back(Data[1]);
 	}
-	pDC->SelectObject(pOldFont);
+}
+
+void CCom_BlockMelderNet::Set_Relais_Adr(byte* Data)
+{
+	byte Adr = Data[1];
+	byte IOData = Data[2];
+	bool notIN = true;
+	for (auto inAdr : GleisPowerGruppe_Adr)
+	{
+		if (Data[1] == inAdr)
+		{
+			notIN = false;
+		}
+	}
+	if (notIN)
+	{
+		GleisPowerGruppe_Adr.push_back(Data[1]);
+	}
+}
+
+void CCom_BlockMelderNet::Set_Positi_Adr(byte* Data)
+{
+	byte Adr = Data[1];
+	byte IOData = Data[2];
+	bool notIN = true;
+	for (auto inAdr : GleisPosGruppe_Adr)
+	{
+		if (Data[1] == inAdr)
+		{
+			notIN = false;
+		}
+	}
+	if (notIN)
+	{
+		GleisPosGruppe_Adr.push_back(Data[1]);
+	}
+}
+
+void CCom_BlockMelderNet::Send_SoftVersion()
+{
+	Befehl_Send[0] = COM_PC_ASK_VERSION;
+	Befehl_Send[1] = 0; // Version 3.
+	Befehl_Send[2] = 0; // .0
+	Send_Message();
 
 }
 
-void CCom_BlockMelderNet::SetMelder_Zeit(byte Nr)
+void CCom_BlockMelderNet::Send_Max_Weiche(size_t Weichen)
 {
-	//  der Wert mit 10 msec mal genommen 
-// in der Ardunino Controller
-	Befehl_Send[0] = COM_WRITE_MELDER_TI;
-	Befehl_Send[1] = Nr;
-	SetTC_Message();
-	Sleep(300);
+	Befehl_Send[0] = COM_PC_WRITE_WEICHE;
+	if (Weichen < 256) 	Befehl_Send[1] = (byte)Weichen;
+	else 		        Befehl_Send[1] = 255;
+	Send_Message();
 }
 
-void CCom_BlockMelderNet::SetBlockPower(TrainCon_Paar Relais)
+void CCom_BlockMelderNet::Send_BlockPower(TrainCon_Paar Relais)
 {
-	TRACE(_T("schalte Relais Nr [%i] = %i \n"), Relais.GetWert(), Relais.GetBit());
-	Befehl_Send[0] = COM_WRITE_WEICHE_ST;
+	TRACE(_T("schalte Gleis Relais Nr [%i] = %i \n"), Relais.GetWert(), Relais.GetBit());
+	Befehl_Send[0] = COM_SEND_GLPOWER;
 	Befehl_Send[1] = Relais.GetWert();
 	Befehl_Send[2] = (byte)Relais.GetBit();
-	SetTC_Message();
+	Send_Message();
 	//Sleep(300);
 }
 
-
-TrainCon_Paar CCom_BlockMelderNet::HoleBlockData()
+void CCom_BlockMelderNet::Send_Door_open(bool Bit)
 {
-	Set_Debug_Text(Read_Melder[1], (bool)Read_Melder[2]);
-	return (TrainCon_Paar(Read_Melder[1], (bool)Read_Melder[2]));
+	Befehl_Send[0] = COM_SEND_DOOR;
+	Befehl_Send[1] = Bit;
+	Befehl_Send[2] = 0x00;
+	Befehl_Send[3] = 0x00;
+
+	Send_Message();
+	WarteDaten();
 }
 
-TrainCon_Paar CCom_BlockMelderNet::HoleRelayData()
+void CCom_BlockMelderNet::Send_Door_Status()
 {
-	return (TrainCon_Paar(Read_Melder[1], (bool)Read_Melder[2]));
+	Befehl_Send[0] = COM_SEND_DOOR_STAT;
+	Befehl_Send[1] = 0x00;
+	Befehl_Send[2] = 0x00;
+	Befehl_Send[3] = 0x00;
+
+	Send_Message();
+	WarteDaten();
+}
+
+void CCom_BlockMelderNet::Send_WeichenData(TrainCon_Paar Weiche)
+{
+	Befehl_Send[2] = (byte)Weiche.GetBit();
+	Befehl_Send[1] = Weiche.GetWert();
+	Befehl_Send[0] = COM_SEND_WEICHE;
+	Send_Message();
+}
+
+void CCom_BlockMelderNet::Send_Mod_TC(ControlStatus Mod)
+{
+	Befehl_Send[0] = COM_SEND_MOD;
+	Befehl_Send[1] = (byte)Mod;
+	Send_Message();
 }

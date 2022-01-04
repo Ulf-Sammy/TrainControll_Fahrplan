@@ -33,7 +33,7 @@
     <ClInclude Include="pch.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="3DMeterGleis.h">
+    <ClInclude Include="CStatic_GleisBild.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="CaptureGraph.h">
@@ -93,7 +93,7 @@
     <ClInclude Include="MemDC.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Com_BlockMelderNet.h">
+    <ClInclude Include="COM_BlockMelderNet.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="CBlockInfo.h">
@@ -114,10 +114,22 @@
     <ClInclude Include="CDlg_Block_Info.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Com_XpressNet.h">
+    <ClInclude Include="CDlg_Train_Run.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="CDlg_Train_Run.h">
+    <ClInclude Include="COM_LZV200.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CDlg_Com_Liste.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CStaticDraw.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CStaticText.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CStatic_DrawBMP.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -131,7 +143,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="3DMeterGleis.cpp">
+    <ClCompile Include="CStatic_GleisBild.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="CaptureGraph.cpp">
@@ -176,7 +188,7 @@
     <ClCompile Include="CDlg_Debug_Mega.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Com_BlockMelderNet.cpp">
+    <ClCompile Include="COM_BlockMelderNet.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="CDlg_Lok_Schuppen.cpp">
@@ -212,7 +224,19 @@
     <ClCompile Include="CDlg_Train_Run.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Com_XpressNet.cpp">
+    <ClCompile Include="COM_LZV200.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlg_Com_Liste.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CStaticDraw.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CTextStatic.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="CStatic_DrawBMP.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -225,6 +249,7 @@
     <None Include="res\TrainControllFahrplan.rc2">
       <Filter>Ressourcendateien</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\TrainControll_Fahrplan.ico">

@@ -10,7 +10,7 @@ class CDlg_Block_Info : public CDialogEx
 public:
 	CDlg_Block_Info(CWnd* pParent = nullptr);   // Standardkonstruktor
 	virtual ~CDlg_Block_Info();
-	BOOL Create();
+	virtual BOOL Create();
 
 // Dialogfelddaten
 	enum { IDD = IDD_DIALOG_TESTBLOCK };
@@ -25,8 +25,8 @@ protected:
 	CRect m_rectCtrl;
 	byte Block_Nr;
 	bool BlickLok;
-	bool Lok_fahren_L;
-	bool Lok_fahren_R;
+	bool Lok_fahren_L = false;
+	bool Lok_fahren_R = false;
 	BlockDebugData BlockData;
 	byte Weichen_Anzahl;
 	DECLARE_MESSAGE_MAP()

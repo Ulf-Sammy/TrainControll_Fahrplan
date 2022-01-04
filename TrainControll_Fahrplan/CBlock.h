@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "CBlockInfo.h"
-#include "Com_XpressNet.h"
 #include "Com_BlockMelderNet.h"
 
 class CBlock
@@ -22,7 +21,7 @@ public:
 	void freimachen();
 	bool ist_frei();
 	BlockStatus GetStatus_Block(CString *Lok_Name, bool* Lok_Dir);
-	TrainCon_Paar Get_Relais_Data(bool Inv); // wenn true invertiere Bit
+	TrainCon_Paar Get_Relais_Data(); 
 	BlockDebugData Get_Debug();
 	~CBlock();
 protected:

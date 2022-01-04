@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "Com_XpressNet.h"
+#include "COM_LZV200.h"
 #include "CDataFahrplan.h"
 #include "VC_TableInfo.h"
 #include <vector>
@@ -12,6 +12,7 @@ class CDataXpressNet
 public:
 	CDataXpressNet();
 	CDataXpressNet(CString LokName);
+	void Init();
 	bool FillData(CString InText);
 	~CDataXpressNet();
 	void Set_Dlg_Nr(byte Nr);
@@ -24,7 +25,6 @@ public:
 	byte Get_Soll_Block();
 	void Lade_Fahrplan();
 	void ASK_LokData();
-	void Get_LokData();
 	void Set_Adresse();
 	CString Text_Block();
 	CString Text_Betrieb();
@@ -79,19 +79,18 @@ public:
 	Zug_Steuerung Betriebs_Modus = Zug_Steuerung::nicht_Betriebs_bereit;
 	//#############################################
 
-
-protected:                 //0 1 2 3 4 5 6 7 8 9 0 1 2 3
-	const std::vector<byte> BitNr { 4,0,1,2,3,0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7 };
-	const std::vector<byte> FunNr { 1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4 };
+// Funktionen auf Gruppe verteilt //                    1                   2
+protected:                        //0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8
+	const std::vector<byte> BitNr { 4,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7 };
+	const std::vector<byte> FunNr { 0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4 };
 	
 
 	// alles zum Fahren
-	CCom_XpressNet   *XpressNet = NULL;
-	Zug_Status    Status = Zug_Status::Zug_Stopped;       // Der Status vom Zug stop,fähr, hält
+	CCom_LZV200 *XpressNet = NULL;
+	Zug_Status  Status = Zug_Status::Zug_Stopped;       // Der Status vom Zug stop,fähr, hält
 	bool		Zug_active			= false; // ist Zug active
-	bool		Zug_wartet_auf_Data = false; // Zug wartet auf Daten
 	byte		FahrPlan_Nr			= 0;     // Nr des Fahrplans
-	byte		Adresse				= 0;     // Adresse Lok
+	Lok_Adresse		Adresse				= 0;     // Adresse Lok
 	byte		FahrGesch			= 0;     // diese Werte werden genommen um zuübertragen
 	bool		FahrRicht			= false; // diese Werte werden genommen um zuübertragen
 	std::vector<byte>	FunktionsGruppe{ 0x00,0x00,0x00,0x00,0x00 };

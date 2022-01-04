@@ -3,38 +3,29 @@
 
 // CDlg_Debug_Mega-Dialog
 
-class CDlg_Debug_Mega : public CDialog
+class CDlg_Debug_Mega : public CDialogEx
 {
 	DECLARE_DYNAMIC(CDlg_Debug_Mega)
-private:
-	using CDialog::Create;
 
 public:
 	CDlg_Debug_Mega(CWnd* pParent = nullptr);   // Standardkonstruktor
 	virtual ~CDlg_Debug_Mega();
-	BOOL Create();
+
 	virtual BOOL OnInitDialog();
-	afx_msg void OnPaint();
-	bool OpenCom(int Port);
-	void CloseCom();
-	CString Get_Message();
-	void UpdateNewData(CString Textin);
-// Dialogfelddaten
+	virtual BOOL Create(HANDLE* Data);
+	bool OpenCom(HANDLE* Port);
+	void Get_Message();
+	// Dialogfelddaten
 	enum { IDD = IDD_CDlg_Debug_Mega };
 	bool ListentoCom;
+	CListCtrl DebugTextListe;
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV-Unterstützung
 	CWnd* m_pParent;
 	int m_nID;
-	CString Debug_Text[50];
-	HANDLE m_hCom;
-	COMSTAT COM_status;
-	DWORD Error_Com;
-	int PortNr;
-	CFont Font_Info;
-	const int maxZeile = 50;
-
+	HANDLE* p_hCom;
+	const unsigned int maxZeile = 50;
+	unsigned int Zeile = 0;
 
 	DECLARE_MESSAGE_MAP()
-public:
 };

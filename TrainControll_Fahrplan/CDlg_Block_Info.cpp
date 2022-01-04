@@ -20,6 +20,8 @@ CDlg_Block_Info::CDlg_Block_Info(CWnd* pParent /*=nullptr*/)
 	Block_Nr = 0;
 	Weichen_Anzahl = 0;
 	BlickLok = true;
+	Lok_fahren_L = false;
+	Lok_fahren_R = false;
 }
 
 CDlg_Block_Info::~CDlg_Block_Info()
@@ -98,7 +100,7 @@ void CDlg_Block_Info::Zeige_Daten()
 	}
 
 	str.Format(_T("%d"), BlockData.Weichen_Anzahl);
-	SetDlgItemText(IDC_STATIC_GLEIS, BlockData.Gleis_Name);
+	SetDlgItemText(IDC_STATIC_GLEIS_N, BlockData.Gleis_Name);
 	SetDlgItemText(IDC_STATIC_LOK, BlockData.Lok_Name);
 	if (BlockData.Block_gemeldet)
 	{	SetDlgItemText(IDC_STATIC_BLOCK, _T("Melder ON"));	}
@@ -150,8 +152,6 @@ BOOL CDlg_Block_Info::OnInitDialog()
 	Block_Nr = 1;
 	Spin_BlockNr.SetRange(1, 30);
 	Spin_BlockNr.SetPos(Block_Nr);
-	Zeige_Daten();
-
 	return TRUE; 
 }
 

@@ -4,7 +4,7 @@
 
 #include "pch.h"
 #include "TrainControll_Fahrplan.h"
-#include "CDlg_Train_Run.h"
+//#include "CDlg_Train_Run.h"
 #include "TrainControll_FahrplanDlg.h"
 
 
@@ -51,8 +51,6 @@ CTrainControll_FahrplanApp::CTrainControll_FahrplanApp()
 	Brush_Green.CreateSolidBrush(RGB(0, 140, 0));
 	Brush_Weiche.CreateSolidBrush(colorHinterGrund);
 
-
-
 }
 
 
@@ -78,22 +76,12 @@ CString CTrainControll_FahrplanApp::Get_Time(CString Info)
 BOOL CTrainControll_FahrplanApp::InitInstance()
 {
 	CWinApp::InitInstance();
-
-	// Shell-Manager erstellen, falls das Dialogfeld
-	// Shellstrukturansicht- oder Shelllistenansicht-Steuerelemente enthält.
-	//CShellManager *pShellManager = new CShellManager;
-
-	// Standardinitialisierung
-	// Wenn Sie diese Features nicht verwenden und die Größe
-	// der ausführbaren Datei verringern möchten, entfernen Sie
-	// die nicht erforderlichen Initialisierungsroutinen.
-	// Ändern Sie den Registrierungsschlüssel, unter dem Ihre Einstellungen gespeichert sind.
-	// TODO: Ändern Sie diese Zeichenfolge entsprechend,
-	// z.B. zum Namen Ihrer Firma oder Organisation.
-	//SetRegistryKey(_T("Vom lokalen Anwendungs-Assistenten generierte Anwendungen"));
-
 	CTrainControll_FahrplanDlg dlg;
+
 	m_pMainWnd = &dlg;
+	dlg.EnumSerialPortFriendlyName();
+	dlg.Get_Com_Handel();
+
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
@@ -106,14 +94,6 @@ BOOL CTrainControll_FahrplanApp::InitInstance()
 		//  Dialogfelds über "Abbrechen" zu steuern
 	}
 
-	// Den oben erstellten Shell-Manager löschen.
-	//if (pShellManager != NULL)
-	//{
-	//	delete pShellManager;
-	//}
-
-	// Da das Dialogfeld geschlossen wurde, FALSE zurückliefern, sodass wir die
-	//  Anwendung verlassen, anstatt das Nachrichtensystem der Anwendung zu starten.
 	return FALSE;
 }
 

@@ -3,29 +3,26 @@
 #include "TrainControll_FahrplanDlg.h"
 
 CDatenBankLok::CDatenBankLok()
-{
+{	
+
+	Load_Zug_Data();
+	Load_acktiv_Zug_Data();
+	Set_aktiveLok_FuntiontoRun();
 }
 
 CDatenBankLok::~CDatenBankLok()
 {
 }
 
-byte CDatenBankLok::Init()
+void CDatenBankLok::Init()
 {
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	XpressNet = &APP->XpressNet;
-
-	Load_Zug_Data();
-	Load_acktiv_Zug_Data();
-	Set_aktiveLok_FuntiontoRun();
-	return (byte)aktiveLoks.size();
+	for (byte Zug : aktiveLoks)
+	{
+		MeineZüge[Zug].Init();
+	}
 }
 
 
-CCom_XpressNet * CDatenBankLok::Get_XpressNet()
-{
-	return XpressNet;
-}
 
 void CDatenBankLok::Test_Data()
 {
@@ -202,10 +199,6 @@ void CDatenBankLok::Ask_aktivLok_Data(byte Lok_Nr)
 {
 	Ask_Lok_Nr = aktiveLoks[Lok_Nr];
 	MeineZüge[Ask_Lok_Nr].ASK_LokData();
-}
-void CDatenBankLok::New_Lok_Data()
-{
-	MeineZüge.at(Ask_Lok_Nr).Get_LokData();
 }
 
 void CDatenBankLok::Set_Zug_CV_Wert(byte CV, byte CV_Wert)
@@ -472,6 +465,7 @@ void CDatenBankLok::PRG_Lok_CV(bool ReadWrite, byte CV, byte Wert) // true dann 
 {
 	Zug_wartet_auf_Data = true;
 	Prog_CV = CV;
+	/*
 	if (ReadWrite)  // true dann schreiben
 		XpressNet->Sende_Write_CV(CV, Wert);
 	else			// false weil nur lesen
@@ -479,13 +473,14 @@ void CDatenBankLok::PRG_Lok_CV(bool ReadWrite, byte CV, byte Wert) // true dann 
 	do
 	{
 	} while (Zug_wartet_auf_Data);
+	*/
 }
 
 void CDatenBankLok::PRG_Set_CV()
 {
-	byte Wert = XpressNet->Hole_CV_Wert();
-	MeineZüge[Selected_Prog_Lok].Decoder_Data.Set_CV_Wert(Prog_CV, Wert);
-	Zug_wartet_auf_Data = false;
+	//byte Wert = XpressNet->Hole_CV_Wert();
+	//MeineZüge[Selected_Prog_Lok].Decoder_Data.Set_CV_Wert(Prog_CV, Wert);
+	//Zug_wartet_auf_Data = false;
 }
 
 byte CDatenBankLok::PRG_Get_CV(byte CV)

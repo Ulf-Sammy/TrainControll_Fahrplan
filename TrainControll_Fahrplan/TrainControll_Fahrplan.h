@@ -7,6 +7,10 @@
 #include "pch.h"
 #include "resource.h"		// Hauptsymbole
 #include "MaskedBitmap.h"
+#include <setupapi.h>
+#pragma comment (lib, "Setupapi.lib")
+
+#define NUI32_TEXTLAENGE_SERPORTENUM_FRIENDLYNAME  255
 
 // CTrainControll_FahrplanApp:
 // Siehe TrainControll_Fahrplan.cpp für die Implementierung dieser Klasse
@@ -54,11 +58,9 @@ public:
 	CMaskedBitmap LokSchuppen;
 
 	CString Get_Time(CString Info);
-public:
 	virtual BOOL InitInstance();
-
+	
 // Implementierung
-
 	DECLARE_MESSAGE_MAP()
 
 };

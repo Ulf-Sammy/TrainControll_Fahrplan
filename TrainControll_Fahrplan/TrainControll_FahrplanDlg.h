@@ -1,14 +1,23 @@
 #pragma once
 #include "pch.h"
 #include "CGleisPlan.h"
-#include "3DMeterGleis.h"
+#include "CStatic_GleisBild.h"
+#include "CStatic_DrawBMP.h"
+#include "CStaticDraw.h"
+#include "CStaticText.h"
 #include "CDlg_Train_Run.h"
 #include "CDlg_RunCam_Train.h"
 #include "CDlg_Debug_Mega.h"
 #include "CDlg_Lok_Schuppen.h"
 #include "CDlg_Block_Info.h"
+#include "CDlg_Com_Liste.h"
 #include "afxwin.h"
 #include "Resource.h"
+
+
+UINT Thread_Update_LZV(LPVOID pParam);
+UINT Thread_Update_MEGA(LPVOID pParam);
+UINT Thread_Update_Time(LPVOID pParam);
 
 
 // CTrainControll_FahrplanDlg-Dialogfeld
@@ -25,31 +34,24 @@ public:
 	int				   ButtonTrainRun[7] = { 0, 0, 0, 0, 0, 0, 0 };
 	CDlg_RunCam_Train* pDlgTrainRunCam   = NULL;
 	CDlg_Debug_Mega*   pDlgDebugInfo  = NULL;
-	CDlg_Lok_Schuppen* pDlgSchuppen =	NULL;
-	CDlg_Block_Info*   pDlgBlockInfo = NULL;
+	CDlg_Lok_Schuppen* pDlgSchuppen   =	NULL;
+	CDlg_Block_Info*   pDlgBlockInfo  = NULL;
+	CDlg_Com_Liste*    pDlgComListe   = NULL;
+
+	CStaticDraw		   StromKurve;
+	CStaticText        InfoMelder;
+	CStaticText        InfoWeiche;
+	CStatic_GleisBild  InfoGleisBild;
+	CStatic_DrawBMP	   InfoMega;
+	CStatic_DrawBMP	   InfoLVZ200;
+	CStatic_DrawBMP	   InfoModus;
+	CStatic_DrawBMP	   InfoPower;
 
 protected:
 	
 	HICON m_hIcon;
-
-	CStatic* StaticImage_Modus;
-	CStatic* StaticImage_Uno;
-	CStatic* StaticImage_Mega;
-	CStatic* StaticImage_LVZ;
-
-	CRect Image_Uno   = { 0,0,40,40 };
-	CRect Image_Mega  = { 0,0,40,40 };
-	CRect Image_Modus = { 0,0,90,90 };
-	CRect Image_LVZ   = { 0,0,175,70 };
-
-	CImage Bild_Fahren;
-	CImage Bild_Progam;
-	CImage LED_rot;
-	CImage LED_gelb;
-	CImage LED_gruen;
-	CImage LVZ_ON;
-	CImage LVZ_OFF;
-	CImage LVZ_PROG;
+	
+	COM_Info ComListe[COM_MAX_LISTE];
 	// Generierte Funktionen für die Meldungstabellen
 	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV-Unterstützung
@@ -61,13 +63,26 @@ protected:
 	void InitDlg();
 
 public:
-	CGleisPlan			Gleis_Data;
-	C3DMeterGleis		m_3DGleis;
+	
+	
 	CDatenBankLok		meineLoks;
-	CCom_XpressNet		XpressNet;
+	CCom_LZV200			XpressNet;
 	CCom_BlockMelderNet	BlockMelder;
+	CGleisPlan			Gleis_Data;
 
+
+	COM_Info COM_LZV_Data;
+	COM_Info COM_MEGA_Data;
+	COM_Info COM_DEBUG_Data;
+
+	void EnumSerialPortFriendlyName();
+	void Get_Com_Handel();
+	bool Open_Setup_Com(COM_Info* p_COM_I);
+	void Start_Com_Thread();
+	void Close_Com_Handel();
 	void DoStartDialog(bool Zeige);
+	void updatePowerOn(bool Bit);
+	
 
 	afx_msg void OnSetupProgrammierezug();
 	afx_msg void OnSetupMeinezugliste();
@@ -79,4 +94,6 @@ public:
 	afx_msg void OnSetupFahrplanEdit();
 
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnSetupMegadebugdata();
+	afx_msg void OnSetupComlisteInfo();
 };

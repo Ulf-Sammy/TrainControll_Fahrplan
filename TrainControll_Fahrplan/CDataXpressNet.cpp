@@ -10,12 +10,14 @@ CDataXpressNet::CDataXpressNet(CString LokName)
 	CString DateiName;
 	Name = LokName;
 	Name.Trim();
-	DateiName.Format(_T(FILE_ALLE_ZUEGE_BILDER), Name); //_T("Images\\Spreewald.bmp")
+	DateiName = _T(FILE_ALLE_ZUEGE_BILDER)+(Name)+L".BMP"; //_T("Images\\Spreewald.bmp")
 	Bild = (HBITMAP)::LoadImage(AfxGetInstanceHandle(), DateiName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);	
+}
+void CDataXpressNet::Init()
+{
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 	XpressNet = &APP->XpressNet;
 }
-
 
 bool CDataXpressNet::FillData(CString InText)
 {
@@ -127,27 +129,20 @@ void CDataXpressNet::Lade_Fahrplan()
 
 void CDataXpressNet::ASK_LokData()
 {
-	if (XpressNet->NoComToXpressNet())
+	if (XpressNet->NoComtoLZV200())
 	{
 		TRACE(_T("Fehler Com Port nicht geöffnet !!! \n   Kann Zug Daten nicht abfragen! \n"));
 		return;
 	}
 	XpressNet->SendeAsknachLokDaten(Adresse);
-	Zug_wartet_auf_Data = true;
-	do
-	{
-	} while (Zug_wartet_auf_Data);
+	//Wenn empfangen einlesen
+	XpressNet->HoleZugData(&FunktionsGruppe[0], Adresse);
 }
 
-void CDataXpressNet::Get_LokData()
-{
-	XpressNet->HoleZugData(&FunktionsGruppe[0], Adresse);
-	Zug_wartet_auf_Data = false;
-}
 
 void CDataXpressNet::Set_Adresse()
 {
-	Adresse = Decoder_Data.Get_Adresse();
+	Adresse = Lok_Adresse(Decoder_Data.Get_Adresse());
 }
 
 CString CDataXpressNet::Text_Block()
@@ -306,8 +301,8 @@ void CDataXpressNet::Set_Geschwindigkeit(byte Geschwindigkeit, bool FahrtRichtun
 {
  	FahrRicht = FahrtRichtung;
 	FahrGesch = Geschwindigkeit;
-
-	FunktionsGruppe[0] = FahrGesch;
+	
+	FunktionsGruppe[0] = DCC_SPEED_coded[FahrGesch];
 	if (FahrRicht)
 	{
 		FunktionsGruppe[0] = bitSet(FahrGesch, 7);
@@ -315,7 +310,7 @@ void CDataXpressNet::Set_Geschwindigkeit(byte Geschwindigkeit, bool FahrtRichtun
 	}
 	else 
 		Status = Zug_Status::Zug_faehrt_rueck;
-
+   // F0 Byte = |R00V VVVV|
 	XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
 }
 
