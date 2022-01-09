@@ -23,7 +23,8 @@ public:
 	void Send_Door_Status();
 	void Send_WeichenData(TrainCon_Paar Weiche);
 	void Send_Mod_TC(ControlStatus Mod);
-	
+	void Send_XpressNet_Status(bool on);
+	void Send_XpressNet_Power( bool Power);
 	void Get_VersionInfo(CString *Text);
 	void Set_SoftwareVersion(byte* Data);
 

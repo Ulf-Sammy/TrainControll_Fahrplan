@@ -81,6 +81,7 @@ UINT Thread_Start_Prozess(LPVOID pParam)
 	Sleep(5000); // 5 sec
 	Info->BlockMelder.StartProcess();
 	Info->XpressNet.StartProcess();
+	Info->BlockMelder.Send_XpressNet_Status(Info->COM_LZV_Data.COM_Active);
 	return 0;
 }
 
@@ -647,7 +648,10 @@ void CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche()
 void CTrainControll_FahrplanDlg::OnClose()
 {
 	XpressNet.SendeLVZ_Power(false);
+	BlockMelder.Send_XpressNet_Status(false);
+	Sleep(500);
 	BlockMelder.CloseComunikation();
+	Sleep(500);
 	for (int i = 0; i < 7; i++)
 	{
 		if (pDlgTrainRun[i] != NULL)
@@ -715,9 +719,9 @@ void CTrainControll_FahrplanDlg::DoStartDialog(bool Zeige)
 
 void CTrainControll_FahrplanDlg::updatePowerOn(bool Bit)
 {
+	BlockMelder.Send_XpressNet_Power(Bit);
 	InfoPower.Set_Status((byte)Bit);
-	InfoGleisBild.Invalidate();
-	
+	InfoGleisBild.Invalidate();	
 }
 
 

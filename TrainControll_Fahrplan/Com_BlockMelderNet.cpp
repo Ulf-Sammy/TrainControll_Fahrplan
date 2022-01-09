@@ -39,7 +39,6 @@ void CCom_BlockMelderNet::Init(CStatic_DrawBMP* LED, CStatic_DrawBMP* MOD,  size
 void CCom_BlockMelderNet::CloseComunikation()
 {
 	Send_Mod_TC(ControlStatus::Ende_COM);
-	Sleep(500);
 }
 
 bool CCom_BlockMelderNet::NoComToBlockNet()
@@ -324,5 +323,19 @@ void CCom_BlockMelderNet::Send_Mod_TC(ControlStatus Mod)
 {
 	Befehl_Send[0] = COM_SEND_MOD;
 	Befehl_Send[1] = (byte)Mod;
+	Send_Message();
+}
+
+void CCom_BlockMelderNet::Send_XpressNet_Status(bool on)
+{
+	Befehl_Send[0] = COM_XPNET_ON;
+	Befehl_Send[1] = (byte) on;
+	Send_Message();
+}
+
+void CCom_BlockMelderNet::Send_XpressNet_Power(bool Power)
+{
+	Befehl_Send[0] = COM_XPNET_POWER;
+	Befehl_Send[1] = (byte)!Power;
 	Send_Message();
 }

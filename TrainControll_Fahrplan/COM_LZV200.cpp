@@ -254,6 +254,8 @@ void CCom_LZV200::SendeLVZ_Power(bool Bit)
 	}	
 }
 
+
+
 void CCom_LZV200::Alle_Loks_Anhalten()
 {
 }

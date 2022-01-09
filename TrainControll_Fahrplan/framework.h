@@ -60,10 +60,12 @@
 #define COM_SEND_DOOR_STAT    0x30+0x04  // 5 offen + belegt			| 
 #define COM_SEND_WEICHE       0x38+0x03  // 6 Weiche + Wert			    |
 #define COM_TC_WIRTE_BLOCK	  0x40+0x03  // 7 BLOCK + Wert			    | New											
+#define COM_XPNET_POWER       0x48+0x02  // 8 Power on/off
+#define COM_XPNET_ON		  0x50+0x02  // 9 XpressNet on 
 
-#define COM_I2C_DEV1		  0x50+0x03  // 8 Melder Info
-#define COM_I2C_DEV2		  0x58+0x03  // 9 Gleis Power Info
-#define COM_I2C_DEV3          0x60+0x03  //10 Gleis Position Info
+#define COM_I2C_DEV1		  0x60+0x03  // 8 Melder Info
+#define COM_I2C_DEV2		  0x68+0x03  // 9 Gleis Power Info
+#define COM_I2C_DEV3          0x70+0x03  //10 Gleis Position Info
 
 
 #define COM_TC_WRITE_CUR1     0xB0+0x02  //11 Strom abfragen | A.A in Ampere
