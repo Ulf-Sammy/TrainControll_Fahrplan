@@ -20,6 +20,7 @@ void CGleisPlan::Init()
 	Züge = &APP->meineLoks;
 	XpressNet = &APP->XpressNet;
 	BlockMelder = &APP->BlockMelder;
+
 	for (int i = 0; i <= MAX_WEICHEN_MOTOR; i++)
 	{
 		WeichenAntrieb.push_back(TrainCon_Paar(i, false));
@@ -37,9 +38,6 @@ void CGleisPlan::GetNextMessage_LZV()
 {
 	XpressNet->verarbeite_Meldung_Zentrale();
 }
-
-
-
 
 void CGleisPlan::DoCheckIt(byte Lok_Nr, clock_t Zeit)
 {
@@ -98,21 +96,21 @@ void CGleisPlan::Set_Lok_Geschwindigkeit(byte Lok_Nr, Zug_Status SetTo, byte Ges
 	{
 	case Zug_Status::Zug_Stopped:
 		//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Stop();
-		Züge->Set_aktiveLok_Geschwindigkeit(Lok_Nr, 0, false, true);
+		Züge->Set_Lok_Geschwindigkeit(Lok_Nr, 0, false, true);
 		break;
 	case Zug_Status::Zug_faehrt_vor:
 		//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Geschwindigkeit(Geschwindigkeit, true);
-		Züge->Set_aktiveLok_Geschwindigkeit(Lok_Nr, Geschwindigkeit, true, false);
+		Züge->Set_Lok_Geschwindigkeit(Lok_Nr, Geschwindigkeit, true, false);
 		break;
 	case Zug_Status::Zug_faehrt_rueck:
 		//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Geschwindigkeit(Geschwindigkeit, false);
-		Züge->Set_aktiveLok_Geschwindigkeit(Lok_Nr, Geschwindigkeit, false, false);
+		Züge->Set_Lok_Geschwindigkeit(Lok_Nr, Geschwindigkeit, false, false);
 		break;
 	case Zug_Status::Zug_haelt:
 		if (Züge->Get_aktiveLok_Pointer(Lok_Nr).Get_Status() != Zug_Status::Zug_haelt)
 		{
 			//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Halt();
-			Züge->Set_aktiveLok_Geschwindigkeit(Lok_Nr, 0, false, false);
+			Züge->Set_Lok_Geschwindigkeit(Lok_Nr, 0, false, false);
 		}
 		break;
 	default:
@@ -141,9 +139,36 @@ void CGleisPlan::ZeicheStrecke(CDC* pDC)
 	}
 }
 
-
-bool CGleisPlan::Kick_Block(CPoint Klick)
+void CGleisPlan::ZeicheStreckenInfo(CDC* pDC)
 {
+	int Ib = 0;
+	for (auto& B : Block)
+	{
+		B.ZeicheBlockInfo(pDC, Ib);
+		Ib++;
+	}
+}
+
+void CGleisPlan::ZeicheTaster(CDC* pDC)
+{
+	CBrush* pOldBrush = NULL;
+	CPen * pOldPen = NULL;
+	pOldPen = pDC->SelectObject(&theApp.Taster_Rand);
+	pOldBrush = pDC-> SelectObject(&theApp.Farbe_Gelb_FL);
+	byte i = 0;
+	for (auto& B : Block)
+	{
+		B.ZeicheTaster(pDC);
+	}
+	pDC->SelectObject(pOldBrush);
+	pDC->SelectObject(pOldPen);
+
+}
+
+
+bool CGleisPlan::Klick_Block(CPoint Klick)
+{
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 	TrainCon_Paar Data;
 	byte Wert;
 	byte Ergebnis;
@@ -151,26 +176,104 @@ bool CGleisPlan::Kick_Block(CPoint Klick)
 	for (auto& B : Block)
 	{
 		Ergebnis = B.OnKlick(Klick, &Wert);
-		if(Ergebnis== 1)
+		if ((Ergebnis > 2)&&(Ergebnis < 5))
+		{ 
+			static bool firstKlick = true;
+			static CBlock* vonBlock;
+			static 	std::vector<byte> Blockliste;
+		
+
+			byte Nr = (byte)(&B - &Block[0]);
+			if (firstKlick)
+			{
+				firstKlick = false;
+				vonBlock = &B;
+				if (Ergebnis == 3 ) // EingangsTaster
+				{
+					B.Get_Ein_nextBlock(&WeichenAntrieb,&Blockliste);
+					Block[Nr].Set_EinTasterFarbe('O');
+					for (auto& nb : Blockliste) { Block[nb].Set_AusTasterFarbe('Y'); }
+				}
+				if (Ergebnis == 4) // AusgangsTaster
+				{
+					B.Get_Aus_nextBlock(&WeichenAntrieb, &Blockliste);
+					Block[Nr].Set_AusTasterFarbe('O');
+					for (auto& nb : Blockliste) {Block[nb].Set_EinTasterFarbe('Y');	}
+				}				
+			}
+			else
+			{
+				for (auto& TasterL : Blockliste)
+				{
+					if (TasterL == Nr)
+					{
+						std::vector<TrainCon_Paar>* Der_Weg = vonBlock->Get_zuschaltener_Weg(Nr);;
+						//Der_Weg = vonBlock->Get_zuschaltener_Weg(Nr);
+						if (Der_Weg != NULL)
+						{
+							for (auto& Antrieb : *Der_Weg) { Set_Weiche(Antrieb); }
+						}
+					}
+				}
+				firstKlick = true;
+				Set_Taster_Farbe();
+				Blockliste.clear();
+			}
+ 			APP->InfoGleisBild.Invalidate();
+			//AfxMessageBox(MsgText);
+			return (false);
+		}
+		/// ###################################
+
+		if (Ergebnis == 1)
 		{
 			Data = WeichenAntrieb[Wert].GetInvBit();
 			if (BlockMelder->NoComToBlockNet())
-				return (Set_Weiche(Data));
-			else 
+			{
+				Set_Weiche(Data);
+				TRACE1(" Weiche Nr: %i \n",Data.GetWert());
+				Set_Taster_Farbe();
+				return(true);
+			}
+			else
 				BlockMelder->Send_WeichenData(Data);
-			return false;
+			Set_Taster_Farbe();
+		return false;
 		}
 		if (Ergebnis == 2)
 		{
 			Data = B.Get_Relais_Data();
 			if (BlockMelder->NoComToBlockNet())
 				Set_Relais(Data);
-			else 
+			else
 				BlockMelder->Send_BlockPower(Data);
 			return false;
 		}
 	}
 	return (false);
+}
+
+void CGleisPlan::Set_Taster_Farbe()
+{
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+
+	std::vector<byte> Blockliste;
+	byte nBlock;
+
+	for (auto& B : Block)
+	{
+		B.Set_EinTasterFarbe('R');
+		B.Set_AusTasterFarbe('R');
+	}
+
+	for (auto& B : Block)
+	{
+		nBlock = B.Get_Aus_nextBlock(&WeichenAntrieb, &Blockliste);
+		if (nBlock != 0) 	B.Set_AusTasterFarbe('G');
+		nBlock = B.Get_Ein_nextBlock(&WeichenAntrieb, &Blockliste);
+		if (nBlock != 0) 	B.Set_EinTasterFarbe('G');
+	}
+	APP->InfoGleisBild.Invalidate();
 }
 
 bool CGleisPlan::Set_Block(byte* Data)
@@ -244,7 +347,7 @@ bool CGleisPlan::Get_Door_open()
 	return Tor.Tor_offen;
 }
 
-bool CGleisPlan::Get_Door_free()
+byte CGleisPlan::Get_Door_free()
 {
 	return Tor.Tor_frei;
 }
@@ -302,6 +405,51 @@ bool CGleisPlan::Besetze_Weg_mit_Lok(CDataXpressNet* Lok, std::vector<byte> Wege
 	return false;
 }
 
+void CGleisPlan::Besetze_AbstellGleise_mit_Loks()
+{
+	for (auto& LB : Züge->HomeZüge)
+	{
+		Setze_Lok_aufGleis(LB);
+	}
+}
+
+void CGleisPlan::Setze_Lok_aufGleis(Start_Lok_Block Data)
+{
+	if (Data.Lok_Name.IsEmpty())
+	{
+		Block[Data.Block].freimachen();
+	}
+	else
+	{
+		CDataXpressNet* XpressNet_Lok;
+
+		XpressNet_Lok = &Züge->Get_Lok_Pointer(Data.Lok_Name);
+		XpressNet_Lok->Set_BlickRichtung(Data.Blick);
+		XpressNet_Lok->Set_auf_Gleis(Data.Block);
+
+		Block[Data.Block].bestetzen(XpressNet_Lok);
+	}
+}
+
+void CGleisPlan::Update_Lok_Abstellgleis()
+{
+	Start_Lok_Block Data;
+	Züge->HomeZüge.clear();
+	for (size_t i = 33; i < 41; i++)
+	{
+		Data = Block[i].Get_StartLokInfo();
+		if (!Data.Lok_Name.IsEmpty())
+		{
+			Züge->HomeZüge.push_back(Data);
+		}
+	}
+}
+
+bool CGleisPlan::Hole_Lok_Blick_vonGleis(byte Nr)
+{
+	return Block[Nr].Get_Lok_onBlock()->Blick;
+}
+
 CString CGleisPlan::Get_LokName_in_Block(byte Nr)
 {
 	return Block[Nr].GetLok_NameonBlock();
@@ -311,6 +459,11 @@ BlockStatus CGleisPlan::GetStatus_Block(byte Nr, CString* Lok_Name)
 {
 	bool Richtung;
 	return Block[Nr].GetStatus_Block(Lok_Name,&Richtung);
+}
+
+BlockStatus CGleisPlan::GetStatus_Block(byte Nr, CString* Lok_Name, bool* Richtung)
+{
+	return Block[Nr].GetStatus_Block(Lok_Name, Richtung);
 }
 
 BlockDebugData CGleisPlan::Get_DebugData(byte Nr)
@@ -360,6 +513,11 @@ CDataXpressNet* CGleisPlan::TestZug(bool Bit)
 	}
 }
 
+CDataXpressNet* CGleisPlan::Get_Zug_Point(byte BlockNr)
+{
+	return Block[BlockNr].Get_Lok_onBlock();
+}
+
 void CGleisPlan::Lade_Daten()
 {
 	LPCTSTR			pszPathName = _T(FILE_ANLAGE);
@@ -402,7 +560,7 @@ void CGleisPlan::Lade_Daten()
 		file.ReadString(strIn);
 		do
 		{
-			Block.push_back(CBlock(strIn));
+			Block.push_back(CBlock(strIn,Step));
 			file.ReadString(strIn);
 		} while (strIn.Mid(0, 2) != "##");
 	}
@@ -430,16 +588,8 @@ void CGleisPlan::Lade_Daten()
 			if (Nr < Block.size())
 			{
 				Block[Nr].AddStrecke(strIn, Step);
+
 			}
-			file.ReadString(strIn);
-		} while (strIn.Mid(0, 2) != "##");
-	}
-	/// die Taster einlesen
-	if (strIn.Mid(0, 7) == "## Tast")
-	{
-		file.ReadString(strIn);
-		do
-		{
 			file.ReadString(strIn);
 		} while (strIn.Mid(0, 2) != "##");
 	}
@@ -456,7 +606,9 @@ void CGleisPlan::Lade_Daten()
 
 	file.Close();
 	///
+	///
 	/// 
+	/* 
 	for (byte i = 0; i < Züge->Get_max_Aktiv_Loks(); i++)
 	{
 		CDataXpressNet* DieLok = &Züge->Get_aktiveLok_Pointer(i);
@@ -466,8 +618,9 @@ void CGleisPlan::Lade_Daten()
 			Block[Nr].bestetzen(&Züge->Get_aktiveLok_Pointer(i));
 		}
 	}
+	*/
 	TRACE(_T("-------- Alle Wege --------------\n"));
-	for (auto Weg : alle_Wege)
+	for (auto& Weg : alle_Wege)
 	{
 		TRACE(_T("Von %i --- %i ---- %i nach \n"), Weg.VonBlock(),Weg.ZwiBlock(),Weg.NachBlock());
 		Block[Weg.VonBlock()].AddWeg(true,Weg);

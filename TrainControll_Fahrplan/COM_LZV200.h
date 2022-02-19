@@ -22,9 +22,8 @@ public:
 	void die_Lok_anhalten(Lok_Adresse ADR);
 	void SendeAsknachLokDaten(Lok_Adresse ADR);
 	void HoleZugData(byte* Data, Lok_Adresse Adr);
-	void Sende_Write_CV(byte CV, byte Wert);
-	void Sende_Read_CV(byte CV, byte Wert);
-	byte Hole_CV_Wert();
+	byte Sende_Write_CV(byte CV, byte Wert);
+	byte Sende_Read_CV(byte CV, byte Wert);
 	void SendeZugDaten(XpNSendwas was, Lok_Adresse Adr, byte Daten);
 	void verarbeite_Meldung_Zentrale();
 
@@ -53,6 +52,7 @@ protected:
 	byte Lok_FGruppe3; // 0000 F12 F11 F10 F9 
 	byte Lok_FGruppe4; // F20 F19 F18 F17 F16 F15 F14 F13 
 	byte Lok_FGruppe5; // F28 F27 F26 F25 F24 F23 F22 F21 
+	byte CV_Wert; // empfangen CV Wert
 	bool Read_Message(byte *RD);
 	void Send_Message(byte *SD, byte lSD);
 	void Meldung_Header_x01(byte *Data);

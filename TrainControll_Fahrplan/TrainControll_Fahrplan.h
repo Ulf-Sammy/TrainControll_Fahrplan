@@ -30,14 +30,15 @@ public:
 	CFont BeschriftungBlock_270;
 	CFont GleisBeschriftung_270;
 
-	CPen Stift_SW_1;
-
-	CBrush Brush_White;
-	CBrush Brush_Yellow;
-	CBrush Brush_Red;
-	CBrush Brush_Green;
+	CBrush Farbe_Weiss_FL;
+	CBrush Farbe_Gelb_FL;
+	CBrush Farbe_Orange_FL;
+	CBrush Farbe_Rot_FL;
+	CBrush Farbe_Gruen_FL;
 	CBrush Brush_Weiche;
+	CBrush Farbe_Dialog;
 
+	CPen Stift_SW_1;
 
 	CPen  Gleis_Frei;
 	CPen  Gleis_Besetzt;
@@ -45,6 +46,7 @@ public:
 	CPen  Gleis_ErrorB;
 	CPen  Gleis_PowerOff;
 	CPen  Gleis_Null;
+	CPen  Taster_Rand;
 
 	CMaskedBitmap Lok_in_Uhr;
 	CMaskedBitmap Lok_ge_Uhr;

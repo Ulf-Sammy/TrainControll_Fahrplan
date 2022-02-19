@@ -297,19 +297,28 @@ void CCom_LZV200::HoleZugData(byte* Data, Lok_Adresse Adr)
 {
 }
 
-void CCom_LZV200::Sende_Write_CV(byte CV, byte Wert)
+byte CCom_LZV200::Sende_Write_CV(byte CV, byte Wert)
 {
+	byte Befehl[8] = { 0xFF,0xFE,0x23,0x1C,0x00,0x00,0x00,0x00 };
+	Befehl[4] = CV;
+	Send_Message(Befehl, sizeof(Befehl));
+	WarteDaten();
+
+
+	return CV_Wert;
 }
 
-void CCom_LZV200::Sende_Read_CV(byte CV, byte Wert)
+byte CCom_LZV200::Sende_Read_CV(byte CV, byte Wert)
 {
+	byte Befehl[8] = { 0xFF,0xFE,0x22,0x18,0x00,0x00,0x00,0x00 };
+	Befehl[4] = CV;
+	Send_Message(Befehl, sizeof(Befehl));
+	WarteDaten();
 
+	return Wert;
 }
 
-byte CCom_LZV200::Hole_CV_Wert()
-{
-	return byte();
-}
+
 
 void CCom_LZV200::SendeZugDaten(XpNSendwas was, Lok_Adresse Adr, byte Daten)
 {//                      0    1    2    3ken 4    5    6    7xor

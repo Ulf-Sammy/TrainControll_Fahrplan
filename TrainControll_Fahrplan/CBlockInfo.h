@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "CDataXpressNet.h"
+#include "COM_BlockMelderNet.h"
 #include <vector>
 
 
@@ -8,38 +9,18 @@ class CBlock_Taster
 {
 public:
 	CBlock_Taster();
+	CBlock_Taster(CString InText, CPoint Step);
 	~CBlock_Taster();
-	void SkaliereDaten(char Step);
+	bool OnKlick(CPoint Klick);
+	void zeichneTaster(CDC* pDC, byte Nr);
+	bool isTaster();
+	void SetFarbe(char C);
+
 protected:
-	byte Block_Nr;
 	bool Showit = false; // Benutzte und Zeigen
-	char Color = '#';   // Füll Farbe 
+	char Color = '#';    // Füll Farbe 
 	CRect KlickRechteck; // Rechteck in dem gelickt wird
-	CPoint Pos;
-	/*
-	byte 
-	{
-		switch (Step)
-		{
-		case 'L': // Links
-			Pos = Pos + CPoint(-24,0);
-			break;
-		case 'R': // Rechts
-			Pos = Pos + CPoint(24, 0);
-			break;
-		case 'U': // Up hoch
-			Pos = Pos + CPoint(0,-24);
-			break;
-		case 'D': // Down runter
-			Pos = Pos + CPoint(0,24);
-			break;
-		default:
-			break;
-		}
-		KlickRechteck = CRect(-10, -10, 10, 10);
-		KlickRechteck.OffsetRect(Pos);
-	}
-	*/
+	CPoint Pos;	
 };
 
 class CBlock_Weiche
@@ -54,7 +35,6 @@ public:
 	~CBlock_Weiche();
 
 private:
-
 	byte Antrieb_Nr;
 	WeichenType		Type = WeichenType::linksWeiche;
 	CPoint TextPos = CPoint(-1, -1); // Position des Gleis Textes
@@ -75,6 +55,7 @@ public:
 	bool empty();
 	void Setup(CString InText, CPoint Step);
 	void zeichneStrecke(CDC* pDC, BlockStatus Bl_Status, CString LokName, bool LokDir);
+	void zeichneBlockNr(CDC* pDC, byte Block_Nr);
 	bool klickedGleis(CPoint KlickP);
 	bool schalteGleisRelais(TrainCon_Paar Relais);
 	TrainCon_Paar Relais();
@@ -105,6 +86,7 @@ public:
 	bool isvonBlock(byte EBlock, byte ABlock);
 	bool isWeg_geschaltet(std::vector<TrainCon_Paar>* Weichen);
 	bool isWeg_nachgeschaltet(byte Block, std::vector<TrainCon_Paar>* Weichen);
+	std::vector<TrainCon_Paar>* Hole_den_Weg();
 	void Blocksaufweg(std::vector<byte>* Block);
 	byte VonBlock(); // von Block  
 	byte ZwiBlock();

@@ -88,12 +88,12 @@ bool CCom_BlockMelderNet::Read_Message(byte* RD)
 
 void CCom_BlockMelderNet::WarteDaten()
 {
-	unsigned int Timer = MAXUINT;
+	unsigned int Timer = 990000000;
 	Neue_Daten = false;
 
 	do
 	{
-		Timer--;
+		Timer -- ;
 		if (Timer == 0)
 		{
 			Neue_Daten = true;

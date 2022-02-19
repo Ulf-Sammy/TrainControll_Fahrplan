@@ -36,6 +36,8 @@ CTrainControll_FahrplanApp::CTrainControll_FahrplanApp()
 	Gleis_ErrorA.CreatePenIndirect((LPLOGPEN)&StiftGleis_ErrorA);
 	Gleis_ErrorB.CreatePenIndirect((LPLOGPEN)&StiftGleis_ErrorB);
 
+	Taster_Rand.CreatePen(PS_SOLID, 6, colorDunkelGrau);
+
 	Font_Info_s.CreateFontIndirectW(&FontType_Ar_15_0);
 	Font_Info_small.CreateFontIndirectW(&FontType_Ar_9_0);
 
@@ -45,10 +47,12 @@ CTrainControll_FahrplanApp::CTrainControll_FahrplanApp()
 	BeschriftungBlock_270.CreateFontIndirectW(&FontType_Ar_14_270);
 	GleisBeschriftung_270.CreateFontIndirectW(&FontType_Ar_11_270);;
 
-	Brush_White.CreateSolidBrush(colorWeiss);
-	Brush_Yellow.CreateSolidBrush(RGB(255, 255, 0));
-	Brush_Red.CreateSolidBrush(RGB(255, 0, 0));
-	Brush_Green.CreateSolidBrush(RGB(0, 140, 0));
+	Farbe_Dialog.CreateSolidBrush(::GetSysColor(COLOR_3DFACE));
+	Farbe_Weiss_FL.CreateSolidBrush(colorWeiss);
+	Farbe_Gelb_FL.CreateSolidBrush(RGB(255, 255, 0));
+	Farbe_Orange_FL.CreateSolidBrush(colorOrange);
+	Farbe_Rot_FL.CreateSolidBrush(RGB(255, 0, 0));
+	Farbe_Gruen_FL.CreateSolidBrush(RGB(0, 140, 0));
 	Brush_Weiche.CreateSolidBrush(colorHinterGrund);
 
 }
@@ -68,8 +72,10 @@ CString CTrainControll_FahrplanApp::Get_Time(CString Info)
 
 	GetLocalTime(&lt);
 
-	Text.Format(_T(">  %02d:%02d:%02d :%03d  = %s"),lt.wHour, lt.wMinute,lt.wSecond, lt.wMilliseconds, Info);
-	 return Text;
+	Text.Format(_T(">  %02d:%02d:%02d :%03d  = "),lt.wHour, lt.wMinute,lt.wSecond, lt.wMilliseconds);
+	
+	Text = Text + Info;
+	return Text;
 	 //GetTickCount64();
 }
 

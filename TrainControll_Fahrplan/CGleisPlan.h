@@ -3,6 +3,7 @@
 #include "CBlock.h"
 #include "COM_LZV200.h"
 #include "Com_BlockMelderNet.h"
+//#include "CStatic_GleisBild.h"
 #include "CDatenBankLok.h"
 #include "TrainControll_Fahrplan.h"
 
@@ -31,7 +32,10 @@ public:
 	bool isPower_onGleis();
 	bool isPower_onBlock(byte Nr);
 	void ZeicheStrecke(CDC* pDC);
-	bool Kick_Block(CPoint Klick);
+	void ZeicheStreckenInfo(CDC* pDC);
+	void ZeicheTaster(CDC* pDC);
+	bool Klick_Block(CPoint Klick);
+	void Set_Taster_Farbe();
 	bool Set_Block(byte* Data);
 	bool Set_Weiche(byte* Data);
 	bool Set_Weiche(TrainCon_Paar WeichenDaten);
@@ -42,27 +46,35 @@ public:
 	void Set_Door(byte* Data);
 	void Ask_Door_Status(); // Status abfragen
 	bool Get_Door_open();
-	bool Get_Door_free();
+	byte Get_Door_free();
 	void Schalte_Relais(byte Nr, bool Bit);
 	void GetAnschlussBlocks(byte Nr, std::vector<byte>* EinBlocks, std::vector<byte>* AusBlocks);
 	bool Weg_Von_bis_frei(byte BlockNr, byte BlockTo, std::vector<byte>*WegeBlocks);
 	bool Weg_nach_von_Block(byte BlockNr, bool Richtung,std::vector<byte>* WegeBlocks);
 	bool isWeg_frei(std::vector<byte> WegeBlocks);
 	bool Besetze_Weg_mit_Lok(CDataXpressNet* XpressNet, std::vector<byte> WegeBlocks);
+	void Besetze_AbstellGleise_mit_Loks();
+	void Setze_Lok_aufGleis(Start_Lok_Block Data);
+	void Update_Lok_Abstellgleis();
+	bool Hole_Lok_Blick_vonGleis(byte Nr);
 	CString Get_LokName_in_Block(byte Nr);
 	BlockStatus GetStatus_Block(byte Nr, CString *Lok_Name );
+	BlockStatus GetStatus_Block(byte Nr, CString* Lok_Name, bool* Richtung);
 	BlockDebugData Get_DebugData(byte Nr);
 	void TestBlock_mitZug(byte Nr, bool Bit, bool leeren );
 	CDataXpressNet* TestZug(bool Bit);
+	CDataXpressNet* Get_Zug_Point(byte BlockNr);
 
 protected:
 	std::vector <CBlock> Block;
+	std::vector<CBlock_Taster> TasterEin;
+	std::vector<CBlock_Taster> TasterAus;
 	std::vector<TrainCon_Paar> WeichenAntrieb;
 	DoorInfo Tor;
 	CCom_LZV200         *XpressNet	  = NULL;
 	CDatenBankLok       *Züge		  = NULL;
 	CCom_BlockMelderNet *BlockMelder  = NULL;
-	BlockRueckmeldung	PruefeZugWeg	  = BlockRueckmeldung::Frei_Fahrt;
+	BlockRueckmeldung	PruefeZugWeg  = BlockRueckmeldung::Frei_Fahrt;
 	ControlStatus		ModeControl	  = ControlStatus::Begin_COM;
 	byte				ModeSub			= 0;
 	byte				StatusZentrale	= 0;

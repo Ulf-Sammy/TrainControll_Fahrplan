@@ -4,27 +4,10 @@
 
 CDatenBankLok::CDatenBankLok()
 {	
-
 	Load_Zug_Data();
-	Load_acktiv_Zug_Data();
-	Set_aktiveLok_FuntiontoRun();
 }
 
 CDatenBankLok::~CDatenBankLok()
-{
-}
-
-void CDatenBankLok::Init()
-{
-	for (byte Zug : aktiveLoks)
-	{
-		MeineZüge[Zug].Init();
-	}
-}
-
-
-
-void CDatenBankLok::Test_Data()
 {
 }
 
@@ -145,27 +128,11 @@ void CDatenBankLok::Load_acktiv_Zug_Data()
 	}
 	file.ReadString(strIn); // Titel
 	file.ReadString(strIn); // Tbeschreibung
+	file.ReadString(strIn); // 1. Zug
 	do
 	{
+		HomeZüge.push_back(Start_Lok_Block(strIn));
 		file.ReadString(strIn); // ZugListe
-
-		if ((strIn[17] == 'H') || (strIn[17] == 'A'))
-		{
-			Name = strIn.Mid(0, 15); Name.Trim();
-			for (int i = 0; i < MeineZüge.size(); i++)
-			{
-				if (MeineZüge[i].Name == Name)
-				{
-					if (MeineZüge[i].FillData(strIn)) aktiveLoks.push_back(i);
-				}
-			}
-			if ((aktiveLoks.size() == MAX_ZUEGE_AKT))
-			{
-				TRACE(_T(" ERROR ! Zuviele aktive Züge mehr als 5 \n"));
-				break;
-			}
-		}
-
 	} while (strIn.Mid(0, 12) != "## Ende ####");
 
 	file.Close();
@@ -173,32 +140,61 @@ void CDatenBankLok::Load_acktiv_Zug_Data()
 
 void CDatenBankLok::Save_acktiv_Zug_Data()
 {
+	LPCTSTR			pszPathName;
+	CStdioFile		file;
+	CFileException	ex;
+	CString			strOut, Text, Name;
+
+	Text.Format(_T(FILE_AKTIVE_ZUEGE), 1);
+	pszPathName = Text;
+	if (!file.Open(pszPathName, CFile::modeCreate | CFile::modeWrite | CFile::shareExclusive | CFile::typeText, &ex))
+	{
+		ex.ReportError();
+		return;
+	}
+
+	try
+	{
+		file.Seek(0, CFile::end);
+		file.WriteString(L"#### Info's zum aktive Züge im Lok Schuppen#### \n");
+		file.WriteString(L"## Zug ##- use | Block | Blick     |            \n");
+		for (auto &Zug : HomeZüge)
+		{
+			strOut = Zug.WriteData();
+			file.WriteString(strOut+"| \n");
+		}
+		file.WriteString(L"## Ende ############ \n");
+	}
+	catch (CFileException* e)
+	{
+		e->ReportError();
+		e->Delete();
+		file.Abort();
+	}
+}
+
+void CDatenBankLok::Verbinde_Zug_zu_XpNet(byte Nr)
+{
+	MeineZüge[Nr].ConecttoXpressNet();
 }
 
 void CDatenBankLok::Sound_acktive_Zug(bool SW)
 {
-	for (byte Zug : aktiveLoks)
+	for (byte Zug : Loks_in_Schuppen)
 	{
 		MeineZüge[Zug].Set_Funktion_Sound(SW);
 	}
 }
 
-void CDatenBankLok::SetAktiv_Lok(CString InText)
-{
-	
-}
 
 byte CDatenBankLok::Get_max_Aktiv_Loks()
 {
-	return (byte) aktiveLoks.size();
+	return (byte) Loks_in_Schuppen.size();
 }
 
-
-
-void CDatenBankLok::Ask_aktivLok_Data(byte Lok_Nr)
+void CDatenBankLok::Ask_for_Lok_Data(byte Lok_Nr)
 {
-	Ask_Lok_Nr = aktiveLoks[Lok_Nr];
-	MeineZüge[Ask_Lok_Nr].ASK_LokData();
+	MeineZüge[Lok_Nr].ASK_LokData();
 }
 
 void CDatenBankLok::Set_Zug_CV_Wert(byte CV, byte CV_Wert)
@@ -207,19 +203,23 @@ void CDatenBankLok::Set_Zug_CV_Wert(byte CV, byte CV_Wert)
 	Do_Save_Data = true;
 }
 
+
+CDataXpressNet& CDatenBankLok::Get_Lok_Pointer(CString LName)
+{
+	for (auto& Zug : MeineZüge)
+	{
+		if (LName == Zug.Name)
+		{
+			return Zug;
+		}
+	}
+	
+	return MeineZüge[0]; // nullptr;
+}
+
 CDataXpressNet & CDatenBankLok::Get_aktiveLok_Pointer(byte Lok_Nr)
 {
-	return MeineZüge[aktiveLoks[Lok_Nr]];
-}
-
-byte CDatenBankLok::Get_Dialog_Nr(byte Lok_Nr)
-{
-	return MeineZüge[aktiveLoks[Lok_Nr]].Dlg_Nr;
-}
-
-bool CDatenBankLok::is_Zug_Pointer(byte Nr)
-{
-	return (aktiveLoks.size()> Nr);
+	return MeineZüge[Loks_in_Schuppen[Lok_Nr]];
 }
 
 void CDatenBankLok::Fill_Liste_Zug(CComboBox * Data, DecoderTypen Decoder_Type)
@@ -250,13 +250,29 @@ void CDatenBankLok::Fill_Liste_Zug(CComboBox * Data)
 	Data->SetCurSel(0);
 	Selected_Prog_Lok = 0;
 }
+void CDatenBankLok::Fill_Liste_Zug(CComboBox* Data, CString Name)
+{
+	byte Pos = 0;
+	for (int i = 0; i < Data->GetCount(); i++)
+	{
+		Data->DeleteString(0);
+	}
+	Data->AddString(L"-");
+	for (CDataXpressNet &D : MeineZüge)
+	{
+		Data->AddString(D.Name);
+		if (D.Name == Name) Pos = (byte)(& D - &MeineZüge[0] +1);
+	}
+	Data->SetCurSel(Pos);
+	Selected_Prog_Lok = 0;
+}
 void CDatenBankLok::Fill_Act_Liste_Zug(CComboBox * Data)
 {
 	for (int i = 0; i < Data->GetCount(); i++)
 	{
 		Data->DeleteString(0);
 	}
-	for (byte D : aktiveLoks)
+	for (byte D : Loks_in_Schuppen)
 	{
 		Data->AddString(MeineZüge[D].Name);
 	}
@@ -278,139 +294,118 @@ std::vector<CString> CDatenBankLok::Get_LokGruppe_Decoder(DecoderTypen Decoder)
 
 byte CDatenBankLok::Get_Pos_LokName(CString LName)
 {
-	byte Pos = 0;
-	for (CDataXpressNet Z : MeineZüge)
+	for (CDataXpressNet& Z : MeineZüge)
 	{
 		if (Z.Name == LName)
 		{
-			Selected_Prog_Lok = Pos;
-			return Pos;
+			Selected_Prog_Lok = (byte)(&Z - &MeineZüge[0]);
+			return Selected_Prog_Lok;
 		}
-		Pos++;
 	}
-	return Pos;
+	return 0xFF;
 }
 
 std::vector<Function_A> CDatenBankLok::Get_Zug_ActivFunktion_Pointer(byte Nr)
 {
-	return MeineZüge[aktiveLoks[Nr]].Decoder_Data.Get_Aktive_Funktion();
+	return MeineZüge[Nr].Decoder_Data.Get_Aktive_Funktion();
 }
 
 
-void CDatenBankLok::Set_aktiveLok_Startbedingung(byte Nr, Zug_Status Status)
+void CDatenBankLok::Set_Lok_Startbedingung(byte Nr, Zug_Status Status)
 {
-	MeineZüge[aktiveLoks[Nr]].Set_Startbedingungen(Status);
+	MeineZüge[Nr].Set_Startbedingungen(Status);
 }
 
-Zug_Status CDatenBankLok::Get_aktiveLok_Status(byte Nr)
+Zug_Status CDatenBankLok::Get_Lok_Status(byte Nr)
 {
-	return MeineZüge[aktiveLoks[Nr]].Get_Status();
+	return MeineZüge[Nr].Get_Status();
 }
 
-void CDatenBankLok::Set_aktiveLoks_aufsGleis()
-{
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-}
 
 void CDatenBankLok::Set_aktiveLok_FuntiontoRun()
 {
-	for (byte Zug : aktiveLoks)
+	for (byte Zug : Loks_in_Schuppen)
 	{
 		MeineZüge[Zug].Decoder_Data.Fill_Tasten_DlgRun();
 	}
 }
 
-bool CDatenBankLok::Get_aktiveLok_FunktionBit(byte Nr, byte FunktionNr)
+void CDatenBankLok::Set_Funktion(byte Nr, FahrplanPos Befehl)
 {
-	return MeineZüge[aktiveLoks[Nr]].Get_Funktion(FunktionNr);
+	MeineZüge[Nr].Set_Funktion(Befehl);
 }
 
-bool CDatenBankLok::Get_aktiveLok_FunktionSound(byte Nr)
+bool CDatenBankLok::Get_Lok_FunktionBit(byte Nr, byte FunktionNr)
+{
+	return MeineZüge[Nr].Get_Funktion(FunktionNr);
+}
+
+bool CDatenBankLok::Get_Lok_FunktionSound(byte Nr)
 {
 	byte Funktion_Nr;
-	Funktion_Nr = MeineZüge[aktiveLoks[Nr]].Decoder_Data.Get_Sound_FuntionsTaste();
-	return MeineZüge[aktiveLoks[Nr]].Get_Funktion(Funktion_Nr);
+	Funktion_Nr = MeineZüge[Nr].Decoder_Data.Get_Sound_FuntionsTaste();
+	return MeineZüge[Nr].Get_Funktion(Funktion_Nr);
 }
 
-void CDatenBankLok::Set_aktiveLok_FunktionSound(byte Nr, bool bit)
+void CDatenBankLok::Set_Lok_FunktionSound(byte Nr, bool bit)
 {
-	MeineZüge[aktiveLoks[Nr]].Set_Funktion_Sound(bit);
+	MeineZüge[Nr].Set_Funktion_Sound(bit);
 }
 
-bool CDatenBankLok::is_aktiveLok_Sound(byte Nr)
+bool CDatenBankLok::is_Lok_Sound(byte Nr)
 {
-	return MeineZüge[aktiveLoks[Nr]].Decoder_Data.isDecoderType(DecoderTypen::Massoth_Sound);
+	return MeineZüge[Nr].Decoder_Data.isDecoderType(DecoderTypen::Massoth_Sound);
 }
 
-bool CDatenBankLok::Get_aktiveLok_FunktionRangier(byte Nr)
-{
-	byte Funktion_Nr;
-	Funktion_Nr = MeineZüge[aktiveLoks[Nr]].Decoder_Data.Get_Rangier_FunktionTaste();
-	return MeineZüge[aktiveLoks[Nr]].Get_Funktion(Funktion_Nr);
-}
-
-void CDatenBankLok::Set_aktiveLok_FunktionRangier(byte Nr, bool bit)
-{
-	MeineZüge[aktiveLoks[Nr]].Set_Funktion_Rangieren(bit);
-}
-
-bool CDatenBankLok::Get_aktiveLok_FunktionZeit(byte Nr)
+bool CDatenBankLok::Get_Lok_FunktionRangier(byte Nr)
 {
 	byte Funktion_Nr;
-	Funktion_Nr = MeineZüge[aktiveLoks[Nr]].Decoder_Data.Get_VerzögZ_FunktionTaste();
-	return MeineZüge[aktiveLoks[Nr]].Get_Funktion(Funktion_Nr);
+	Funktion_Nr = MeineZüge[Nr].Decoder_Data.Get_Rangier_FunktionTaste();
+	return MeineZüge[Nr].Get_Funktion(Funktion_Nr);
+}
+
+void CDatenBankLok::Set_Lok_FunktionRangier(byte Nr, bool bit)
+{
+	MeineZüge[Nr].Set_Funktion_Rangieren(bit);
+}
+
+bool CDatenBankLok::Get_Lok_FunktionZeit(byte Nr)
+{
+	byte Funktion_Nr;
+	Funktion_Nr = MeineZüge[Nr].Decoder_Data.Get_VerzögZ_FunktionTaste();
+	return MeineZüge[Nr].Get_Funktion(Funktion_Nr);
 
 }
 
-void CDatenBankLok::Set_aktiveLok_FunktionZeit(byte Nr, bool bit)
+void CDatenBankLok::Set_Lok_FunktionZeit(byte Nr, bool bit)
 {
-	MeineZüge[aktiveLoks[Nr]].Set_Funktion_VerzögerungsZeit(bit);
+	MeineZüge[Nr].Set_Funktion_VerzögerungsZeit(bit);
 }
 
-void CDatenBankLok::Set_aktiveLok_Geschwindigkeit(byte Nr, byte Speed, bool Dir, bool Stop)
+void CDatenBankLok::Set_Lok_Geschwindigkeit(byte Nr, byte Speed, bool Dir, bool Stop)
 {
-	if (Stop)	MeineZüge[aktiveLoks[Nr]].Set_Stop();
+	if (Stop)	MeineZüge[Nr].Set_Stop();
 	else
 	{
 		if(Speed == 0 )
 		{
-			MeineZüge[aktiveLoks[Nr]].Set_Halt();
+			MeineZüge[Nr].Set_Halt();
 		}
 		else
 		{
-			MeineZüge[aktiveLoks[Nr]].Set_Geschwindigkeit(Speed, Dir);
+			MeineZüge[Nr].Set_Geschwindigkeit(Speed, Dir);
 		}
 	}
 }
 
-CString CDatenBankLok::Get_aktiveLok_Name(byte Nr)
+CString CDatenBankLok::Get_Lok_Name(byte Nr)
 {
-	return MeineZüge[aktiveLoks[Nr]].Name;
+	return MeineZüge[Nr].Name;
 }
 
-HBITMAP CDatenBankLok::Get_aktiveLok_Image(byte Nr)
+HBITMAP CDatenBankLok::Get_Lok_Image(byte Nr)
 {
-	return MeineZüge[aktiveLoks[Nr]].Bild;
-}
-
-bool CDatenBankLok::Set_Zug_Dlg_Nr(byte Nr)
-{
-	static byte Dlg_nNr = 0;
-	if (Anzahl_Dlg_Run < 5)
-	{
-		if ((MeineZüge[aktiveLoks[Nr]].Name == "grüne Stainz"))
-	    {
-		    MeineZüge[aktiveLoks[Nr]].Dlg_Nr = 6;
-	    }
-		else
-		{
-			MeineZüge[aktiveLoks[Nr]].Dlg_Nr = Dlg_nNr;
-			Dlg_nNr++;
-		}
-		Anzahl_Dlg_Run++;
-		return true;
-	}
-	return false;
+	return MeineZüge[Nr].Bild;
 }
 
 void CDatenBankLok::Set_Prog_Zug(byte Zug)
@@ -461,27 +456,11 @@ void CDatenBankLok::Sort_Sel_Zug_FunktionsTasten()
 }
 
 
-void CDatenBankLok::PRG_Lok_CV(bool ReadWrite, byte CV, byte Wert) // true dann schreiben
+byte CDatenBankLok::PRG_Lok_CV(bool ReadWrite, byte CV, byte Wert) // true dann schreiben
 {
-	Zug_wartet_auf_Data = true;
-	Prog_CV = CV;
-	/*
-	if (ReadWrite)  // true dann schreiben
-		XpressNet->Sende_Write_CV(CV, Wert);
-	else			// false weil nur lesen
-		XpressNet->Sende_Read_CV(CV, Wert);
-	do
-	{
-	} while (Zug_wartet_auf_Data);
-	*/
+ return	MeineZüge[Selected_Prog_Lok].Progmmiere_RW_CV(ReadWrite, CV, Wert);
 }
 
-void CDatenBankLok::PRG_Set_CV()
-{
-	//byte Wert = XpressNet->Hole_CV_Wert();
-	//MeineZüge[Selected_Prog_Lok].Decoder_Data.Set_CV_Wert(Prog_CV, Wert);
-	//Zug_wartet_auf_Data = false;
-}
 
 byte CDatenBankLok::PRG_Get_CV(byte CV)
 {

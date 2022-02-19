@@ -19,35 +19,17 @@ CDlg_Lok_Schuppen::CDlg_Lok_Schuppen(CWnd* pParent /*=nullptr*/)
 	m_pParent = pParent;
 	m_nID = CDlg_Lok_Schuppen::IDD;
 	last_On_Block = 0;
-
-	Weiche_Platz[4] = CRect(300, 100, 340, 140);
-	Weiche_Platz[3] = CRect(340, 140, 380, 180);
-	Weiche_Platz[2] = CRect(380, 180, 420, 220);
-	Weiche_Platz[1] = CRect(540, 220, 580, 260);
-	Weiche_Platz[0] = CRect(580, 260, 620, 300);
-
-	Gleis_Schuppen[7] = Line2Point(620, 800, 300);
-	Gleis_Schuppen[6] = Line2Point(420, 540, 220);
-	Gleis_Schuppen[5] = Line2Point(20, 300, 100);
-	Gleis_Schuppen[4] = Line2Point(20, 300, 140);
-	Gleis_Schuppen[3] = Line2Point(20, 380, 180);
-	Gleis_Schuppen[2] = Line2Point(20, 420, 220);
-	Gleis_Schuppen[1] = Line2Point(20, 550, 260);
-	Gleis_Schuppen[0] = Line2Point(20, 580, 300);
-
+	
 	for (int i = 0; i < 6; i++)
 	{
 		Gleis_Platz[i] = CRect(50, -11, 200, 11);
 		Gleis_Platz[i].OffsetRect(Gleis_Schuppen[i].A_Punkt);
-		Gleis_Block_On[i] = false;
 	}
-
 
 	PinselHaus.CreateSolidBrush(colorDunkelGrau);
 	PinselTor.CreateSolidBrush(colorSchuppenTor);
 	StiftHaus.CreatePenIndirect((LPLOGPEN)&StiftLokSchuppen);
 	StiftTor .CreatePenIndirect((LPLOGPEN)&StiftTorSchuppen);
-
 }
 
 CDlg_Lok_Schuppen::~CDlg_Lok_Schuppen()
@@ -61,50 +43,50 @@ BOOL CDlg_Lok_Schuppen::Create()
 
 BOOL CDlg_Lok_Schuppen::Init()
 {
+	const SIZE S = { 39,50 };
+	POINT P;
+
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 	BlockNet = &APP->BlockMelder;
 	Gleise = &APP->Gleis_Data;
+	Loks = &APP->meineLoks;
 
 	SetWindowPos(NULL, 10, 300, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 
-	Weiche_Nummer[0] = TrainCon_Paar(18, false);
-	Weiche_Nummer[1] = TrainCon_Paar(19, false);
-	Weiche_Nummer[2] = TrainCon_Paar(20, false);
-	Weiche_Nummer[3] = TrainCon_Paar(21, false);
-	Weiche_Nummer[4] = TrainCon_Paar(22, false);
-	Weiche_Nummer[5] = TrainCon_Paar(23, false);
+	Zeige_Comobox = false;
+	CString LName[MaxAbstellGleise];
+	bool   LBlick[MaxAbstellGleise] = {true,true,true,true,true,true,true,true };
 
-	Gleis_Block[0] = 25;
-	Gleis_Block[1] = 26;
-	Gleis_Block[2] = 27;
-	Gleis_Block[3] = 28;
-	Gleis_Block[4] = 29;
-	Gleis_Block[5] = 30;
-	Gleis_Block[6] = 24;
-	Gleis_Block[7] = 24;
+	for (auto& Lok : APP->meineLoks.HomeZüge)
+	{
+		Gleis_Block_On[Lok.Block - 33] = true;
+		LName[Lok.Block - 33] = Lok.Lok_Name;
+		LBlick[Lok.Block - 33] = Lok.Blick;
+	}
+	for (int i = 0; i < MaxAbstellGleise; i++)
+	{
+		Gleis_Platz[i] = CRect(50, -11, 220, 11);
+		Gleis_Platz[i].OffsetRect(Gleis_Schuppen[i].A_Punkt);
+		Lok_Gleis[i].SetWindowPos(NULL, Gleis_Platz[i].left, Gleis_Platz[i].top, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+		Lok_Gleis[i].ShowWindow(SW_HIDE);
+		
+		APP->meineLoks.Fill_Liste_Zug(&Lok_Gleis[i],LName[i]);
+		if(LBlick[i])
+			P = POINT(Gleis_Platz[i].TopLeft() + CPoint(+180, -28));
+		else 
+			P = POINT(Gleis_Platz[i].TopLeft() + CPoint( -55, -28));
 
-	Weiche_Block[0] = 24;
-	Weiche_Block[1] = 24;
-	Weiche_Block[2] = 24;
-	Weiche_Block[3] = 24;
-	Weiche_Block[4] = 24;
-	Weiche_Block[5] = 24;
-
-	SchuppenTor = CRect(455,180,462,340);
-	SchuppenTor_L = CRect(455, 180, 462, 200);
-	SchuppenTor_R = CRect(455, 320, 462, 340);
-
-	SchuppenTor_G2 = CRect(455, 200, 462, 240);
-	SchuppenTor_G1 = CRect(455, 241, 462, 280);
-	SchuppenTor_G0 = CRect(455, 281, 462, 320);
+		Lok_Platz[i] = CRect(P, S);
+	}
 	return 0;
 }
 
 void CDlg_Lok_Schuppen::OnPaint()
 {
-	CPoint TextPos, TextBes, LokPos;
+	CPoint TextPos, TextBes;
 	CString GleisName;
 	CString LocName;
+	bool Lok_Richtung;
 	CFont* pOldFont;
 
 	CPaintDC dc(this);
@@ -112,7 +94,7 @@ void CDlg_Lok_Schuppen::OnPaint()
 	CMem_DC memDC(&dc, &m_rectCtrl);
 	pDC = &memDC;
 	ZeichenHintergrund();
-		
+
 	pOldFont = pDC->SelectObject(&theApp.Uberschrift_0);
 	pDC->SetBkMode(TRANSPARENT);
 
@@ -122,27 +104,69 @@ void CDlg_Lok_Schuppen::OnPaint()
 	{
 		CBrush f_Tor;
 		CBrush b_Tor;
+		Tor_pos = Gleise->Get_Door_free();
 
-
-		byte Tor_pos = 1;
-		f_Tor.CreateSolidBrush(colorgruen);
+		f_Tor.CreateSolidBrush(colorGruen);
 		b_Tor.CreateSolidBrush(colorRot);
 		pDC->SelectObject(StiftTor);
 		pDC->SelectObject(f_Tor);
+
 		if (Tor_pos == 3) pDC->SelectObject(b_Tor);
 		pDC->Rectangle(SchuppenTor_G2);
+
 		if (Tor_pos == 2) pDC->SelectObject(b_Tor);
 		pDC->Rectangle(SchuppenTor_G1);
+
 		if (Tor_pos == 1) pDC->SelectObject(b_Tor);
 		pDC->Rectangle(SchuppenTor_G0);
-
 	}
 
 	pDC->SelectObject(&theApp.Gleis_Frei);
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 2; i++)
 	{
-		switch (Gleise->GetStatus_Block(Gleis_Block[i],&LocName))		
+		switch (Gleise->GetStatus_Block(Strecke_Block[i], &LocName))
+		{
+		case BlockStatus::Frei:
+			pDC->SelectObject(theApp.Gleis_Frei);
+			break;
+		case BlockStatus::Besetzt:
+			pDC->SelectObject(theApp.Gleis_Besetzt);
+			break;
+		case BlockStatus::BesetztError_A:
+			pDC->SelectObject(theApp.Gleis_ErrorA);
+			break;
+		case BlockStatus::BesetztError_B:
+			pDC->SelectObject(theApp.Gleis_ErrorB);
+			break;
+		default:
+			pDC->SelectObject(theApp.Gleis_Null);
+			break;
+		}
+		pDC->MoveTo(Gleis_Strecke[i].A_Punkt);		pDC->LineTo(Gleis_Strecke[i].E_Punkt);
+	}
+
+	for (int i = 0; i < MaxWeiche; i++)
+	{
+		ZeicheWeiche(pDC, Weiche_Platz[i], Gleise->Get_Weiche(Weiche_Nummer[i]));
+	}
+	pDC->SelectObject(PinselTor);
+	pDC->SelectObject(StiftTor);
+	if (Gleise->Get_Door_open())
+	{
+		pDC->Rectangle(SchuppenTor_L);
+		pDC->Rectangle(SchuppenTor_R);
+	}
+	else
+	{
+		pDC->Rectangle(SchuppenTor);
+	}
+
+	pDC->SelectObject(theApp.Farbe_Weiss_FL);
+
+	for (int i = 0; i < MaxAbstellGleise; i++)
+	{
+		switch (Gleise->GetStatus_Block(Gleis_Block[i], &LocName, &Lok_Richtung))
 		{
 		case BlockStatus::Frei:
 			pDC->SelectObject(theApp.Gleis_Frei);
@@ -161,39 +185,18 @@ void CDlg_Lok_Schuppen::OnPaint()
 			break;
 		}
 		pDC->MoveTo(Gleis_Schuppen[i].A_Punkt);		pDC->LineTo(Gleis_Schuppen[i].E_Punkt);
-	}
 
-	for (int i = 0; i < 5; i++)
-	{
-		ZeicheWeiche(pDC, Weiche_Platz[i], Gleise->Get_Weiche(Weiche_Nummer[i]));
-	}
-	pDC->SelectObject(PinselTor);
-	pDC->SelectObject(StiftTor);
-	if (Gleise->Get_Door_open())
-	{
-		pDC->Rectangle(SchuppenTor_L);
-		pDC->Rectangle(SchuppenTor_R);
-	}
-	else
-	{
-		pDC->Rectangle(SchuppenTor);
-	}
-	pDC->SelectObject(theApp.Brush_White);
-	for (int i = 0; i < 6; i++)
-	{
 		TextPos = Gleis_Platz[i].TopLeft() + CPoint(+10, +2);
 		TextBes = Gleis_Platz[i].TopLeft() + CPoint(+5, -16);
-		LokPos  = Gleis_Platz[i].TopLeft() + CPoint(+160, -28);
 
-		GleisName.Format(_T(" Abstellgleis Nr.: %i"), i);
-		byte BlockNr = Gleis_Block[i];
-		if (Gleise->isPower_onBlock(BlockNr)) 
+		GleisName.Format(_T(" Abstellgleis Nr.: %i"), i+1);
+		
+		if (Gleise->isPower_onBlock(Gleis_Block[i]))
 			pDC->SelectObject(theApp.Gleis_Frei);
 		else
 			pDC->SelectObject(theApp.Gleis_PowerOff);
 
 		pDC->Rectangle(Gleis_Platz[i]);
-
 		pDC->SelectObject(theApp.Stift_SW_1);
 		pDC->Rectangle(Gleis_Platz[i]);
 
@@ -204,7 +207,10 @@ void CDlg_Lok_Schuppen::OnPaint()
 		pDC->TextOutW(TextBes.x, TextBes.y, GleisName); // Beschreibung Gleis
 		if (!Gleise->Get_LokName_in_Block(Gleis_Block[i]).IsEmpty())
 		{
-			theApp.Lok_ge_Uhr.DrawTransparent(pDC, LokPos.x, LokPos.y, RGB(255, 255, 255));
+			if (Lok_Richtung)
+				theApp.Lok_ge_Uhr.DrawTransparent(pDC, Lok_Platz[i].left, Lok_Platz[i].top, RGB(255, 255, 255));
+			else
+				theApp.Lok_in_Uhr.DrawTransparent(pDC, Lok_Platz[i].left, Lok_Platz[i].top , RGB(255, 255, 255));
 		}
 
 	}
@@ -214,6 +220,14 @@ void CDlg_Lok_Schuppen::OnPaint()
 void CDlg_Lok_Schuppen::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_COMBO1, Lok_Gleis[0]);
+	DDX_Control(pDX, IDC_COMBO2, Lok_Gleis[1]);
+	DDX_Control(pDX, IDC_COMBO3, Lok_Gleis[2]);
+	DDX_Control(pDX, IDC_COMBO4, Lok_Gleis[3]);
+	DDX_Control(pDX, IDC_COMBO5, Lok_Gleis[4]);
+	DDX_Control(pDX, IDC_COMBO6, Lok_Gleis[5]);
+	DDX_Control(pDX, IDC_COMBO7, Lok_Gleis[6]);
+	DDX_Control(pDX, IDC_COMBO8, Lok_Gleis[7]);
 }
 
 void CDlg_Lok_Schuppen::ZeichenHintergrund()
@@ -229,22 +243,22 @@ void CDlg_Lok_Schuppen::ZeichenHintergrund()
 	pDC->Rectangle(m_rectCtrl);
 	pDC->SelectObject(PinselHaus);
 
-	pDC->Rectangle(2, 45, 455, 350);
+	pDC->Rectangle(2, 45, 550, 450);
 
 	pDC->SelectObject(StiftHaus);
 
 	pDC->MoveTo(7, 50);
-	pDC->LineTo(450, 50);
-	pDC->LineTo(450, 200);
-	pDC->LineTo(455, 200);
-	pDC->LineTo(455, 45);
+	pDC->LineTo(545, 50);
+	pDC->LineTo(545, 300);
+	pDC->LineTo(550, 300);
+	pDC->LineTo(550, 45);
 	pDC->LineTo(2, 45);
-	pDC->LineTo(2, 350);
-	pDC->LineTo(455, 350);
-	pDC->LineTo(455, 320);
-	pDC->LineTo(450, 320);
-	pDC->LineTo(450, 345);
-	pDC->LineTo(7, 345);
+	pDC->LineTo(2, 450);
+	pDC->LineTo(550, 450);
+	pDC->LineTo(550, 420);
+	pDC->LineTo(545, 420);
+	pDC->LineTo(545, 445);
+	pDC->LineTo(7, 445);
 	pDC->LineTo(7, 50);
 
 	pDC->SelectObject(pOldBrush);
@@ -284,24 +298,23 @@ void CDlg_Lok_Schuppen::ZeicheGleis(CDC* pDC, byte I, Line2Point Gleis)
 	//Gleise->
 	pDC->MoveTo(Gleis_Schuppen[I].A_Punkt);		
 	pDC->LineTo(Gleis_Schuppen[I].E_Punkt);
-
 }
 
 void CDlg_Lok_Schuppen::WeichenWeg_schalten(byte I)
 {
 	switch (I)
 	{
-	case 0:
+	case 0: // Abstellgeleis Gleis No: 1 
 		Weiche_Nummer[0].SetBit(false);
 		Gleise->Set_Weiche(Weiche_Nummer[0]);
 		break;
-	case 1:
+	case 1: // Abstellgeleis Gleis No: 2 
 		Weiche_Nummer[0].SetBit(true);
 		Weiche_Nummer[1].SetBit(false);
 		Gleise->Set_Weiche(Weiche_Nummer[0]);
 		Gleise->Set_Weiche(Weiche_Nummer[1]);
 		break;
-	case 2:
+	case 2: // Abstellgeleis Gleis No: 3 
 		Weiche_Nummer[0].SetBit(true);
 		Weiche_Nummer[1].SetBit(true);
 		Weiche_Nummer[2].SetBit(false);
@@ -309,7 +322,7 @@ void CDlg_Lok_Schuppen::WeichenWeg_schalten(byte I)
 		Gleise->Set_Weiche(Weiche_Nummer[1]);
 		Gleise->Set_Weiche(Weiche_Nummer[2]);
 		break;
-	case 3:
+	case 3: // Abstellgeleis Gleis No: 4 
 		Weiche_Nummer[0].SetBit(true);
 		Weiche_Nummer[1].SetBit(true);
 		Weiche_Nummer[2].SetBit(true);
@@ -319,7 +332,7 @@ void CDlg_Lok_Schuppen::WeichenWeg_schalten(byte I)
 		Gleise->Set_Weiche(Weiche_Nummer[2]);
 		Gleise->Set_Weiche(Weiche_Nummer[3]);
 		break;
-	case 4:
+	case 4: // Abstellgeleis Gleis No: 5 
 		Weiche_Nummer[0].SetBit(true);
 		Weiche_Nummer[1].SetBit(true);
 		Weiche_Nummer[2].SetBit(true);
@@ -330,21 +343,56 @@ void CDlg_Lok_Schuppen::WeichenWeg_schalten(byte I)
 		Gleise->Set_Weiche(Weiche_Nummer[2]);
 		Gleise->Set_Weiche(Weiche_Nummer[3]);
 		Gleise->Set_Weiche(Weiche_Nummer[4]);
-
 		break;
-	case 5:
+	case 5: // Abstellgeleis Gleis No: 6 
 		Weiche_Nummer[0].SetBit(true);
 		Weiche_Nummer[1].SetBit(true);
 		Weiche_Nummer[2].SetBit(true);
 		Weiche_Nummer[3].SetBit(true);
 		Weiche_Nummer[4].SetBit(true);
+		Weiche_Nummer[5].SetBit(false);
 		Gleise->Set_Weiche(Weiche_Nummer[0]);
 		Gleise->Set_Weiche(Weiche_Nummer[1]);
 		Gleise->Set_Weiche(Weiche_Nummer[2]);
 		Gleise->Set_Weiche(Weiche_Nummer[3]);
 		Gleise->Set_Weiche(Weiche_Nummer[4]);
+		Gleise->Set_Weiche(Weiche_Nummer[5]);
 		break;
+	case 6: // Abstellgeleis Gleis No: 7 
+		Weiche_Nummer[0].SetBit(true);
+		Weiche_Nummer[1].SetBit(true);
+		Weiche_Nummer[2].SetBit(true);
+		Weiche_Nummer[3].SetBit(true);
+		Weiche_Nummer[4].SetBit(true);
+		Weiche_Nummer[5].SetBit(true);
+		Weiche_Nummer[6].SetBit(false);
 
+		Gleise->Set_Weiche(Weiche_Nummer[0]);
+		Gleise->Set_Weiche(Weiche_Nummer[1]);
+		Gleise->Set_Weiche(Weiche_Nummer[2]);
+		Gleise->Set_Weiche(Weiche_Nummer[3]);
+		Gleise->Set_Weiche(Weiche_Nummer[4]);
+		Gleise->Set_Weiche(Weiche_Nummer[5]);
+		Gleise->Set_Weiche(Weiche_Nummer[6]);
+		break;
+	case 7: // Abstellgeleis Gleis No: 8 
+		Weiche_Nummer[0].SetBit(true);
+		Weiche_Nummer[1].SetBit(true);
+		Weiche_Nummer[2].SetBit(true);
+		Weiche_Nummer[3].SetBit(true);
+		Weiche_Nummer[4].SetBit(true);
+		Weiche_Nummer[5].SetBit(true);
+		Weiche_Nummer[6].SetBit(true);
+
+		Gleise->Set_Weiche(Weiche_Nummer[0]);
+		Gleise->Set_Weiche(Weiche_Nummer[1]);
+		Gleise->Set_Weiche(Weiche_Nummer[2]);
+		Gleise->Set_Weiche(Weiche_Nummer[3]);
+		Gleise->Set_Weiche(Weiche_Nummer[4]);
+		Gleise->Set_Weiche(Weiche_Nummer[5]);
+		Gleise->Set_Weiche(Weiche_Nummer[6]);
+
+		break;
 	default:
 		break;
 	}
@@ -355,6 +403,15 @@ BEGIN_MESSAGE_MAP(CDlg_Lok_Schuppen, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_CREATE()
 	ON_WM_LBUTTONDOWN()
+	ON_BN_CLICKED(IDC_BUTTON1, &CDlg_Lok_Schuppen::OnBnClickedButton1)
+	ON_CBN_SELCHANGE(IDC_COMBO1, &CDlg_Lok_Schuppen::OnSelchangeCombos1)
+	ON_CBN_SELCHANGE(IDC_COMBO2, &CDlg_Lok_Schuppen::OnSelchangeCombos2)
+	ON_CBN_SELCHANGE(IDC_COMBO3, &CDlg_Lok_Schuppen::OnSelchangeCombos3)
+	ON_CBN_SELCHANGE(IDC_COMBO4, &CDlg_Lok_Schuppen::OnSelchangeCombos4)
+	ON_CBN_SELCHANGE(IDC_COMBO5, &CDlg_Lok_Schuppen::OnSelchangeCombos5)
+	ON_CBN_SELCHANGE(IDC_COMBO6, &CDlg_Lok_Schuppen::OnSelchangeCombos6)
+	ON_CBN_SELCHANGE(IDC_COMBO7, &CDlg_Lok_Schuppen::OnSelchangeCombos7)
+	ON_CBN_SELCHANGE(IDC_COMBO8, &CDlg_Lok_Schuppen::OnSelchangeCombos8)
 END_MESSAGE_MAP()
 
 // CDlg_Lok_Schuppen-Meldungshandler
@@ -370,9 +427,8 @@ void CDlg_Lok_Schuppen::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 	if (Gleise->Get_Door_open())
 	{
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < MaxAbstellGleise; i++)
 		{
-			Gleis_Block_On[i] = false;
 			if (Gleis_Platz[i].PtInRect(point))
 			{
 				if (last_On_Block == Gleis_Block[i])
@@ -396,23 +452,109 @@ void CDlg_Lok_Schuppen::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 		}
 	}
+
+	if (Zeige_Comobox)
+	{
+		for (int i = 0; i < MaxAbstellGleise; i++)
+		{
+			if (Lok_Platz[i].PtInRect(point))
+			{
+				if (Gleise->Get_Zug_Point(i + 33) != nullptr)
+				{
+					Gleise->Get_Zug_Point(i + 33)->Blick = !Gleise->Get_Zug_Point(i + 33)->Blick;
+					if (Gleise->Get_Zug_Point(i + 33)->Blick)
+					{
+						Lok_Platz[i].left = 250;
+						Lok_Platz[i].right = (250 + 50);
+					}
+					else
+					{
+						Lok_Platz[i].left = 15;
+						Lok_Platz[i].right = (15 + 50);
+					}
+					Invalidate();
+				}
+			}
+		}
+	}
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
-void CDlg_Lok_Schuppen::Draw_LOK(CDC* pDC)
-
+void CDlg_Lok_Schuppen::OnBnClickedButton1()
 {
-	CBrush *oldBrusch;
-	CDC dcMemory;
+	Zeige_Comobox = !Zeige_Comobox;
+	if (Zeige_Comobox)
+	{
+		for (byte i = 0; i < MaxAbstellGleise; i++)
+		{
+			Lok_Gleis[i].ShowWindow(SW_SHOW);
+		}
+	}
+	else
+	{
+		CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+		for (byte i = 0; i < MaxAbstellGleise; i++)
+		{
+			Lok_Gleis[i].ShowWindow(SW_HIDE);
+		}
+		Invalidate();
+		APP->Gleis_Data.Update_Lok_Abstellgleis();
+		APP->meineLoks.Save_acktiv_Zug_Data();
+		APP->Set_Train_Run_DLG();
+	}
+}
 
-	dcMemory.CreateCompatibleDC(pDC);
+void CDlg_Lok_Schuppen::OnSelchangeCombos1()
+{
+	ChangeCombox(33);
+}
+void CDlg_Lok_Schuppen::OnSelchangeCombos2()
+{
+	ChangeCombox(34);
+}
+void CDlg_Lok_Schuppen::OnSelchangeCombos3()
+{
+	ChangeCombox(35);
+}
+void CDlg_Lok_Schuppen::OnSelchangeCombos4()
+{
+	ChangeCombox(36);
+}
+void CDlg_Lok_Schuppen::OnSelchangeCombos5()
+{
+	ChangeCombox(37);
+}
+void CDlg_Lok_Schuppen::OnSelchangeCombos6()
+{
+	ChangeCombox(38);
+}
+void CDlg_Lok_Schuppen::OnSelchangeCombos7()
+{
+	ChangeCombox(39);
+}
+void CDlg_Lok_Schuppen::OnSelchangeCombos8()
+{
+	ChangeCombox(40);
+}
 
-	dcMemory.SelectObject(&theApp.Lok_ge_Uhr);
+void CDlg_Lok_Schuppen::ChangeCombox(byte Nr)
+{
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 
-	oldBrusch = pDC->SelectObject(&PinselHaus);
+	Start_Lok_Block Data;
+	Data.Block = Nr;
+	Data.LokNr = Lok_Gleis[Data.Block - 33].GetCurSel();
 
-	pDC->BitBlt(100, 300, 54, 96, &dcMemory, 0, 0, SRCCOPY);
+	if (Data.LokNr == 0)
+	{
+		Data.Lok_Name.Empty();
+	}
+	else
+	{
+		Data.Lok_Name = APP->meineLoks.Get_Lok_Name(Data.LokNr - 1);
+		Data.Blick = true;
+	}
 
-	pDC->SelectObject(oldBrusch);
-
+	APP->Gleis_Data.Setze_Lok_aufGleis(Data);
+	Invalidate();
 }

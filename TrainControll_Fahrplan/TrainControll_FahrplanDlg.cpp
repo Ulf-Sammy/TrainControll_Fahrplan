@@ -56,11 +56,8 @@ UINT Thread_Update_LZV(LPVOID pParam)
 	return 0;
 }
 
-
-
 UINT Thread_Update_Debug(LPVOID pParam)
 {
-	// CDlg_Debug_Mega* Info = (CDlg_Debug_Mega*)pParam;
 	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
 
 	TRACE(_T("starte update Thread Debug.....\n"));
@@ -82,6 +79,9 @@ UINT Thread_Start_Prozess(LPVOID pParam)
 	Info->BlockMelder.StartProcess();
 	Info->XpressNet.StartProcess();
 	Info->BlockMelder.Send_XpressNet_Status(Info->COM_LZV_Data.COM_Active);
+	if(Info->COM_MEGA_Data.COM_Active)
+		Info->Gleis_Data.Set_Taster_Farbe();
+	Info->Set_Train_Run_DLG();
 	return 0;
 }
 
@@ -134,14 +134,19 @@ CTrainControll_FahrplanDlg::CTrainControll_FahrplanDlg(CWnd* pParent /*=NULL*/)
 	pDlgSchuppen = new CDlg_Lok_Schuppen(this);
 	pDlgBlockInfo = new CDlg_Block_Info(this);
 	pDlgComListe = new CDlg_Com_Liste(this);
-	
+	for (byte i = 0; i < 8; i++)
+	{
+		pDlgTrainRun[i] = new CDlg_Run_Train(this, i);
+		pDlgTrainRun[i]->Create();
+	}
+	pDlgTrainRunCam = new CDlg_Run_Train(this, 8);
+	pDlgTrainRunCam->Create();
 	pDlgDebugInfo->Create(&COM_DEBUG_Data.COM_Handel);
 	pDlgSchuppen->Create();
 	pDlgBlockInfo->Create();
 	pDlgComListe->Create(ComListe);
 
 	XpressNet.Set_Com(&COM_LZV_Data);
-
 	BlockMelder.Set_Com(&COM_MEGA_Data);
 }
 
@@ -171,51 +176,14 @@ BEGIN_MESSAGE_MAP(CTrainControll_FahrplanDlg, CDialogEx)
 	ON_COMMAND(ID_SETUP_MEGADEBUGDATA, &CTrainControll_FahrplanDlg::OnSetupMegadebugdata)
 	ON_COMMAND(ID_SETUP_COMLISTEINFO, &CTrainControll_FahrplanDlg::OnSetupComlisteInfo)
 
-	ON_CONTROL_RANGE(BN_CLICKED, IDC_BUTTON_ZUG0, IDC_BUTTON_ZUG4, &CTrainControll_FahrplanDlg::OnBnClickedButtonZug)
+	ON_CONTROL_RANGE(BN_CLICKED, IDC_BUTTON_ZUG0, IDC_BUTTON_ZUG7, &CTrainControll_FahrplanDlg::OnBnClickedButtonZug)
 	ON_BN_CLICKED(IDC_BUTTON_TEST, &CTrainControll_FahrplanDlg::OnBnClickedButtonTest)
 	ON_BN_CLICKED(IDC_BUTTON_WEICHE, &CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche)
 	ON_WM_CLOSE()
 	ON_WM_LBUTTONDOWN()
+	ON_BN_CLICKED(IDC_BUTTON1, &CTrainControll_FahrplanDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
-void CTrainControll_FahrplanDlg::DlgTrainRunDone(int Dlg_Nr)
-{
-	if (Dlg_Nr == CDlg_Run_Train::IDD)
-	{
-		pDlgTrainRun[0]->ShowWindow(SW_HIDE);
-		GetDlgItem(ButtonTrainRun[0])->EnableWindow(true);
-	}
-	if (Dlg_Nr == CDlg_Run_Train::IDD1)
-	{
-		pDlgTrainRun[1]->ShowWindow(SW_HIDE);
-		GetDlgItem(ButtonTrainRun[1])->EnableWindow(true);
-	}
-	if (Dlg_Nr == CDlg_Run_Train::IDD2)
-	{
-		pDlgTrainRun[2]->ShowWindow(SW_HIDE);
-		GetDlgItem(ButtonTrainRun[2])->EnableWindow(true);
-	}
-	if (Dlg_Nr == CDlg_Run_Train::IDD3)
-	{
-		pDlgTrainRun[3]->ShowWindow(SW_HIDE);
-		GetDlgItem(ButtonTrainRun[3])->EnableWindow(true);
-	}
-	if (Dlg_Nr == CDlg_Run_Train::IDD4)
-	{
-		pDlgTrainRun[4]->ShowWindow(SW_HIDE);
-		GetDlgItem(ButtonTrainRun[4])->EnableWindow(true);
-	}
-	if (Dlg_Nr == CDlg_Run_Train::IDD5)
-	{
-		pDlgTrainRun[5]->ShowWindow(SW_HIDE);
-		GetDlgItem(ButtonTrainRun[5])->EnableWindow(true);
-	}
-	if (Dlg_Nr == CDlg_Run_Train::IDD6)
-	{
-		pDlgTrainRun[6]->ShowWindow(SW_HIDE);
-		GetDlgItem(ButtonTrainRun[6])->EnableWindow(true);
-	}
-}
 
 BOOL CTrainControll_FahrplanDlg::OnInitDialog()
 {
@@ -238,10 +206,10 @@ BOOL CTrainControll_FahrplanDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Kleines Symbol verwenden
 	ShowWindow(SW_SHOWMAXIMIZED);
 //##########################################################################
-	meineLoks.Init();
 	Gleis_Data.Init();
 	InfoGleisBild.Init();
-
+	meineLoks.Load_acktiv_Zug_Data();
+	Gleis_Data.Besetze_AbstellGleise_mit_Loks();
 	StromKurve.Init();
 	InfoMega.Init(sizeof(LED_Images), LED_Images);
 	InfoLVZ200.Init(sizeof(LED_Images), LED_Images);
@@ -250,17 +218,12 @@ BOOL CTrainControll_FahrplanDlg::OnInitDialog()
 	InfoMelder.Init(L"Melder");
 	InfoWeiche.Init(L"Weiche");
 
-	XpressNet.Init(&InfoMega);
-	BlockMelder.Init(&InfoLVZ200,&InfoModus,Gleis_Data.Get_Weichen_Anzahl());
+	XpressNet.Init(&InfoLVZ200);
+	BlockMelder.Init(&InfoMega,&InfoModus,Gleis_Data.Get_Weichen_Anzahl());
 
 	pDlgSchuppen->Init();
 
-	InitDlg();
-//##########################################################################
-	// los gehts !
 	Start_Com_Thread();
-	
-	//pDlgDebugInfo->ShowWindow(SW_SHOW);
 
 	return TRUE; 
 }
@@ -308,64 +271,6 @@ void CTrainControll_FahrplanDlg::OnPaint()
 HCURSOR CTrainControll_FahrplanDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
-}
-
-void CTrainControll_FahrplanDlg::InitDlg()
-{
-	CAtlString TextB, Text0, Text1, Text2;
-
-	
-	for (byte I = 0; I < 5; I++)
-	{
-		TextB = "kein Zug";
-		Text0.Empty();
-		Text1.Empty();
-		Text2.Empty();
-
-		if (meineLoks.is_Zug_Pointer(I))
-		{
-			if (meineLoks.Get_aktiveLok_Pointer(I).isAutomaticOn())
-			{
-				Text0.Format(_T("Zug Nr%i :  %s ........ (auto)"), I, (LPCTSTR)meineLoks.Get_aktiveLok_Pointer(I).Name);
-			}
-			else
-			{
-				Text0.Format(_T("Zug Nr%i :  %s ........ (hand)"), I, (LPCTSTR)meineLoks.Get_aktiveLok_Pointer(I).Name);
-			
-				if (meineLoks.Set_Zug_Dlg_Nr(I))
-					GetDlgItem(IDC_BUTTON_ZUG0 + I)->ShowWindow(SW_SHOW);
-			}
-			TextB.Format(_T("Lok  Nr.%i"), I);
-			// ============= die Lokomotive acktiv ==============================================
-			if (meineLoks.Get_aktiveLok_Pointer(I).isActive())
-			{
-				if (meineLoks.Get_aktiveLok_Pointer(I).isOnGleis())
-				{
-					Text1.Format(_T("Sie ist auf dem Block: %i "), meineLoks.Get_aktiveLok_Pointer(I).Block_ist);
-				}
-				else
-				{
-					Text1.Format(_T("Sie ist nicht auf dem Gleis ! "));
-					GetDlgItem(IDC_BUTTON_ZUG0 + I)->ShowWindow(SW_HIDE);
-				}
-			}
-			else
-			{ // Nicht acktive Lokomotive 
-				GetDlgItem(IDC_BUTTON_ZUG0 + I)->ShowWindow(SW_HIDE);
-				Text1.Format(_T("nicht aktive !"));
-				Text2.Format(_T("."));
-			}
-		}
-		else
-		{
-			GetDlgItem(IDC_BUTTON_ZUG0 + I)->ShowWindow(SW_HIDE);
-		}
-		SetDlgItemTextW(IDC_BUTTON_ZUG0   + I, TextB);
-		SetDlgItemTextW(IDC_TITEL_ZUG0    + I, Text0);
-		SetDlgItemTextW(IDC_STATIC_ZUG0_0 + I, Text1);
-		SetDlgItemTextW(IDC_STATIC_ZUG0_1 + I, Text2);
-
-	}
 }
 
 void CTrainControll_FahrplanDlg::EnumSerialPortFriendlyName()
@@ -491,6 +396,45 @@ void CTrainControll_FahrplanDlg::Get_Com_Handel()
 	}
 }
 
+void CTrainControll_FahrplanDlg::Set_Train_Run_DLG()
+{
+	CString LokName;
+	byte Lok_Block;
+
+	for (int index = 0; index < 8; index++)
+	{
+		Lok_Block = (byte)(index + 33);
+		Gleis_Data.GetStatus_Block(Lok_Block, &LokName);
+		if (LokName.IsEmpty())
+		{
+			SetDlgItemTextW(IDC_BUTTON_ZUG0 + index, L" keine Lok ");
+		}
+		else
+		{
+			pDlgTrainRun[index]->Set_Daten(Lok_Block);
+			if (LokName == L"grüne Stainz") pDlgTrainRunCam->Set_Daten(Lok_Block);
+			SetDlgItemTextW(IDC_BUTTON_ZUG0 + index, LokName);
+			GetDlgItem(IDC_BUTTON_ZUG0 + index)->ShowWindow(SW_SHOW);
+		}
+	}
+}
+
+void CTrainControll_FahrplanDlg::DlgTrainRunDone(CDlg_Run_Train* Dlg_Nr)
+{
+	for (byte i = 0; i < MaxAbstellGleise; i++)
+	{
+		if (Dlg_Nr == pDlgTrainRun[i])
+		{
+			pDlgTrainRun[i]->ShowWindow(SW_HIDE);
+		}
+	}
+	if (Dlg_Nr == pDlgTrainRunCam)
+	{
+		pDlgTrainRunCam->ShowWindow(SW_HIDE);
+	}
+}
+
+
 bool CTrainControll_FahrplanDlg::Open_Setup_Com(COM_Info* p_COM_I)
 {
 	CString TxT = (L"\\\\.\\" + p_COM_I->COM_PORT);
@@ -551,6 +495,7 @@ void CTrainControll_FahrplanDlg::Start_Com_Thread()
 	AfxBeginThread(Thread_Update_LZV, this);
 
 	AfxBeginThread(Thread_Update_MEGA, this);
+
 	//AfxBeginThread(Thread_Update_Time, this);
 
 	AfxBeginThread(Thread_Update_Debug, this);
@@ -579,71 +524,30 @@ void CTrainControll_FahrplanDlg::Close_Com_Handel()
 		::CloseHandle(COM_DEBUG_Data.COM_Handel);
 
 	}
-
-
 }
 
 void CTrainControll_FahrplanDlg::OnBnClickedButtonZug(UINT nID)
 {
 	int index = nID - IDC_BUTTON_ZUG0;
-	byte Lok_Nr = index;
-	if (meineLoks.Get_aktiveLok_Pointer(Lok_Nr).isAutomaticOn())
+	if (pDlgTrainRun[index] != NULL)
 	{
-		if (Gleis_Data.isPower_onGleis())
+		if(pDlgTrainRun[index]->isCamera())
 		{
-			//if (Gleis_Data.Block_Data.Set_FahrPlan(Lok_Nr, 0))
-			//{
-			//	//Gleis_Data.Block_Data.Do_Start_Plan_Zug(Lok_Nr);
-			//	// Starte die Lok
-			//	GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
-			//	SetDlgItemTextW(IDC_STATIC_ZUG0_1 + index, _T("fährt jetzt nach Fahrplan Nr.:0"));
-			//}
-			//else
-			SetDlgItemTextW(IDC_STATIC_ZUG0_1 + index, _T("konnte nicht gestartet werden"));
-
-		}
-	}
-	else
-	{
-		byte Dlg_Nr = meineLoks.Get_Dialog_Nr(Lok_Nr);
-		if (Dlg_Nr != 0xFF)
-		{
-			if (pDlgTrainRun[Dlg_Nr] == NULL)
-			{
-				ButtonTrainRun[Dlg_Nr] = IDC_BUTTON_ZUG0 + index;
-				pDlgTrainRun[Dlg_Nr] = new CDlg_Run_Train(this, Dlg_Nr);
-				pDlgTrainRun[Dlg_Nr]->Set_aktive_Lok(Lok_Nr);
-				if (pDlgTrainRun[Dlg_Nr]->Create())
-				{
-					GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
-				}
-			}
+			if (pDlgTrainRunCam->IsWindowVisible())
+				pDlgTrainRunCam->ShowWindow(SW_HIDE);
 			else
-			{
-				pDlgTrainRun[Dlg_Nr]->ShowWindow(SW_SHOW);
-				GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
-			}
+				pDlgTrainRunCam->ShowWindow(SW_SHOW);
 		}
 		else
 		{
-			GetDlgItem(IDC_BUTTON_ZUG0 + index)->EnableWindow(FALSE);
+			if (pDlgTrainRun[index]->IsWindowVisible())
+				pDlgTrainRun[index]->ShowWindow(SW_HIDE);
+			else
+				pDlgTrainRun[index]->ShowWindow(SW_SHOW);
 		}
 	}
 }
 
-void CTrainControll_FahrplanDlg::OnBnClickedButtonTest()
-{
-	pDlgBlockInfo->NeueDaten();
-	if (pDlgBlockInfo->IsWindowVisible())
-		pDlgBlockInfo->ShowWindow(SW_HIDE);
-	else
-		pDlgBlockInfo->ShowWindow(SW_SHOW);
-}
-
-void CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche()
-{
-
-}
 
 void CTrainControll_FahrplanDlg::OnClose()
 {
@@ -652,7 +556,7 @@ void CTrainControll_FahrplanDlg::OnClose()
 	Sleep(500);
 	BlockMelder.CloseComunikation();
 	Sleep(500);
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		if (pDlgTrainRun[i] != NULL)
 		{
@@ -708,14 +612,6 @@ void CTrainControll_FahrplanDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
-void CTrainControll_FahrplanDlg::DoStartDialog(bool Zeige)
-{
-	for (int DlgNr = 0; DlgNr < 5; DlgNr++)
-	{
-		GetDlgItem(IDC_BUTTON_ZUG0 + DlgNr)->EnableWindow(Zeige);
-		GetDlgItem(IDC_BUTTON_ZUG0 + DlgNr)->EnableWindow(Zeige);
-	}
-}
 
 void CTrainControll_FahrplanDlg::updatePowerOn(bool Bit)
 {
@@ -723,7 +619,6 @@ void CTrainControll_FahrplanDlg::updatePowerOn(bool Bit)
 	InfoPower.Set_Status((byte)Bit);
 	InfoGleisBild.Invalidate();	
 }
-
 
 void CTrainControll_FahrplanDlg::OnSetupProgrammierezug()
 { // wie schalte ich zu progrmmodus um 
@@ -771,3 +666,22 @@ void CTrainControll_FahrplanDlg::OnSetupFahrplanEdit()
 }
 
 
+
+
+void CTrainControll_FahrplanDlg::OnBnClickedButton1()
+{
+	//Sound
+}
+void CTrainControll_FahrplanDlg::OnBnClickedButtonTest()
+{
+	pDlgBlockInfo->NeueDaten();
+	if (pDlgBlockInfo->IsWindowVisible())
+		pDlgBlockInfo->ShowWindow(SW_HIDE);
+	else
+		pDlgBlockInfo->ShowWindow(SW_SHOW);
+}
+
+void CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche()
+{
+
+}

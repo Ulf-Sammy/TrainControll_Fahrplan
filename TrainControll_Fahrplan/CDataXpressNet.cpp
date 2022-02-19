@@ -13,59 +13,16 @@ CDataXpressNet::CDataXpressNet(CString LokName)
 	DateiName = _T(FILE_ALLE_ZUEGE_BILDER)+(Name)+L".BMP"; //_T("Images\\Spreewald.bmp")
 	Bild = (HBITMAP)::LoadImage(AfxGetInstanceHandle(), DateiName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);	
 }
-void CDataXpressNet::Init()
-{
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	XpressNet = &APP->XpressNet;
-}
 
-bool CDataXpressNet::FillData(CString InText)
-{
-	Zug_Steuerung BetreibsModus = Zug_Steuerung::nicht_Betriebs_bereit;
-	bool Aktive;
-	Name       = InText.Mid(0, 15); Name.Trim();
-	
-	byte PNr   = _ttoi(InText.Mid(40, 2));
-	Block_ist  = _ttoi(InText.Mid(19, 3));
-	Block_soll = _ttoi(InText.Mid(19, 3));
-	Status = Zug_Status::Zug_Stopped;
-
-	if (InText.Mid(23, 16) == "Zug in Uhrzeiger") 		Blick = true;
-	else 		Blick = false;
-	switch (InText[17])
-	{
-	case 'H':
-		Aktive = true;
-		BetreibsModus = Zug_Steuerung::Hand_Betrieb;
-		break;
-	case 'A':
-		Aktive = true;
-		BetreibsModus = Zug_Steuerung::Automatik_Betrieb;
-		break;
-	case '0':
-		Aktive = false;
-		BetreibsModus = Zug_Steuerung::nicht_Betriebs_bereit;
-		break;
-	default:
-		break;
-	}
-	Betriebs_Modus = BetreibsModus;
-	return(Block_ist > 0); // true weil Lok ist auf dem Gleis
-}
 
 CDataXpressNet::~CDataXpressNet()
 {
 }
 
-
-void CDataXpressNet::Set_Dlg_Nr(byte Nr)
+void CDataXpressNet::ConecttoXpressNet()
 {
-	Dlg_Nr = Nr;
-}
-
-byte CDataXpressNet::Get_Dlg_Nr()
-{
-	return byte(Dlg_Nr);
+	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+	XpressNet = &APP->XpressNet;
 }
 
 bool CDataXpressNet::Prüfe_Plan_im_Block()
@@ -134,6 +91,7 @@ void CDataXpressNet::ASK_LokData()
 		TRACE(_T("Fehler Com Port nicht geöffnet !!! \n   Kann Zug Daten nicht abfragen! \n"));
 		return;
 	}
+	Decoder_Data.Fill_Tasten_DlgRun();
 	XpressNet->SendeAsknachLokDaten(Adresse);
 	//Wenn empfangen einlesen
 	XpressNet->HoleZugData(&FunktionsGruppe[0], Adresse);
@@ -221,6 +179,17 @@ void CDataXpressNet::Set_Startbedingungen(Zug_Status UserSet_Status)
 		break;
 
 	}
+}
+
+void CDataXpressNet::Set_BlickRichtung(bool LokBlick)
+{
+	Blick = LokBlick;
+}
+
+void CDataXpressNet::Set_auf_Gleis(byte BlockNr)
+{
+	Block_ist = BlockNr;
+	Block_soll = BlockNr;
 }
 
 void CDataXpressNet::Set_Lok_Nr(byte Nr_EDV)
@@ -441,5 +410,20 @@ bool CDataXpressNet::Prüfrichtung()
 Zug_Status CDataXpressNet::Get_Status()
 {
 	return Status;
+}
+
+byte CDataXpressNet::Progmmiere_RW_CV(bool RW, byte CV, byte Wert)
+{
+	if (!ProgMode)
+	{
+		ProgMode = true;
+		CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+		APP->InfoModus.Set_Status(2);
+	}
+	if (RW)  // true dann schreiben
+		return	XpressNet->Sende_Write_CV(CV, Wert);
+	else			// false weil nur lesen
+		return  XpressNet->Sende_Read_CV(CV, Wert);
+
 }
 

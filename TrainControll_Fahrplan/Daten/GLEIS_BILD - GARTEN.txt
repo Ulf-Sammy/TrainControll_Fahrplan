@@ -2,38 +2,48 @@
 BILD  040 030
 ZEIT  080 // 800 msec Verzögerung Melder aus
 PLAN  005 // Pläne Anzahl
-##Block Nr #####
-000 Block 
-001 Block 
-002 Block 
-003 Block 
+##BlockNr#Taster 1 ### Taster 2 #
+000 Block 000 000
+001 Block 000 000 ER 027 029 AR 021 029
+002 Block 000 000 ER 028 027 AL 021 027
+003 Block 000 000 ER 030 025 AL 019 025
 004 Block 
-005 Block 
-006 Block 
-007 Block 
-008 Block
+005 Block 000 000 EN 039 009 AL 030 029
+006 Block 000 000 EN 038 009 AL 032 027
+007 Block 000 000 AN 033 025
+008 Block 000 000 EN 014 021
 009 Block
-010 Block
+010 Block 000 000 AN 039 006
 011 Block
-012 Block
-013 Block 
-014 Block 
-015 Block
-016 Block
-017 Block
-018 Block
+012 Block 000 000 EN 010 002
+013 Block 000 000 ER 017 027 AL 012 027 
+014 Block 000 000 EN 009 021 AU 009 006
+015 Block 000 000 EN 010 021 AU 010 007
+016 Block 000 000 EN 011 021 AU 011 009
+017 Block 000 000 AN 012 011
+018 Block 000 000 EN 013 021 AN 013 011
 019 Block 
 020 Block 
 021 Block 
 022 Block 
 023 Block
 024 Block
-025 Block
-026 Block
-027 Block
+025 Block 000 000 EL 004 024
+026 Block 000 000 EL 006 028
+027 Block 000 000 EL 005 026
 028 Block
 029 Block 
-030 Block 
+030 Block
+031 Block 000 000 AN 011 029 
+032 Block 000 000 EL 008 027
+033 Block
+034 Block
+035 Block
+036 Block
+037 Block
+038 Block
+039 Block
+040 Block
 ##Bl Nr Type -DWAn X1 Y1  Pos| Text    |
 012 001 WEICH__R 0 010 002 U | 010 003 | 
 012 002 WEICH__L 0 010 004 U | 010 005 | 
@@ -52,9 +62,9 @@ PLAN  005 // Pläne Anzahl
 004 015 WEICH__L 2 033 025 L | 032 025 | 
 010 016 WEICH__R 2 039 006 U | 039 007 | 
 008 017 WEICH__R 2 031 005 R | 032 005 | 
-024 018 WEICH__R 1 009 027 L | 008 027 | 
-024 019 WEICH__R 1 007 026 L | 006 026 | 
-000 020 WEICH__R 2 042 014 L | 042 026 | 
+032 018 WEICH__R 1 008 027 L | 008 027 | 
+032 019 WEICH__R 1 006 026 L | 006 026 | 
+032 020 WEICH__R 0 008 027 R | 008 026 | 
 000 021 WEICH__R 2 042 016 R | 042 026 | 
 000 022 WEICH__R 2 042 026 L | 042 026 | 
 000 023 WEICH__R 2 042 026 L | 042 026 | 
@@ -68,67 +78,47 @@ PLAN  005 // Pläne Anzahl
 000 031 WEICH__R 2 042 026 L | 042 026 | 
 000 032 WEICH__R 2 042 026 L | 042 026 | 
 ## Strecke ##
-001 Gleis  |  |022 029 -150U|Hbf. Gleis 1             | 027 029 021 029 020 028 
+001 Gleis  |  |022 029 -150O|Hbf. Gleis 1             | 027 029 021 029 020 028 
 002 Gleis  |  |022 027 -150U|Hbf. Gleis 2             | 029 027 020 027 
 003 Gleis  |  |022 025 -150U|Hbf. Gleis 3             | 031 025 018 025 
 004 Strecke|  |000 000 -150 |                         |
-005 Gleis  |  |039 010 |150R|Burgbahnhof Gleis 2      | 029 029 037 029 039 027 039 008 
-006 Gleis  |  |038 010 |150R|Burgbahnhof Gleis 1      | 031 027 037 027 038 026 038 008 
+005 Gleis  |  |039 010 |150R|Burgbahnhof Gleis 2      | 039 008 039 027 037 029 029 029
+006 Gleis  |  |038 010 |150R|Burgbahnhof Gleis 1      | 038 008 038 026 037 027 031 027
 007 Strecke|  |035 016 -150 |                         | 033 006 035 008 035 023 033 025 
-008 Abstell|  |033 005 -150U|Steinbruch Gleis 1       | 038 005 015 005 014 006 014 022
-009 Strecke|  |015 025 -150 |                         | 014 024 015 025 016 025 
+008 Strecke|  |033 000 -150 |                         | 014 022 014 006 015 005 031 005
+009 Strecke|  |015 025 -150 |                         | 016 025 015 025 014 024
 010 Strecke|  |015 001 -150 |                         | 032 001 038 001 039 002 039 006
 011 Strecke|  |038 001 -150 |                         | 020 001 032 001
 012 Strecke|  |036 027 -150 |                         | 010 002 011 001 020 001
-013 Strecke|  |015 027 -150 |                         | 012 027 018 027 
-014 Gleis  |  |009 011 |150L|Güterbahnhof Gleis 1     | 009 004 009 005 009 020 009 024 
-015 Gleis  |  |010 011 |150L|Güterbahnhof Gleis 2     | 010 006 010 010 010 017 010 022 
-016 Gleis  |  |011 011 |150L|Güterbahnhof Gleis 3     | 011 008 011 011 011 016 011 022 
-017 Abstell|  |012 011 |150L|Güterbahnhof Gleis 4     | 012 010 012 011 012 021 012 023 
-018 Gleis  |  |013 011 |150L|Güterbahnhof Gleis 5     | 013 010 013 012 013 021 013 022 
-024 Strecke|  |009 027 -150 |                         | 010 027 008 027 007 026 006 026 004 024 001 024
-025 Strecke|01|000 028 -150U|Lockschuppen Gleis 1     | 007 027 006 028 000 028 
-026 Strecke|02|000 026 -150U|Lockschuppen Gleis 2     | 000 026 005 026
-027 Strecke|03|000 024 -150U|Lockschuppen Gleis 3     |
-028 Strecke|04|000 024 -150U|Lockschuppen Gleis 4     | 
-029 Strecke|05|000 024 -150U|Lockschuppen Gleis 5     | 
-030 Strecke|06|000 024 -150U|Lockschuppen Gleis 3     | 
-## Taster ################################################
-033 Taster ELG 027 029
-033 Taster ALR 021 029
-034 Taster ELG 027 027
-034 Taster ALG 021 027
-035 Taster ELG 027 025
-035 Taster ALG 021 025
-036 Taster EOR 009 021 
-036 Taster AOR 009 009 
-037 Taster EOR 010 021
-037 Taster AOG 010 009
-038 Taster EOR 011 021
-038 Taster AOR 011 009
-039 Taster AOR 012 009
-040 Taster EOR 013 021
-040 Taster AOR 013 009
-041 Taster ELG 034 005
-042 Taster EUG 010 002
-043 Taster AUG 039 005
-044 Taster EOG 014 021
-044 Taster ALG 031 005
-045 Taster ARG 032 027
-046 Taster ARG 031 029
-047 Taster ELR 035 007
-047 Taster ARG 033 025
-048 Taster EUR 038 010
-049 Taster EUG 039 010
-050 Taster ELG 017 025
-050 Taster ALG 014 024
-051 Taster ELG 017 027
-051 Taster ARG 012 027
-052 Taster ARG 008 027
-052 Taster ELG 010 027
-053 Taster ELG 005 028
-054 Taster ELR 005 026
-055 Taster ELR 005 024
+013 Strecke|  |015 027 -150 |                         | 018 027 012 027 
+014 Gleis  |  |009 011 |150L|Güterbahnhof Gleis 1     | 009 024 009 004 
+015 Gleis  |  |010 011 |150L|Güterbahnhof Gleis 2     | 010 022 010 006 
+016 Gleis  |  |011 011 |150L|Güterbahnhof Gleis 3     | 011 022 011 008 
+017 Abstell|  |012 011 |150L|Güterbahnhof Gleis 4     | 012 023 012 010 
+018 Gleis  |  |013 011 |150L|Güterbahnhof Gleis 5     | 013 022 013 010 
+019 Gleis  |  |033 005 -150U|Steinbruch Gleis 1       | 033 005 038 005
+020 Strecke|  |000 024 -150 |not used                 |
+021 Strecke|  |000 024 -150 |not used                 |
+022 Strecke|  |000 024 -150 |not used                 |
+023 Strecke|  |000 024 -150 |not used                 |
+024 Strecke|  |009 029 -150 |                         | 
+025 Strecke|  |009 027 -150 |                         | 
+026 Strecke|  |000 024 -150 |not used                 |
+027 Strecke|  |000 024 -150 |not used                 |
+028 Strecke|  |000 024 -150 |not used                 |
+029 Strecke|  |000 024 -150 |not used                 |
+030 Strecke|  |000 024 -150 |not used                 |
+031 Strecke|  |000 024 -150 |neue Strecke Schine fehlt| 012 030 010 028
+032 Strecke|  |004 024 -150 |                         | 004 025 003 024 000 024
+033 Abstell|01|040 028 -150U|Lockschuppen Gleis 1     | 006 027 005 028 000 028
+034 Abstell|02|040 026 -150U|Lockschuppen Gleis 2     | 004 026 000 026
+035 Abstell|03|040 024 -150U|Lockschuppen Gleis 3     | 
+036 Abstell|04|040 024 -150U|Lockschuppen Gleis 4     | 
+037 Abstell|04|040 024 -150U|Lockschuppen Gleis 4     | 
+037 Abstell|05|040 024 -150U|Lockschuppen Gleis 5     | 
+038 Abstell|06|040 024 -150U|Lockschuppen Gleis 6     | 
+039 Abstell|07|040 024 -150U|Lockschuppen Gleis 7     | 
+040 Abstell|08|040 024 -150U|Lockschuppen Gleis 8     | 
 ## Weg Weichen ###############
 01 Weg to 13 090 101 B09
 01 Weg to 08 091 101 081 070 B09
@@ -152,10 +142,19 @@ PLAN  005 // Pläne Anzahl
 13 Weg to 14 111 061
 13 Weg to 15 111 060 050
 13 Weg to 16 111 060 051
-13 Weg to 24 110
+13 Weg to 32 110 200
 14 Weg to 12 011
 15 Weg to 12 010 020
 16 Weg to 12 010 021 030
 17 Weg to 12 010 021 031 040
 18 Weg to 12 010 021 031 041
+31 Weg to 32 201
+32 Weg to 32 180
+32 weg to 34 181 190
+32 weg to 35 181 191 210
+32 weg to 36 181 191 211 220
+32 weg to 37 181 191 211 221 230
+32 weg to 38 181 191 211 221 231 240
+32 weg to 39 181 191 211 221 231 241 250 
+32 weg to 40 181 191 211 221 231 241 251
 ## Ende ####-######## 

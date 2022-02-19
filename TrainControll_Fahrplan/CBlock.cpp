@@ -3,43 +3,32 @@
 #include "TrainControll_FahrplanDlg.h"
 
 
-CBlock::CBlock(CString InText)
+CBlock::CBlock()
 {
+	BlockNr = 0;
+}
+
+CBlock::CBlock(CString InText, CPoint Step)
+{
+	
+	int L = InText.GetLength();
 	LokData = NULL;
 	TRACE1("Block= %s \n", InText.Mid(0, 3));
 	BlockNr = _ttoi(InText.Mid(0,3));
-
-	/*
-
-	CString TextL;
-	int Pos = 10;
-	int Ar = 0;
-
-	do
+	if (InText.GetLength() > 17)
 	{
-		Pos = Ar * 3 + 10;
-		Ar++;
-		EinBlock.push_back(_ttoi(InText.Mid(Pos, 2)));
-
-	} while (InText[Pos + 2] != '|');
-	*/
-	//for (int i = 0; i < Reads; i++)
-	//{
-	//	
-	//	if (Eingang)
-	//	{
-	//		EinBlock.push_back(CBlock_Weg(InText.Mid(Pos, 2)));
-	//	}
-	//	else
-	//	{
-	//		AusBlock.push_back(CBlock_Weg(InText.Mid(Pos, 2)));
-	//	}
-	//	Ar++;
-	//	if (InText[Pos + 2] == '|')
-	//	{
-	//		Ar = 0;
-	//		Eingang = false;
-	//	}
+		if (InText[18] == 'E')
+			Taster_Ein = CBlock_Taster(InText.Mid(18, 10), Step);
+		if (InText[18] == 'A')
+			Taster_Aus = CBlock_Taster(InText.Mid(18, 10), Step);
+	}
+	if (InText.GetLength() > 28)
+	{
+		if (InText[29] == 'E')
+			Taster_Ein = CBlock_Taster(InText.Mid(29, 10), Step);
+		if (InText[29] == 'A')
+			Taster_Aus = CBlock_Taster(InText.Mid(29, 10), Step);
+	}
 }
 
 void CBlock::AddStrecke(CString InText, CPoint Step)
@@ -79,6 +68,23 @@ void CBlock::ZeicheBlock(CDC* pDC, std::vector<TrainCon_Paar>* Weichen)
 	}
 }
 
+void CBlock::ZeicheTaster(CDC* pDC)
+{
+	if (!GleisStrecke.empty())
+	{
+		Taster_Ein.zeichneTaster(pDC, BlockNr);
+		Taster_Aus.zeichneTaster(pDC, BlockNr);
+	}
+}
+
+void CBlock::ZeicheBlockInfo(CDC* pDC, byte Nr)
+{
+	if (!GleisStrecke.empty())
+	{
+		GleisStrecke.zeichneBlockNr(pDC, Nr);
+	}
+}
+
 CString CBlock::GetLok_NameonBlock()
 {
 	if (LokData == NULL)
@@ -93,9 +99,12 @@ CString CBlock::GetLok_NameonBlock()
 
 byte CBlock::OnKlick(CPoint Klick, byte* Data)
 {
+	if (Taster_Ein.OnKlick(Klick)) return 3;
+	if (Taster_Aus.OnKlick(Klick)) return 4;
 	if (!Weiche.empty())
 	{
-		for (CBlock_Weiche W : Weiche)
+		
+		for (auto& W : Weiche)
 		{
 			if (W.klickedWeiche(Klick))
 			{
@@ -122,12 +131,41 @@ bool CBlock::set_Relais(TrainCon_Paar RelaisDaten)
 	return false;
 }
 
+void CBlock::Set_EinTasterFarbe(char TC)
+{
+	Taster_Ein.SetFarbe(TC);
+}
+
+void CBlock::Set_AusTasterFarbe(char TC)
+{ 
+	Taster_Aus.SetFarbe(TC);
+}
+
+std::vector<TrainCon_Paar>* CBlock::Get_zuschaltener_Weg(byte NachBlock)
+{
+	for (auto& W : nach_Weg)
+	{
+		if (W.NachBlock() == NachBlock)
+		{
+			return(W.Hole_den_Weg());
+		}
+	}
+	for (auto& W : von_Weg)
+	{
+		if (W.NachBlock() == NachBlock)
+		{
+			return(W.Hole_den_Weg());
+		}
+	}
+	return(NULL);
+}
+
 bool CBlock::Weg_zuBlock(bool Richtung, std::vector<TrainCon_Paar>* Weichen, std::vector<byte>*WegeBlocks)
 {
 	
 	if (Richtung)
 	{
-		for (auto Weg : nach_Weg)
+		for (auto &Weg : nach_Weg)
 		{
 			if (Weg.isWeg_geschaltet(Weichen))
 			{
@@ -138,7 +176,7 @@ bool CBlock::Weg_zuBlock(bool Richtung, std::vector<TrainCon_Paar>* Weichen, std
 	}
 	else
 	{
-		for (auto Weg : von_Weg)
+		for (auto &Weg : von_Weg)
 		{
 			if (Weg.isWeg_geschaltet(Weichen))
 			{
@@ -153,11 +191,11 @@ bool CBlock::Weg_zuBlock(bool Richtung, std::vector<TrainCon_Paar>* Weichen, std
 
 void CBlock::GetAnschlussBlocks(std::vector<byte>* EinBlocks, std::vector<byte>* AusBlocks)
 {
-	for (auto Weg : nach_Weg)
+	for (auto &Weg : nach_Weg)
 	{
 		EinBlocks->push_back(Weg.NachBlock());
 	}
-	for (auto Weg : von_Weg)
+	for (auto &Weg : von_Weg)
 	{
 		AusBlocks->push_back(Weg.NachBlock());
 	}
@@ -183,6 +221,33 @@ bool CBlock::ist_frei()
 	return (LokData == NULL);
 }
 
+byte CBlock::Get_Aus_nextBlock(std::vector<TrainCon_Paar>* Weichen, std::vector<byte>* nBlock)
+{
+	byte B = 0;
+	for (auto& Weg : nach_Weg)
+	{
+		nBlock->push_back(Weg.NachBlock());
+		if (Weg.isWeg_geschaltet(Weichen))
+		{
+			B = Weg.NachBlock();
+		}
+	}
+	return B;
+}
+
+byte CBlock::Get_Ein_nextBlock(std::vector<TrainCon_Paar>* Weichen, std::vector<byte>* nBlock)
+{
+	byte B = 0;
+	for (auto& Weg : von_Weg)
+	{
+		nBlock->push_back(Weg.NachBlock());
+		if (Weg.isWeg_geschaltet(Weichen))
+		{
+			B = Weg.NachBlock();
+		}
+	}
+	return B;
+}
 BlockStatus CBlock::GetStatus_Block(CString *Lok_Name, bool *Lok_Dir)
 {
 	BlockStatus Status;
@@ -200,7 +265,6 @@ BlockStatus CBlock::GetStatus_Block(CString *Lok_Name, bool *Lok_Dir)
 		else			    Status = BlockStatus::BesetztError_B;
 		*Lok_Name = LokData->Name;
 		*Lok_Dir = LokData->Blick;
-
 	}
 	return Status;
 }
@@ -235,3 +299,21 @@ void CBlock::AddWeiche(CString InText, CPoint Step)
 
 CBlock::~CBlock()
 {}
+
+CDataXpressNet* CBlock::Get_Lok_onBlock()
+{
+	return LokData;
+}
+
+Start_Lok_Block CBlock::Get_StartLokInfo()
+{
+	Start_Lok_Block Data;
+	Data.Block = BlockNr;
+	if (LokData != nullptr)
+	{
+		Data.Lok_Name = LokData->Name;
+		Data.Blick = LokData->Blick;
+		Data.Betriebs_Modus = LokData->Betriebs_Modus;
+	}
+	return Data;
+}

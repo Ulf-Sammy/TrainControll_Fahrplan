@@ -108,18 +108,23 @@ void CameraBild::Set_Bild_inDlg(HWND Owner)
 
 void CameraBild::StartBild(bool OnCam)
 {
-	HRESULT hr = pGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pMediaContol);
-	if (SUCCEEDED(hr))
+	if (pMediaContol != NULL)
 	{
-		if (OnCam)
+
+		HRESULT hr = pGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pMediaContol);
+		if (SUCCEEDED(hr))
 		{
-			hr = pMediaContol->Run();
-			if (FAILED(hr))		pMediaContol->Stop();
+			if (OnCam)
+			{
+				hr = pMediaContol->Run();
+				if (FAILED(hr))		pMediaContol->Stop();
+			}
+			else
+			{
+				pMediaContol->Stop();
+			}
+			pMediaContol->Release();
 		}
-		else
-		{
-			pMediaContol->Stop();
-		}
-		pMediaContol->Release();
 	}
+
 }

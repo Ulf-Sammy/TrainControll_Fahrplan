@@ -45,15 +45,15 @@ CBlock_Weiche::CBlock_Weiche(CString InText, CPoint Step)
 			MitPos[0] = EinPos[0] + CPoint(0, 1);
 			AusPos[0] = EinPos[0] + CPoint(0, 2);
 			AusPos[1] = EinPos[0] + CPoint(-1, 2);
-			KlickRechteck = CRect(0, 0, 1, 2);
-			KlickRechteck.OffsetRect(EinPos[0] + CPoint(-1, 0));
+			KlickRechteck = CRect(0, 0, 1, 1);
+			KlickRechteck.OffsetRect(EinPos[0] + CPoint(-1, 1));
 		}
 		if (Richtung == 'O')
 		{
 			MitPos[0] = EinPos[0] + CPoint(0, -1);
 			AusPos[0] = EinPos[0] + CPoint(0, -2);
 			AusPos[1] = EinPos[0] + CPoint(1, -2);
-			KlickRechteck = CRect(0, 0, 1, 2);
+			KlickRechteck = CRect(0, 0, 1, 1);
 			KlickRechteck.OffsetRect(EinPos[0] + CPoint(0, -2));
 		}
 	}
@@ -64,7 +64,7 @@ CBlock_Weiche::CBlock_Weiche(CString InText, CPoint Step)
 			MitPos[0] = EinPos[0] + CPoint(-1, 0);
 			AusPos[0] = EinPos[0] + CPoint(-2, 0);
 			AusPos[1] = EinPos[0] + CPoint(-2, 1);
-			KlickRechteck = CRect(0, 0, 2, 1);
+			KlickRechteck = CRect(0, 0, 1, 1);
 			KlickRechteck.OffsetRect(EinPos[0] + CPoint(-2, 0));
 		}
 		if (Richtung == 'R')
@@ -72,23 +72,23 @@ CBlock_Weiche::CBlock_Weiche(CString InText, CPoint Step)
 			MitPos[0] = EinPos[0] + CPoint(1, 0);
 			AusPos[0] = EinPos[0] + CPoint(2, 0);
 			AusPos[1] = EinPos[0] + CPoint(2, -1);
-			KlickRechteck = CRect(0, 0, 2, 1);
-			KlickRechteck.OffsetRect(EinPos[0] + CPoint(0, -1));
+			KlickRechteck = CRect(0, 0, 1, 1);
+			KlickRechteck.OffsetRect(EinPos[0] + CPoint(1, -1));
 		}
 		if (Richtung == 'U')
 		{
 			MitPos[0] = EinPos[0] + CPoint(0, 1);
 			AusPos[0] = EinPos[0] + CPoint(0, 2);
 			AusPos[1] = EinPos[0] + CPoint(1, 2);
-			KlickRechteck = CRect(0, 0, 1, 2);
-			KlickRechteck.OffsetRect(EinPos[0]);
+			KlickRechteck = CRect(0, 0, 1, 1);
+			KlickRechteck.OffsetRect(EinPos[0] + CPoint(0,1));
 		}
 		if (Richtung == 'O')
 		{
 			MitPos[0] = EinPos[0] + CPoint(0, -1);
 			AusPos[0] = EinPos[0] + CPoint(0, -2);
 			AusPos[1] = EinPos[0] + CPoint(-1, -2);
-			KlickRechteck = CRect(0, 0, 1, 2);
+			KlickRechteck = CRect(0, 0, 1, 1);
 			KlickRechteck.OffsetRect(EinPos[0] + CPoint(-1, -2));
 		}
 	}
@@ -252,7 +252,7 @@ void CBlock_Strecke::Setup(CString InText, CPoint Step)
 {
 	Relais_Nr = 0;
 	Relais_Power = false;
-	CString Text = InText.Mid(4, 7);
+	
 	Relais_Nr = _ttoi(InText.Mid(12, 2));
 	box = (char)InText[23]; // Richtung der Box
 	GliesPos = (char)InText[27]; // Position der Beschriftung
@@ -261,8 +261,8 @@ void CBlock_Strecke::Setup(CString InText, CPoint Step)
 	TextPos.y = TextPos.y * Step.y;
 
 	Gleis_Name = InText.Mid(29, 25);
-
-
+	
+	CString Text = InText.Mid(4, 7);
 	if (Text == "Abstell") Type = StreckenType::Abstellgleis;
 	if (Text == "Strecke") Type = StreckenType::Strecke;
 	if (Text == "Gleis  ") Type = StreckenType::Gleis;
@@ -286,7 +286,7 @@ void CBlock_Strecke::Setup(CString InText, CPoint Step)
 		{
 			KlickRechteck = CRect(TextPos + CPoint(70, -10), TextPos + CPoint(_ttoi(InText.Mid(24, 3)), 10));
 			TextPos = TextPos + CPoint(74, -8);
-			TextBes = TextPos + CPoint(0, 20);
+			TextBes = TextPos + CPoint(0, -16);
 		}
 		if (box == '|') // 270°
 		{
@@ -295,7 +295,6 @@ void CBlock_Strecke::Setup(CString InText, CPoint Step)
 			TextBes = TextPos + CPoint(-20, 0);
 		}
 	}
-
 }
 
 CBlock_Strecke::~CBlock_Strecke()
@@ -332,6 +331,10 @@ void CBlock_Strecke::zeichneStrecke(CDC* pDC, BlockStatus Bl_Status, CString Lok
 		else pDC->LineTo(P);
 		i++;
 	}
+
+
+	// CPoint B = StreckePunkte.at(StreckePunkte.end());
+
 	if ((Type == StreckenType::Gleis) || (Type == StreckenType::Abstellgleis))
 	{ 
 		CPoint LokPosH = TextBes;
@@ -343,7 +346,7 @@ void CBlock_Strecke::zeichneStrecke(CDC* pDC, BlockStatus Bl_Status, CString Lok
 			else pDC->SelectObject(&Pen_PowerOFF);
 			pDC->Rectangle(KlickRechteck);
 		}
-		pDC->SelectObject(&theApp.Brush_White);
+		pDC->SelectObject(&theApp.Farbe_Weiss_FL);
 		pDC->SelectObject(&theApp.Stift_SW_1);
 		pDC->Rectangle(KlickRechteck);
 		if (box == '|') 	pDC->SelectObject(&theApp.BeschriftungBlock_270);
@@ -429,6 +432,38 @@ void CBlock_Strecke::zeichneStrecke(CDC* pDC, BlockStatus Bl_Status, CString Lok
 	}
 }
 
+void CBlock_Strecke::zeichneBlockNr(CDC* pDC, byte Block_Nr)
+{
+	size_t maxi = StreckePunkte.size();
+	CPoint P = StreckePunkte[0];
+	CPoint M = StreckePunkte[maxi - 1];
+	CRect TextFeld_Ein = CRect(0, 0, 20, 17);
+	CRect TextFeld_Aus = CRect(0, 0, 20, 17);
+	CString TextNr;
+
+	P = P + CPoint(-12, -10);
+	M = M + CPoint(-33, -10);
+
+	TextFeld_Aus.OffsetRect(M);
+	TextFeld_Ein.OffsetRect(P);
+
+	pDC->SetTextAlign(TA_LEFT | TA_CENTER);
+	pDC->SelectObject(&theApp.Font_Info_s);
+	pDC->SelectObject(&theApp.Stift_SW_1);
+
+	pDC->SelectObject(&theApp.Farbe_Weiss_FL);
+	pDC->SetBkColor(colorWeiss);
+	pDC->Rectangle(TextFeld_Ein);
+	TextNr.Format(_T("e%2i"), Block_Nr);
+	pDC->TextOut((P.x + 10), (P.y + 1), TextNr);
+
+	pDC->SelectObject(&theApp.Farbe_Gelb_FL);
+	pDC->SetBkColor(colorGelb);
+	pDC->Rectangle(TextFeld_Aus);
+	TextNr.Format(_T("a%2i"), Block_Nr);
+	pDC->TextOut((M.x + 10), (M.y + 1), TextNr);
+}
+
 bool CBlock_Strecke::klickedGleis(CPoint KlickP)
 {
 	return KlickRechteck.PtInRect(KlickP);
@@ -467,6 +502,9 @@ void CBlock_Strecke::GetDebugData(BlockDebugData *Data)
 	Data->Relais_Power = Relais_Power;
 }
 
+//##################################################################
+// CBlock_Weg                           
+
 CBlock_Weg::CBlock_Weg()
 {
 	Block_von = 0;
@@ -482,6 +520,7 @@ CBlock_Weg::CBlock_Weg(CString InText)
 	
 	int Reads = (InText.GetLength() - 10) / 4;
 	int i = 0; 
+
 	if ('B' == InText[InText.GetLength() - 3])
 	{
 		Block_zwich = _ttoi(InText.Mid(InText.GetLength() - 2, 2));
@@ -511,7 +550,7 @@ bool CBlock_Weg::isWeg_geschaltet(std::vector<TrainCon_Paar>* Weichen)
 	bool result = true;
 	bool bit;
 
-	for (auto N : WeichenWeg)
+	for (auto& N : WeichenWeg)
 	{
 		bit = (N.GetBit() == Weichen->at(N.GetWert()).GetBit());
 		result = result && bit;
@@ -527,6 +566,11 @@ bool CBlock_Weg::isWeg_nachgeschaltet(byte Block, std::vector<TrainCon_Paar>* We
 		if (Block == Block_nach) return true;
 	}
 	return false;
+}
+
+std::vector<TrainCon_Paar>* CBlock_Weg::Hole_den_Weg()
+{ 
+	return &WeichenWeg;
 }
 
 void CBlock_Weg::Blocksaufweg(std::vector<byte>* Block)
@@ -550,3 +594,100 @@ byte CBlock_Weg::NachBlock()
 {
 	return Block_nach;
 }
+
+//##################################################################
+// CBlock_Weg                           
+
+
+
+
+CBlock_Taster::CBlock_Taster()
+{
+}
+
+CBlock_Taster::CBlock_Taster(CString InText, CPoint Step)
+{
+	Showit = true;
+	Color = 'W'; // Farbe
+
+	Pos = CPoint(_ttoi(InText.Mid(3, 3)), _ttoi(InText.Mid(7, 3)));
+	Pos.x = Pos.x * Step.x;
+	Pos.y = Pos.y * Step.y;
+	switch (InText[1])
+	{
+	case 'L': // Links
+		Pos = Pos + CPoint(-20, 0);
+		break;
+	case 'R': // Rechts
+		Pos = Pos + CPoint(20, 0);
+		break;
+	case 'U': // Up hoch
+		Pos = Pos + CPoint(0, -20);
+		break;
+	case 'D': // Down runter
+		Pos = Pos + CPoint(0, 20);
+		break;
+	case 'N':
+	default: //'N' = Null
+		break;
+	}
+	KlickRechteck = CRect(0, 0, 0, 0);
+
+	KlickRechteck.bottom = Pos.y  + 11;
+	KlickRechteck.top    = Pos.y  - 11;
+	KlickRechteck.left   = Pos.x  - 11;
+	KlickRechteck.right  = Pos.x  + 11;
+}
+
+CBlock_Taster::~CBlock_Taster()
+{
+}
+
+bool CBlock_Taster::OnKlick(CPoint KlickP)
+{
+	return  KlickRechteck.PtInRect(KlickP);
+}
+
+
+void CBlock_Taster::zeichneTaster(CDC* pDC, byte Nr)
+{
+	if (Showit)
+	{
+
+		CString TextNr;
+		switch (Color)
+		{
+		case 'W':
+			pDC->SelectObject(&theApp.Farbe_Weiss_FL);
+			break;
+		case 'Y':
+			pDC->SelectObject(&theApp.Farbe_Gelb_FL);
+			break;
+		case 'R':
+			pDC->SelectObject(&theApp.Farbe_Rot_FL);
+			break;
+		case 'G':
+			pDC->SelectObject(&theApp.Farbe_Gruen_FL);
+			break;
+		case 'O':
+			pDC->SelectObject(&theApp.Farbe_Orange_FL);
+			break;
+		default:
+			pDC->SelectObject(&theApp.Brush_Weiche);
+			break;
+		}
+		pDC->Ellipse(KlickRechteck);
+		//pDC->Rectangle(KlickRechteck);
+	}
+}
+
+bool CBlock_Taster::isTaster()
+{
+	return Showit;
+}
+
+void CBlock_Taster::SetFarbe(char C)
+{
+	Color = C;
+}
+

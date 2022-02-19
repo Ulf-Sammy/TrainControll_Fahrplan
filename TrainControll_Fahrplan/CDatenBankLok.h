@@ -9,46 +9,47 @@ class CDatenBankLok
 public:
 	CDatenBankLok();
 	~CDatenBankLok();
-	void Init();
-	void Test_Data();
+
 	void Load_Zug_Data();
 	void Save_Zug_Data();
 
 	void Load_acktiv_Zug_Data();
 	void Save_acktiv_Zug_Data();
+
+	void Verbinde_Zug_zu_XpNet(byte Nr);
 	void Sound_acktive_Zug(bool SW);
 
-	void SetAktiv_Lok(CString InText);
 	byte Get_max_Aktiv_Loks();
 	
+	CDataXpressNet &Get_Lok_Pointer(CString LName);
 	CDataXpressNet &Get_aktiveLok_Pointer(byte Nr);
-	byte Get_Dialog_Nr(byte Lok_Nr);
-	bool is_Zug_Pointer(byte Nr);
-	void Ask_aktivLok_Data(byte Lok_Nr);
+
+	void Ask_for_Lok_Data(byte Lok_Nr);
 
 	void Fill_Liste_Zug(CComboBox* Data, DecoderTypen Decoder_Type);
 	void Fill_Liste_Zug(CComboBox* Data);
+	void Fill_Liste_Zug(CComboBox* Data, CString Name);
 	void Fill_Act_Liste_Zug(CComboBox* Data);
 
 	std::vector<CString> Get_LokGruppe_Decoder(DecoderTypen Decoder);
 	byte Get_Pos_LokName(CString LName);
 	std::vector <Function_A> Get_Zug_ActivFunktion_Pointer(byte Nr);
-	void Set_aktiveLok_Startbedingung(byte Nr, Zug_Status Status);
-	Zug_Status Get_aktiveLok_Status(byte Nr);
-	void Set_aktiveLoks_aufsGleis();
+	void Set_Lok_Startbedingung(byte Nr, Zug_Status Status);
+	Zug_Status Get_Lok_Status(byte Nr);
+	
 	void Set_aktiveLok_FuntiontoRun();
-	bool Get_aktiveLok_FunktionBit(byte Nr, byte FunktionNr);
-	bool Get_aktiveLok_FunktionSound(byte Nr);
-	void Set_aktiveLok_FunktionSound(byte Nr, bool bit);
-	bool is_aktiveLok_Sound(byte Nr);
-	bool Get_aktiveLok_FunktionRangier(byte Nr);
-	void Set_aktiveLok_FunktionRangier(byte Nr, bool bit);
-	bool Get_aktiveLok_FunktionZeit(byte Nr);
-	void Set_aktiveLok_FunktionZeit(byte Nr, bool bit);
-	void Set_aktiveLok_Geschwindigkeit(byte Nr, byte Speed, bool Dir, bool Stop);
-	CString Get_aktiveLok_Name(byte Nr);
-	HBITMAP	Get_aktiveLok_Image(byte Nr);
-	bool Set_Zug_Dlg_Nr(byte Nr);
+	void Set_Funktion(byte Nr, FahrplanPos Befehl);
+	bool Get_Lok_FunktionBit(byte Nr, byte FunktionNr);
+	bool Get_Lok_FunktionSound(byte Nr);
+	void Set_Lok_FunktionSound(byte Nr, bool bit);
+	bool is_Lok_Sound(byte Nr);
+	bool Get_Lok_FunktionRangier(byte Nr);
+	void Set_Lok_FunktionRangier(byte Nr, bool bit);
+	bool Get_Lok_FunktionZeit(byte Nr);
+	void Set_Lok_FunktionZeit(byte Nr, bool bit);
+	void Set_Lok_Geschwindigkeit(byte Nr, byte Speed, bool Dir, bool Stop);
+	CString Get_Lok_Name(byte Nr);
+	HBITMAP	Get_Lok_Image(byte Nr);
 	void Set_Prog_Zug(byte Zug);
 	void Set_Zug_CV_Wert(byte CV, byte CV_Wert);
 	byte Get_Prog_Zug();
@@ -58,20 +59,18 @@ public:
 	void Set_Sel_Zug_Decoder_Funktion_Eigen(byte Nr, bool view, bool change);
 	void Update_Sel_Zug_FunktionsTasten();
 	void Sort_Sel_Zug_FunktionsTasten();
-	void PRG_Lok_CV(bool ReadWrite, byte CV, byte Wert);
-	void PRG_Set_CV();
+	byte PRG_Lok_CV(bool ReadWrite, byte CV, byte Wert);
+
 	byte PRG_Get_CV(byte CV);
 
 	std::vector<CDataXpressNet> MeineZüge;
-
+	std::vector<Start_Lok_Block> HomeZüge;
 
 protected:
-	std::vector<byte> aktiveLoks;
-	byte			Anzahl_Dlg_Run = 0;
+	std::vector<byte> Loks_in_Schuppen;
 	byte			Ask_Lok_Nr = 0;
 	byte			Selected_Prog_Lok = 0;
 	byte			Prog_CV = 0;
-	bool			Zug_wartet_auf_Data = false;
 	bool			Do_Save_Data = false;
 };
 

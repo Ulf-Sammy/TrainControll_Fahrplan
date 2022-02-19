@@ -26,13 +26,12 @@ class CTrainControll_FahrplanDlg : public CDialogEx
 // Konstruktion
 public:
 	CTrainControll_FahrplanDlg(CWnd* pParent = NULL);	// Standardkonstruktor
-	void DlgTrainRunDone(int Dlg_Nr);
+	void DlgTrainRunDone(CDlg_Run_Train* Dlg_Nr);
 
 // Dialogfelddaten
 	enum { IDD = IDD_TRAINCONTROLL_FAHRPLAN_DIALOG };
-	CDlg_Run_Train*    pDlgTrainRun[7]   = { NULL,NULL,NULL,NULL,NULL,NULL,NULL };
-	int				   ButtonTrainRun[7] = { 0, 0, 0, 0, 0, 0, 0 };
-	CDlg_RunCam_Train* pDlgTrainRunCam   = NULL;
+	CDlg_Run_Train*    pDlgTrainRun[8]   = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL };
+	CDlg_Run_Train*    pDlgTrainRunCam   = NULL;
 	CDlg_Debug_Mega*   pDlgDebugInfo  = NULL;
 	CDlg_Lok_Schuppen* pDlgSchuppen   =	NULL;
 	CDlg_Block_Info*   pDlgBlockInfo  = NULL;
@@ -52,6 +51,7 @@ protected:
 	HICON m_hIcon;
 	
 	COM_Info ComListe[COM_MAX_LISTE];
+
 	// Generierte Funktionen für die Meldungstabellen
 	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV-Unterstützung
@@ -77,12 +77,12 @@ public:
 
 	void EnumSerialPortFriendlyName();
 	void Get_Com_Handel();
+	void Set_Train_Run_DLG();
 	bool Open_Setup_Com(COM_Info* p_COM_I);
 	void Start_Com_Thread();
 	void Close_Com_Handel();
-	void DoStartDialog(bool Zeige);
+
 	void updatePowerOn(bool Bit);
-	
 
 	afx_msg void OnSetupProgrammierezug();
 	afx_msg void OnSetupMeinezugliste();
@@ -96,4 +96,5 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnSetupMegadebugdata();
 	afx_msg void OnSetupComlisteInfo();
+	afx_msg void OnBnClickedButton1();
 };

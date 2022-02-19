@@ -110,7 +110,7 @@ void CDlg_Block_Info::Zeige_Daten()
 	str.Format(_T("%d"), BlockData.Relais_Nr);
 	str.Format(_T("%d"), BlockData.Relais_Power);
 
-	Beschriftung.Format(_T(" Block Nr. %2d - %s"),Block_Nr, BlockData.Gleis_Name) ;
+	Beschriftung.Format(_T(" Block Nr. %2d - %s"),Block_Nr, (LPCTSTR)BlockData.Gleis_Name) ;
 	LokName = BlockData.Lok_Name;
 }
 

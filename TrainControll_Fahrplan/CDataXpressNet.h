@@ -12,11 +12,9 @@ class CDataXpressNet
 public:
 	CDataXpressNet();
 	CDataXpressNet(CString LokName);
-	void Init();
-	bool FillData(CString InText);
 	~CDataXpressNet();
-	void Set_Dlg_Nr(byte Nr);
-	byte Get_Dlg_Nr();
+
+	void ConecttoXpressNet();
 
 	bool Prüfe_Plan_im_Block();
 	void Set_Block(byte Ist, byte Soll, byte Best, byte Melder);
@@ -35,6 +33,8 @@ public:
 	
 	byte Get_Decoder_Nr();
 	void Set_Startbedingungen(Zug_Status UserSet_Status);
+	void Set_BlickRichtung(bool LokBlick);
+	void Set_auf_Gleis(byte BlockNr);
 	void Set_Lok_Nr(byte Nr_EDV);
 	void Set_Funktion(byte Nr, bool bit);
 	void Set_Funktion(FahrplanPos Befehl);
@@ -58,11 +58,12 @@ public:
 	bool Prüfrichtung();
 	Zug_Status Get_Status();
 
+	byte Progmmiere_RW_CV(bool RW, byte CV, byte Wert);
+
 	CDecoderInfo  Decoder_Data;
 	HBITMAP		  Bild = 0x00 ;			// Bild der Lok
 	CString		  Name ;				// Name der Lok
 	CString       LokNr  = 0;			// Lok-Nr so was wie eine Ulf EDV Nummer
-	byte		  Dlg_Nr = 0xFF;		// Merke dir die Hand Dialog
 	bool		  DoFahrplan = false;	// Fahrplan wird im Thread abgearbeitet 
 	CDataFahrplan Fahr_Plan;
 	byte		  Plan_Melder = 0;		// nächster Melder im Fahrplan
@@ -72,6 +73,7 @@ public:
 	byte		  Block_ist = 0;		// ist Position der Lok im Block
 	byte		  Block_soll = 0;		// soll Position der Lok im Block
 	byte		  Block_best = 0;		// der blokierte Block
+	byte		  Block_Home = 0;		// Block wo der Zug abgestellt ist
 	byte		  Melder_next = 0;		// Melder der für den Zug die nächte Strecke berechnet/Blockiert 
 	byte		  Next_Hand_ABlock = 0; // Nächster Start AUS Block aus Sicht vor dem Start
 	byte		  Next_Hand_EBlock = 0; // Nächster Start Ein Block aus Sicht vor dem Start
@@ -87,6 +89,8 @@ protected:                        //0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 
 	// alles zum Fahren
 	CCom_LZV200 *XpressNet = NULL;
+	bool ProgMode;
+
 	Zug_Status  Status = Zug_Status::Zug_Stopped;       // Der Status vom Zug stop,fähr, hält
 	bool		Zug_active			= false; // ist Zug active
 	byte		FahrPlan_Nr			= 0;     // Nr des Fahrplans

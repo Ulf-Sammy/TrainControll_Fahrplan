@@ -324,5 +324,8 @@
     <Image Include="res\Signal_gruen.bmp">
       <Filter>Ressourcendateien</Filter>
     </Image>
+    <Image Include="res\bitmap1.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
   </ItemGroup>
 </Project>

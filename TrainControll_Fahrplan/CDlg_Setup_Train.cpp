@@ -169,7 +169,7 @@ void CDlg_Setup_Train::OnColumnclickList1(NMHDR *pNMHDR, LRESULT *pResult)
 	byte Lok_Pos;
 	if (pNMLV->iSubItem > 2)
 	{
-		selectet_LokName = selectet_LokGroup[pNMLV->iSubItem - 3];
+		selectet_LokName = selectet_LokGroup[static_cast<std::vector<CString, std::allocator<CString>>::size_type>(pNMLV->iSubItem) - 3];
 		Lok_Pos = Zug_Data->Get_Pos_LokName(selectet_LokName);
 		Lok_Liste_Gesamt.SetCurSel(Zug_Data->Get_Prog_Zug());
 		ChangeHeader();

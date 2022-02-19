@@ -104,8 +104,8 @@
 #define MAXDECODERTYPE 5
 #define MAX_FUNKTION 29
 #define MAX_MASSOTH_FUNKTION 17
-#define MAX_ZUEGE      (byte)20
-#define MAX_ZUEGE_AKT (byte)5 // maximal 3 Züge mit Hand steuern oder Automatisch
+#define MAX_ZUEGE     (byte)20
+#define MAX_ZUEGE_AKT (byte)8 // maximal 3 Züge mit Hand steuern oder Automatisch
 #define MAX_WEICHE 32    // 4 Karten x 8 Antriebe
 #define MAX_WEICHEN_WEGE 40
 #define MAX_BLOCK 100
@@ -118,27 +118,32 @@
 #define MAX_BLOCK_MELDER 4 // angeschlossenen Block Melder
 #define MAX_WEICHEN_MOTOR (MAX_BLOCK_MELDER * 8)
 #define MAX_STROM_ZEIT 255
-
-
+#define MaxAbstellGleise 8
 const byte DCC_SPEED_coded[] = { 0x00,0x02,0x12,0x03,0x13,0x04,0x14,0x05,0x15,0x06,0x16,0x07,0x17,0x08,0x18,0x09,0x19,0x0A,0x1A,0x0B,0x1B,0x0C,0x1C,0x0D,0x1D,0x0E,0x1E,0x0F,0x1F };
+
 const COLORREF colorHinterGrund = RGB(186, 252, 189);
 const COLORREF GleisGruen = RGB(6, 233, 13);
-const COLORREF GleisOrange = RGB(232,104,13);
+const COLORREF GleisOrange = RGB(214,116,7);
 const COLORREF GleisRot = RGB(225, 24, 32);
 const COLORREF GleisGelb = RGB(255, 242, 0);
 const COLORREF GleishellRot = RGB(242, 141, 147);
 const COLORREF GleisWeiss = RGB(255, 255, 255);
 const COLORREF GleisErrorA = RGB(  0, 255, 255);
 const COLORREF GleisErrorB = RGB(255, 255,   0);
-const COLORREF colorGelb = RGB(253, 240, 2);
+const COLORREF colorGelb = RGB(255, 240, 0);
+const COLORREF colorOrange = RGB(252, 103, 3);
 const COLORREF colorRot = RGB(255, 0, 0);
-const COLORREF colorgruen = RGB(10,233,20);
+const COLORREF colorGruen = RGB(10,233,20);
 const COLORREF colorSchwarz = RGB(0, 0, 0);
 const COLORREF colorWeiss = RGB(255, 255, 255);
 const COLORREF colorSchuppen = RGB(128, 0, 0);
 const COLORREF colorSchuppenTor = RGB(255, 128, 0);
 const COLORREF colorDunkelGrau = RGB(150, 150, 150);
+const COLORREF colorHellGrau = RGB(225, 225, 225);
 
+const LOGBRUSH Farbe_Rot = { BS_SOLID ,colorRot,HS_CROSS };
+
+const tagLOGPEN Stift_Taster = { PS_SOLID, 6, 6, ::GetSysColor(COLOR_3DFACE) };
 const tagLOGPEN Stift_Schwarz = { PS_SOLID , 1 , 1, colorSchwarz };
 
 const tagLOGPEN StiftGleis_frei    = { PS_SOLID , 5 , 5, GleisGruen };
@@ -161,7 +166,6 @@ const tagLOGFONTW FontType_Ar_14_270 = { 14, 0, 2700, 0, 200, FALSE, FALSE, 0, A
 
 const tagLOGFONTW FontType_ArR_20_0 = { 20, 0, 0, 0, 200, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial Rounded MT Bold") };
 
-
 const int Rect_X = 1600;
 const int Rect_Y = 660;
 
@@ -177,6 +181,7 @@ enum class XpNSendwas   { FGruppe0 = 0, FGruppe1, FGruppe2, FGruppe3, FGruppe4, 
 enum class BlockType    { isWeiche, isBlock, isGleis };
 enum class WeichenType  { linksWeiche, rechtsWeiche, L_DoppelWeiche, R_DoppelWeiche};
 enum class StreckenType { Strecke, Gleis, Abstellgleis};
+enum class TasterBlock  { Eingang, Ausgang};
 
 enum class FahrPlanDo { begin_Block, stoppen, vorwaerz_fahren, rueckwaerz_fahren, warten_fahren, warten_stoppen, schalten_Funk, schalten_Weiche, letzte_Zeile };
 
@@ -231,6 +236,79 @@ struct COM_Info
 	{
 		;
 	}
+};
+class Start_Lok_Block
+{
+	public:
+		CString Lok_Name;
+		byte Block;		// Start Block Nr
+		byte LokNr;		// Nummer der Lok aus der Datenbank
+		bool Blick;     // Blick-Richtung
+		Zug_Steuerung Betriebs_Modus;
+		
+		Start_Lok_Block()
+		{
+			Block = 0;
+			LokNr = 0;
+			Blick = true;
+			Betriebs_Modus = Zug_Steuerung::Hand_Betrieb;
+		};
+		Start_Lok_Block(CString InText)
+		{
+			Lok_Name = InText.Mid(0, 16);
+			Lok_Name.Trim();
+			CString T = InText.Mid(19, 3);
+			Block = _ttoi(InText.Mid(19, 3));
+
+			if (InText.Mid(23, 16) == "Zug in Uhrzeiger") 		
+				Blick = true;
+			else 
+				Blick = false;
+
+			switch (InText[17])
+			{
+			case 'H':
+				Betriebs_Modus = Zug_Steuerung::Hand_Betrieb;
+				break;
+			case 'A':
+				Betriebs_Modus = Zug_Steuerung::Automatik_Betrieb;
+				break;
+			case '0':
+				Betriebs_Modus = Zug_Steuerung::nicht_Betriebs_bereit;
+				break;
+			default:
+				break;
+			}
+		};
+		CString WriteData()
+		{
+			CString OutText;
+			char BM;
+			///012345678901234
+			//	Niki & Frank S| H | 026 Zug gegen Uhrzei | 00 |
+			BM = 'H';
+			if (Betriebs_Modus == Zug_Steuerung::Automatik_Betrieb) BM = 'A';
+
+			if (Blick)
+				OutText.Format(L"%16s|%c|%03i Zug in Uhrzeiger", (LPCTSTR)Lok_Name, BM, Block);
+			else
+				OutText.Format(L"%16s|%c|%03i Zug gegen Uhrzei", (LPCTSTR)Lok_Name, BM, Block);
+
+			return OutText;
+		};
+		CString Name()
+		{
+			return Lok_Name;
+		};
+		bool Blick_Lok()
+		{
+			return Blick;
+		};
+		bool Change_Blick()
+		{
+			Blick = !Blick;
+			return Blick;
+		}
 };
 
 class DoorInfo
