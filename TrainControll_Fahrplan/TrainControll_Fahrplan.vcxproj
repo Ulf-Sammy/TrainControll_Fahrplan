@@ -278,9 +278,11 @@
     <Image Include="res\bitlok_g.bmp" />
     <Image Include="res\bitlok_h.bmp" />
     <Image Include="res\bitmap1.bmp" />
+    <Image Include="res\bitmap2.bmp" />
     <Image Include="res\bitmap3.bmp" />
     <Image Include="res\bitmap4.bmp" />
     <Image Include="res\bmp00001.bmp" />
+    <Image Include="res\bmp00002.bmp" />
     <Image Include="res\f14_i.bmp" />
     <Image Include="res\f14_o.bmp" />
     <Image Include="res\f15_i.bmp" />

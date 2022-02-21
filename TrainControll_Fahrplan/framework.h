@@ -92,7 +92,7 @@
 #endif // TESTSTRECKE
 
 #define FILE_ALLE_ZUEGE   "Daten\\ULF_%d_ZUGDATA.txt"
-#define FILE_ALLE_ZUEGE_BILDER "Images\\"
+#define FILE_ALLE_ZUEGE_BILDER "Images\\LOK_BILDER\\"
 #define FILE_ALLE_BILDER "Images\\%s"
 
 #define COM_MAX_LISTE 10

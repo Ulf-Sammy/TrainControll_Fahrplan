@@ -1,6 +1,7 @@
 #include "pch.h"
-#include "TrainControll_Fahrplan.h"
+#include "TrainControll_FahrplanDlg.h"
 #include "CBlockInfo.h"
+#include "resource.h"
 
 CBlock_Weiche::CBlock_Weiche()
 {
@@ -599,8 +600,6 @@ byte CBlock_Weg::NachBlock()
 // CBlock_Weg                           
 
 
-
-
 CBlock_Taster::CBlock_Taster()
 {
 }
@@ -637,6 +636,13 @@ CBlock_Taster::CBlock_Taster(CString InText, CPoint Step)
 	KlickRechteck.top    = Pos.y  - 11;
 	KlickRechteck.left   = Pos.x  - 11;
 	KlickRechteck.right  = Pos.x  + 11;
+	
+	LedRechteck = CRect(0, 0, 0, 0);
+	LedRechteck.bottom = Pos.y + 8;
+	LedRechteck.top    = Pos.y - 8;
+	LedRechteck.left   = Pos.x - 8;
+	LedRechteck.right  = Pos.x + 8;
+
 }
 
 CBlock_Taster::~CBlock_Taster()
@@ -653,8 +659,6 @@ void CBlock_Taster::zeichneTaster(CDC* pDC, byte Nr)
 {
 	if (Showit)
 	{
-
-		CString TextNr;
 		switch (Color)
 		{
 		case 'W':
@@ -676,8 +680,10 @@ void CBlock_Taster::zeichneTaster(CDC* pDC, byte Nr)
 			pDC->SelectObject(&theApp.Brush_Weiche);
 			break;
 		}
-		pDC->Ellipse(KlickRechteck);
-		//pDC->Rectangle(KlickRechteck);
+		
+		theApp.Taster_Bitmap.DrawTransparent(pDC, KlickRechteck.left, KlickRechteck.top, RGB( 0, 0, 255));
+
+		pDC->Ellipse(LedRechteck);
 	}
 }
 

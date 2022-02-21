@@ -129,11 +129,13 @@ CTrainControll_FahrplanDlg::CTrainControll_FahrplanDlg(CWnd* pParent /*=NULL*/)
 	theApp.Signal_R.LoadBitmap(IDB_BITSIGNAL_ROT);
 	theApp.WarnungNotAus.LoadBitmap(IDB_BIT_WARNUNG);
 	theApp.LokSchuppen.LoadBitmap(IDB_BITMAP_SCHUPPEN);
+	theApp.Taster_Bitmap.LoadBitmap(IDB_BITMAP_TASTER);
 
 	pDlgDebugInfo = new CDlg_Debug_Mega(this);
 	pDlgSchuppen = new CDlg_Lok_Schuppen(this);
 	pDlgBlockInfo = new CDlg_Block_Info(this);
 	pDlgComListe = new CDlg_Com_Liste(this);
+
 	for (byte i = 0; i < 8; i++)
 	{
 		pDlgTrainRun[i] = new CDlg_Run_Train(this, i);
@@ -434,7 +436,6 @@ void CTrainControll_FahrplanDlg::DlgTrainRunDone(CDlg_Run_Train* Dlg_Nr)
 	}
 }
 
-
 bool CTrainControll_FahrplanDlg::Open_Setup_Com(COM_Info* p_COM_I)
 {
 	CString TxT = (L"\\\\.\\" + p_COM_I->COM_PORT);
@@ -548,7 +549,6 @@ void CTrainControll_FahrplanDlg::OnBnClickedButtonZug(UINT nID)
 	}
 }
 
-
 void CTrainControll_FahrplanDlg::OnClose()
 {
 	XpressNet.SendeLVZ_Power(false);
@@ -611,7 +611,6 @@ void CTrainControll_FahrplanDlg::OnLButtonDown(UINT nFlags, CPoint point)
 
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
-
 
 void CTrainControll_FahrplanDlg::updatePowerOn(bool Bit)
 {

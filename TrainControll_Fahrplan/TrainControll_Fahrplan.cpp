@@ -36,7 +36,7 @@ CTrainControll_FahrplanApp::CTrainControll_FahrplanApp()
 	Gleis_ErrorA.CreatePenIndirect((LPLOGPEN)&StiftGleis_ErrorA);
 	Gleis_ErrorB.CreatePenIndirect((LPLOGPEN)&StiftGleis_ErrorB);
 
-	Taster_Rand.CreatePen(PS_SOLID, 6, colorDunkelGrau);
+	Taster_Rand.CreatePen(PS_SOLID, 1, colorDunkelGrau);
 
 	Font_Info_s.CreateFontIndirectW(&FontType_Ar_15_0);
 	Font_Info_small.CreateFontIndirectW(&FontType_Ar_9_0);

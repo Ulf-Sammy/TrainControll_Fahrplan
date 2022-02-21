@@ -20,6 +20,7 @@ protected:
 	bool Showit = false; // Benutzte und Zeigen
 	char Color = '#';    // Füll Farbe 
 	CRect KlickRechteck; // Rechteck in dem gelickt wird
+	CRect LedRechteck;
 	CPoint Pos;	
 };
 

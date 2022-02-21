@@ -52,6 +52,7 @@ public:
 	CMaskedBitmap Lok_ge_Uhr;
 	CMaskedBitmap Lok_Hoch;
 	CMaskedBitmap Lok_Runter;
+	CMaskedBitmap Taster_Bitmap;
 
 	CMaskedBitmap Signal_R;
 	CMaskedBitmap Signal_G;

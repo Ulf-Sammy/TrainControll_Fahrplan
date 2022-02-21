@@ -327,5 +327,11 @@
     <Image Include="res\bitmap1.bmp">
       <Filter>Ressourcendateien</Filter>
     </Image>
+    <Image Include="res\bitmap2.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\bmp00002.bmp">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
   </ItemGroup>
 </Project>
