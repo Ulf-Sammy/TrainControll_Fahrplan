@@ -3,7 +3,7 @@
 #include "CGleisPlan.h"
 #include "MemDC.h"
 
-#define MaxWeiche 7
+constexpr int  MaxWeiche = 7;
 
 // CDlg_Lok_Schuppen-Dialog
 struct Line2Point
@@ -39,7 +39,6 @@ public:
 	enum { IDD = IDD_DIALOG_LOKSCHUPPEN };
 
 protected:
-	CCom_BlockMelderNet* BlockNet = NULL;
 	CDatenBankLok* Loks = NULL;
 	CGleisPlan* Gleise;
 

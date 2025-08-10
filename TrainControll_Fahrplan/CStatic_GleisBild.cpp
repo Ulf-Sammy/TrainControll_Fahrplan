@@ -33,7 +33,7 @@ void CStatic_GleisBild::Init()
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 	pDlgSchuppen = APP->pDlgSchuppen;
 	pDlgBlockInfo = APP->pDlgBlockInfo;
-	DataPlan = &APP->Gleis_Data;
+	DataPlan = &APP->Anlagen_Daten.Gleis_Data;
 	
 	GetClientRect(&m_rectCtrl);
 }

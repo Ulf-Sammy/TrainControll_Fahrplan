@@ -25,6 +25,7 @@ CStaticDraw::~CStaticDraw()
 
 BEGIN_MESSAGE_MAP(CStaticDraw, CStatic)
 	ON_WM_PAINT()
+	ON_BN_CLICKED(0, &CStaticDraw::OnBnClick)
 END_MESSAGE_MAP()
 
 
@@ -63,6 +64,10 @@ void CStaticDraw::OnPaint()
 	pDC->SelectObject(pOldPen);
 }
 
+void CStaticDraw::OnBnClick()
+{
+
+}
 void CStaticDraw::Init()
 {
 	GetClientRect(&m_rectCtrl);

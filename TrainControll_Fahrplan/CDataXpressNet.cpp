@@ -2,10 +2,31 @@
 #include "CDataXpressNet.h"
 #include "TrainControll_FahrplanDlg.h"
 
-CDataXpressNet::CDataXpressNet()
+CDataXpressNet::CDataXpressNet() 
+    : ProgMode(false), 
+      Zug_active(false), 
+      Betriebs_Modus(Zug_Steuerung::nicht_Betriebs_bereit), 
+      FahrRicht(true), 
+      Blick(true), 
+      FahrGesch(0), 
+      Block_ist(0), 
+      Block_soll(0), 
+      Block_best(0), 
+      Melder_next(0xFF)
 {
 }
-CDataXpressNet::CDataXpressNet(CString LokName)
+
+CDataXpressNet::CDataXpressNet(CString LokName) 
+	:ProgMode(false),
+	Zug_active(false), 
+	Betriebs_Modus(Zug_Steuerung::nicht_Betriebs_bereit),
+	FahrRicht(true), 
+	Blick(true),
+	FahrGesch(0),
+	Block_ist(0), 
+	Block_soll(0),
+	Block_best(0), 
+	Melder_next(0xFF)
 {
 	CString DateiName;
 	Name = LokName;
@@ -17,12 +38,6 @@ CDataXpressNet::CDataXpressNet(CString LokName)
 
 CDataXpressNet::~CDataXpressNet()
 {
-}
-
-void CDataXpressNet::ConecttoXpressNet()
-{
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	XpressNet = &APP->XpressNet;
 }
 
 bool CDataXpressNet::Prüfe_Plan_im_Block()
@@ -68,12 +83,10 @@ void CDataXpressNet::Set_Block_Pause(bool Stop)
 	Block_soll = Block_ist;
 }
 
-byte CDataXpressNet::Get_Soll_Block()
+byte CDataXpressNet::Get_Soll_Block() const
 {
 	return Block_soll;
 }
-
-
 
 void CDataXpressNet::Lade_Fahrplan()
 {
@@ -84,26 +97,12 @@ void CDataXpressNet::Lade_Fahrplan()
 	}
 }
 
-void CDataXpressNet::ASK_LokData()
-{
-	if (XpressNet->NoComtoLZV200())
-	{
-		TRACE(_T("Fehler Com Port nicht geöffnet !!! \n   Kann Zug Daten nicht abfragen! \n"));
-		return;
-	}
-	Decoder_Data.Fill_Tasten_DlgRun();
-	XpressNet->SendeAsknachLokDaten(Adresse);
-	//Wenn empfangen einlesen
-	XpressNet->HoleZugData(&FunktionsGruppe[0], Adresse);
-}
-
-
 void CDataXpressNet::Set_Adresse()
 {
 	Adresse = Lok_Adresse(Decoder_Data.Get_Adresse());
 }
 
-CString CDataXpressNet::Text_Block()
+CString CDataXpressNet::Text_Block() const
 {
 	CString Tmp;
 	if ((Block_ist > 200) || (Block_ist == 0))
@@ -153,7 +152,6 @@ CString CDataXpressNet::Text_Decoder_Sub()
 	return Decoder_Data.Text_Decoder_Soft_Version();
 }
 
-
 byte CDataXpressNet::Get_Decoder_Nr()
 {
 	return 0x00;
@@ -161,9 +159,6 @@ byte CDataXpressNet::Get_Decoder_Nr()
 
 void CDataXpressNet::Set_Startbedingungen(Zug_Status UserSet_Status)
 {
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-
-
 	switch (UserSet_Status)
 	{
 	case Zug_Status::Zug_Stopped:
@@ -177,7 +172,24 @@ void CDataXpressNet::Set_Startbedingungen(Zug_Status UserSet_Status)
 	default:
 		FahrRicht = true;
 		break;
+	}
+}
 
+void CDataXpressNet::Set_Status(Zug_Status UserSet_Status)
+{
+	switch (UserSet_Status)
+	{
+	case Zug_Status::Zug_Stopped:
+	case Zug_Status::Zug_faehrt_vor:
+	case Zug_Status::Zug_haelt:
+		FahrRicht = true;
+		break;
+	case Zug_Status::Zug_faehrt_rueck:
+		FahrRicht = false;
+		break;
+	default:
+		FahrRicht = true;
+		break;
 	}
 }
 
@@ -202,7 +214,7 @@ void CDataXpressNet::Set_Funktion(byte Nr, bool bit)
 	byte G_Nr = FunNr[Nr];
 
 	bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], bit);
-	XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]); 
+	//XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]); 
 }
 
 void CDataXpressNet::Set_Funktion(FahrplanPos Befehl)
@@ -212,7 +224,7 @@ void CDataXpressNet::Set_Funktion(FahrplanPos Befehl)
 		byte G_Nr = FunNr[Befehl.Get_Funtion().GetWert()];
 		
 		bitWrite(FunktionsGruppe[G_Nr], BitNr[Befehl.Get_Funtion().GetWert()], Befehl.Get_Funtion().GetBit());
-		XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+		//XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
 	}
 	else
 	{
@@ -228,7 +240,7 @@ void CDataXpressNet::Set_Funktion_Sound(bool SW)
 		byte G_Nr = FunNr[Nr];
 
 		bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], SW);
-		XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+		//XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
 	}
 }
 
@@ -240,7 +252,7 @@ void CDataXpressNet::Set_Funktion_Rangieren(bool SW)
 		byte G_Nr = FunNr[Nr];
 
 		bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], SW);
-		XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+		//XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
 	}
 }
 
@@ -252,9 +264,8 @@ void CDataXpressNet::Set_Funktion_VerzögerungsZeit(bool SW)
 		byte G_Nr = FunNr[Nr];
 
 		bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], SW);
-		XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+		//XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
 	}
-
 }
 
 bool CDataXpressNet::Get_Funktion(byte Nr)
@@ -266,115 +277,22 @@ bool CDataXpressNet::Get_Funktion(byte Nr)
 	return bitRead(FunktionsGruppe[G_Nr], BitNr[Nr]);
 }
 
-void CDataXpressNet::Set_Geschwindigkeit(byte Geschwindigkeit, bool FahrtRichtung)
-{
- 	FahrRicht = FahrtRichtung;
-	FahrGesch = Geschwindigkeit;
-	
-	FunktionsGruppe[0] = DCC_SPEED_coded[FahrGesch];
-	if (FahrRicht)
-	{
-		FunktionsGruppe[0] = bitSet(FahrGesch, 7);
-		Status = Zug_Status::Zug_faehrt_vor;
-	}
-	else 
-		Status = Zug_Status::Zug_faehrt_rueck;
-   // F0 Byte = |R00V VVVV|
-	XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
-}
-
-void CDataXpressNet::Set_Geschwindigkeit(FahrplanPos Befehl)
-{
-	if (Befehl.isGeschwindigkeit())
-	{
-		if (Befehl.mache == FahrPlanDo::stoppen)
-		{
-			FahrGesch = 0;
-			Status = Zug_Status::Zug_Stopped;
-		}
-		else
-		{
-			FahrGesch = Befehl.GetGeschwindigkeit();
-			if (Befehl.mache == FahrPlanDo::vorwaerz_fahren) 	FahrRicht = true;
-			if (Befehl.mache == FahrPlanDo::rueckwaerz_fahren) 	FahrRicht = false;
-		}
-		FunktionsGruppe[0] = FahrGesch;
-		if (FahrRicht)
-		{
-			FunktionsGruppe[0] = bitSet(FahrGesch, 7);
-			Status = Zug_Status::Zug_faehrt_vor;
-		}
-		else Status = Zug_Status::Zug_faehrt_rueck;
-
-		XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
-	}
-	else
-	{
-		TRACE(_T(" ERROR falscher Befehl \n\n"));
-	}
-}
-
-void CDataXpressNet::ReSet_Geschwindigkeit()
-{
-	FunktionsGruppe[0] = FahrGesch;
-	if (FahrRicht) FunktionsGruppe[0] = bitSet(FahrGesch, 7);
-
-	XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
-	if (FahrRicht) 			Status = Zug_Status::Zug_faehrt_vor;
-	else Status = Zug_Status::Zug_faehrt_rueck;
-}
-
-void CDataXpressNet::Set_Stop()
-{
-	byte Data = 0;
-	if (FahrRicht) FunktionsGruppe[0] = bitSet(Data, 7);
-	XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
-	Status = Zug_Status::Zug_Stopped;
-}
-
-void CDataXpressNet::Set_Halt()
-{
-	byte Data = 0;
-	if (FahrRicht) FunktionsGruppe[0] = bitSet(Data, 7);
-	XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
-	Status = Zug_Status::Zug_haelt;
-}
-
-void CDataXpressNet::Set_Halt(FahrplanPos Befehl)
-{
-	if (Befehl.isGeschwindigkeit())
-	{
-		if (Befehl.mache == FahrPlanDo::vorwaerz_fahren) 	FahrRicht = true;
-		if (Befehl.mache == FahrPlanDo::rueckwaerz_fahren) 	FahrRicht = false;
-		FahrGesch = Befehl.GetGeschwindigkeit();
-		byte Data = 0;
-		if (FahrRicht) FunktionsGruppe[0] = bitSet(Data, 7);
-		XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
-		Status = Zug_Status::Zug_haelt;
-	}
-	else
-	{
-		TRACE(_T(" ERROR falscher Befehl \n\n"));
-	}
-}
-
-
-bool CDataXpressNet::isNext_Melder(byte Melder)
+bool CDataXpressNet::isNext_Melder(byte Melder) const
 {
 	return (Melder_next == Melder);
 }
 
-bool CDataXpressNet::isHalt()
+bool CDataXpressNet::isHalt() const
 {
 	return (Status == Zug_Status::Zug_haelt);
 }
 
-bool CDataXpressNet::isVorwärtz()
+bool CDataXpressNet::isVorwärtz() const
 {
 	return FahrRicht;
 }
 
-bool CDataXpressNet::isOnGleis()
+bool CDataXpressNet::isOnGleis() 
 {
 	if (Block_ist == 0x00)
 	{
@@ -384,12 +302,12 @@ bool CDataXpressNet::isOnGleis()
 	return true;
 }
 
-bool CDataXpressNet::isActive()
+bool CDataXpressNet::isActive() const
 {
 	return (!(Betriebs_Modus == Zug_Steuerung::nicht_Betriebs_bereit));
 }
 
-bool CDataXpressNet::isAutomaticOn()
+bool CDataXpressNet::isAutomaticOn() const
 {
 	return ((Betriebs_Modus == Zug_Steuerung::Automatik_Betrieb)&&(Zug_active));
 }
@@ -412,7 +330,111 @@ Zug_Status CDataXpressNet::Get_Status()
 	return Status;
 }
 
-byte CDataXpressNet::Progmmiere_RW_CV(bool RW, byte CV, byte Wert)
+void CDataXpressNet::ASK_LokData(byte Info, byte* Data)
+{
+	Data[0] = WifiKennung; // Kennung
+	Data[1] = 0x09; // Länge des Befehls (9 Bytes)
+	Data[2] = 0xFF;
+	Data[3] = 0xFE;
+	Data[4] = 0xE3;
+	Data[6] = Adresse.HighAdr(); // AH
+	Data[7] = Adresse.LowAdr();  // AL
+	Data[8] = 0x00; // XOR Checksumme wird später berechnet im GIGA
+
+	switch (Info)
+	{
+	case 0: // Lokdaten anfordern // Antwort unter 3.1.9
+		Data[5] = 0x00; // F0 .. F4 & F5 .. F12
+		break;
+	case 1: // Funktions status I  anfordern {F0 bis F12 }
+		Data[5] = 0x07; // F0 .. F4 & F5 .. F12
+		break;
+	case 2: //3.2.25.1 Funktionsstatus II  {F13 bis F28 } 
+		Data[5] = 0x08; // F13 ... F28
+		break;
+	case 3: //3.2.25.2 Funktionsstatus II {F13 bis F28 }
+		Data[5] = 0x09; // F13 ... F28
+		break;
+	default:
+		break;
+	}
+	Decoder_Data.Fill_Tasten_DlgRun();
+}
+
+void CDataXpressNet::Set_Stop(byte* Data) // Zug wird gestoppt. 
+{
+	Data[0] = WifiKennung; // Kennung
+	Data[1] = 0x09; // Länge des Befehls (9 Bytes)
+	Data[2] = 0xFF;
+	Data[3] = 0xFE;
+	Data[4] = 0x92;
+	Data[5] = Adresse.HighAdr(); // AH
+	Data[6] = Adresse.LowAdr();  // AL
+	Data[7] = 0x00; 	// Speed Byte 7 = |R00V VVVV|
+	Data[8] = 0x00; // XOR Checksumme wird später berechnet im GIGA
+	Status = Zug_Status::Zug_Stopped;
+	FahrGesch = 0; // Geschwindigkeit auf 0 setzen
+	//Wifi_Client->Send_Data(); // Sende den Befehl über das Wifi Client Objekt
+}
+
+void CDataXpressNet::Set_Halt(byte* Data) // Zug wird angehalten
+{
+	Set_Geschwindigkeit(0, FahrRicht,Data); // Geschwindigkeit auf 0 setzen
+}
+
+void CDataXpressNet::Set_Halt(FahrplanPos Befehl, byte* Data)
+{
+	Set_Halt(Data);
+}
+void CDataXpressNet::Set_Geschwindigkeit(byte Geschwindigkeit, bool FahrtRichtung, byte* Data)
+{  
+	FahrRicht = FahrtRichtung;
+	FahrGesch = Geschwindigkeit;
+
+	Data[0] = WifiKennung; // Kennung
+	Data[2] = 0xFF;
+	Data[1] = 0x09; // Länge des Befehls (9 Bytes)
+	Data[3] = 0xFE;
+	Data[4] = 0x12; 
+	Data[5] = Adresse.HighAdr(); // AH
+	Data[6] = Adresse.LowAdr();  // AL
+	Data[7] = DCC_SPEED_coded[FahrGesch]; 	// Speed Byte 7 = |R00V VVVV|
+	Data[8] = 0x00; // XOR Checksumme wird später berechnet im GIGA
+	if (FahrRicht)
+	{
+		Data[7] = bitSet(FahrGesch, 7);
+		Status = Zug_Status::Zug_faehrt_vor;
+	}
+	else
+		Status = Zug_Status::Zug_faehrt_rueck;
+	if (Geschwindigkeit == 0)		Status = Zug_Status::Zug_Stopped;
+}
+void CDataXpressNet::Set_Geschwindigkeit(FahrplanPos F_Befehl, byte* Data)
+{
+	bool Fahr_Richt = true; // Vorwärts
+	byte Fahr_Gesch = 0; // Geschwindigkeit
+
+	if (F_Befehl.isGeschwindigkeit())
+	{
+		if (F_Befehl.mache == FahrPlanDo::stoppen)
+		{
+			Fahr_Gesch = 0;
+		}
+		else
+		{
+			Fahr_Gesch = F_Befehl.GetGeschwindigkeit();
+			if (F_Befehl.mache == FahrPlanDo::vorwaerz_fahren) 	Fahr_Richt = true;
+			if (F_Befehl.mache == FahrPlanDo::rueckwaerz_fahren) 	Fahr_Richt = false;
+		}
+		Set_Geschwindigkeit(Fahr_Gesch, Fahr_Richt, Data);
+	}
+	else
+	{
+		TRACE(_T(" ERROR falscher Befehl \n\n"));
+	}
+}
+
+byte CDataXpressNet::Progmmiere_RW_CV(bool RW, byte CV, byte Wert, byte* Data)
 {
 	if (!ProgMode)
 	{
@@ -420,10 +442,10 @@ byte CDataXpressNet::Progmmiere_RW_CV(bool RW, byte CV, byte Wert)
 		CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 		APP->InfoModus.Set_Status(2);
 	}
-	if (RW)  // true dann schreiben
-		return	XpressNet->Sende_Write_CV(CV, Wert);
-	else			// false weil nur lesen
-		return  XpressNet->Sende_Read_CV(CV, Wert);
-
+	//if (RW)  // true dann schreiben
+	//	return	XpressNet->Sende_Write_CV(CV, Wert);
+	//else			// false weil nur lesen
+	//	return  XpressNet->Sende_Read_CV(CV, Wert);
+	return 0; // Dummy Rückgabe, da XpressNet nicht implementiert ist
 }
 

@@ -29,14 +29,11 @@ CStatic_DrawBMP::~CStatic_DrawBMP()
 }
 
 
+
+
 BEGIN_MESSAGE_MAP(CStatic_DrawBMP, CStatic)
 	ON_WM_PAINT()
 END_MESSAGE_MAP()
-
-
-
-// CStatic_DrawBMP-Meldungshandler
-
 
 
 

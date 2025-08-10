@@ -1,8 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "CBlock.h"
-#include "COM_LZV200.h"
-#include "Com_BlockMelderNet.h"
 //#include "CStatic_GleisBild.h"
 #include "CDatenBankLok.h"
 #include "TrainControll_Fahrplan.h"
@@ -16,18 +14,13 @@ public:
 	~CGleisPlan();
 	void Init();
 	// für den Task	
-	void NewTimeZug(clock_t Zeit);
-	void GetNextMessage_Mega();
-	void GetNextMessage_LZV();
+	
 
 	bool isNewUpdate_Taster();
-
 	
-	void DoCheckIt(byte Lok_Nr, clock_t Zeit);
+	//void DoCheckIt(byte Lok_Nr, clock_t Zeit);
 	void showInfo_Dlg(byte LokNr, CString Info);
 	void showPlan_Dlg(byte LokNr, CString Info);
-
-	void Set_Lok_Geschwindigkeit(byte LokNr, Zug_Status SetTo, byte Geschwindikkeit); // und sendet die Daten
 
 	bool isPower_onGleis();
 	bool isPower_onBlock(byte Nr);
@@ -37,6 +30,8 @@ public:
 	bool Klick_Block(CPoint Klick);
 	void Set_Taster_Farbe();
 	bool Set_Block(byte* Data);
+	void Set_Block_free(byte BlockNr);
+	void Set_Block_Lok(byte BlockNr, CDataXpressNet *Lok);
 	bool Set_Weiche(byte* Data);
 	bool Set_Weiche(TrainCon_Paar WeichenDaten);
 	bool Get_Weiche(TrainCon_Paar WeichenDaten);
@@ -48,21 +43,20 @@ public:
 	bool Get_Door_open();
 	byte Get_Door_free();
 	void Schalte_Relais(byte Nr, bool Bit);
+	Start_Lok_Block Get_StartLokInfo(byte Nr);
 	void GetAnschlussBlocks(byte Nr, std::vector<byte>* EinBlocks, std::vector<byte>* AusBlocks);
 	bool Weg_Von_bis_frei(byte BlockNr, byte BlockTo, std::vector<byte>*WegeBlocks);
 	bool Weg_nach_von_Block(byte BlockNr, bool Richtung,std::vector<byte>* WegeBlocks);
 	bool isWeg_frei(std::vector<byte> WegeBlocks);
 	bool Besetze_Weg_mit_Lok(CDataXpressNet* XpressNet, std::vector<byte> WegeBlocks);
-	void Besetze_AbstellGleise_mit_Loks();
-	void Setze_Lok_aufGleis(Start_Lok_Block Data);
-	void Update_Lok_Abstellgleis();
+	//void Besetze_AbstellGleise_mit_Loks();
+	//void Setze_Lok_aufGleis(Start_Lok_Block Data);
+//	void Update_Lok_Abstellgleis();
 	bool Hole_Lok_Blick_vonGleis(byte Nr);
 	CString Get_LokName_in_Block(byte Nr);
 	BlockStatus GetStatus_Block(byte Nr, CString *Lok_Name );
 	BlockStatus GetStatus_Block(byte Nr, CString* Lok_Name, bool* Richtung);
 	BlockDebugData Get_DebugData(byte Nr);
-	void TestBlock_mitZug(byte Nr, bool Bit, bool leeren );
-	CDataXpressNet* TestZug(bool Bit);
 	CDataXpressNet* Get_Zug_Point(byte BlockNr);
 
 protected:
@@ -71,9 +65,7 @@ protected:
 	std::vector<CBlock_Taster> TasterAus;
 	std::vector<TrainCon_Paar> WeichenAntrieb;
 	DoorInfo Tor;
-	CCom_LZV200         *XpressNet	  = NULL;
-	CDatenBankLok       *Züge		  = NULL;
-	CCom_BlockMelderNet *BlockMelder  = NULL;
+	//CDatenBankLok       *Züge		  = NULL;
 	BlockRueckmeldung	PruefeZugWeg  = BlockRueckmeldung::Frei_Fahrt;
 	ControlStatus		ModeControl	  = ControlStatus::Begin_COM;
 	byte				ModeSub			= 0;

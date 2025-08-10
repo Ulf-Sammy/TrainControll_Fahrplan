@@ -20,7 +20,10 @@ END_MESSAGE_MAP()
 
 
 CDlg_Setup_Train::CDlg_Setup_Train(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CDlg_Setup_Train::IDD, pParent)
+	: CDialogEx(CDlg_Setup_Train::IDD, pParent),
+	Zug_Data(nullptr), // Initialisierung von Zug_Data
+	pDlgListFunktion(nullptr),
+	selectet_Dlg_Lok(0) // Initialisierung von selectet_Dlg_Lok
 {
 	selectet_DecoderType = DecoderTypen::NoDecoder;
 	selectet_LokName     = "";
@@ -197,7 +200,10 @@ void CDlg_Setup_Train::OnDblclkList1(NMHDR *pNMHDR, LRESULT *pResult)
 	{
 		CV		= _ttoi(m_List_CVs.GetItemText(CV_Pos, 0));
 		CV_Wert = _ttoi(m_List_CVs.GetItemText(CV_Pos, selectet_Dlg_Lok));
-		m_List_CVs.SetItemText(CV_Pos, selectet_Dlg_Lok, 0);
+		if (selectet_Dlg_Lok >= 0)
+		{
+			m_List_CVs.SetItemText(CV_Pos, selectet_Dlg_Lok, _T("0"));
+		}
 		m_List_CVs.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 		m_List_CVs.SetItemState(CV_Pos, LVIS_SELECTED, LVIS_SELECTED);
 	

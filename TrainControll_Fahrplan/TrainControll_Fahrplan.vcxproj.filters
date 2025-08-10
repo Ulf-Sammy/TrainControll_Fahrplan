@@ -93,9 +93,6 @@
     <ClInclude Include="MemDC.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="COM_BlockMelderNet.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="CBlockInfo.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -117,9 +114,6 @@
     <ClInclude Include="CDlg_Train_Run.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="COM_LZV200.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="CDlg_Com_Liste.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -130,6 +124,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="CStatic_DrawBMP.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="C_Anlagen_Data.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="C_UDP_Client.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -188,9 +188,6 @@
     <ClCompile Include="CDlg_Debug_Mega.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="COM_BlockMelderNet.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="CDlg_Lok_Schuppen.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -224,9 +221,6 @@
     <ClCompile Include="CDlg_Train_Run.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="COM_LZV200.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="CDlg_Com_Liste.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -237,6 +231,12 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="CStatic_DrawBMP.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="C_Anlagen_Data.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="C_UDP_Client.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

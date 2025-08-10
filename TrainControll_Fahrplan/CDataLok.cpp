@@ -1,0 +1,422 @@
+#include "pch.h"
+#include "CDatalok.h"
+
+
+CDataLok::CDataLok()
+{
+}
+CDataLok::CDataLok(CString LokName)
+{
+	CString DateiName;
+	Name = LokName;
+	Name.Trim();
+	DateiName = _T(FILE_ALLE_ZUEGE_BILDER)+(Name)+L".BMP"; //_T("Images\\Spreewald.bmp")
+	Bild = (HBITMAP)::LoadImage(AfxGetInstanceHandle(), DateiName, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);	
+}
+
+
+CDataLok::~CDataLok()
+{
+}
+
+
+bool CDataLok::Prüfe_Plan_im_Block()
+{
+	if (Fahr_Plan.Get_Plan_Befehl().mache == FahrPlanDo::begin_Block)
+	{
+		if (Block_ist == Fahr_Plan.Get_Plan_Befehl().WertA)
+		{
+			Fahr_Plan.Done_Plan_Befehl();
+			return true;
+		}
+		else
+		{
+			TRACE(_T("ERROR Lok steht nicht im Richtigen Block"));
+		}
+	}
+	return false;
+}
+
+void CDataLok::Set_Block(byte Ist, byte Soll, byte Best, byte Melder)
+{
+	Block_ist = Ist;
+	Block_soll = Soll;
+	Block_best = Best;
+	Melder_next = Melder;
+}
+
+void CDataLok::Set_Besetzt_Block(byte Best)
+{
+	Block_best = Best;
+}
+
+void CDataLok::Set_Block_Pause(bool Stop)
+{
+	if (Stop)
+	{ 
+		Melder_next = 0xFF;
+	}
+	else
+	{ 
+		Block_best = 0;
+	}
+	Block_soll = Block_ist;
+}
+
+byte CDataLok::Get_Soll_Block()
+{
+	return Block_soll;
+}
+
+
+
+void CDataLok::Lade_Fahrplan()
+{
+	if (Betriebs_Modus == Zug_Steuerung::Automatik_Betrieb)
+	{
+		Fahr_Plan.Load_Daten(FahrPlan_Nr);
+		Zug_active = true;
+	}
+}
+
+void CDataLok::ASK_LokData()
+{
+	Decoder_Data.Fill_Tasten_DlgRun();
+	//XpressNet->SendeAsknachLokDaten(Adresse);
+	//Wenn empfangen einlesen
+	//XpressNet->HoleZugData(&FunktionsGruppe[0], Adresse);
+}
+
+
+void CDataLok::Set_Adresse()
+{
+	Adresse = Lok_Adresse(Decoder_Data.Get_Adresse());
+}
+
+CString CDataLok::Text_Block()
+{
+	CString Tmp;
+	if ((Block_ist > 200) || (Block_ist == 0))
+		Tmp.Format(_T(" ... "));
+	else
+		Tmp.Format(_T(" %3i"), Block_ist);
+	return Tmp;
+}
+
+CString CDataLok::Text_Betrieb()
+{
+	CString Tmp;
+	switch (Betriebs_Modus)
+	{
+	case Zug_Steuerung::nicht_Betriebs_bereit:
+		Tmp.Format(L"....");
+		break;
+	case Zug_Steuerung::Hand_Betrieb:
+		Tmp.Format(L"Hand");
+		break;
+	case Zug_Steuerung::Automatik_Betrieb:
+		Tmp.Format(L"Auto");
+		break;
+	default:
+		break;
+	}
+	return Tmp;
+}
+
+CString CDataLok::Text_Adresse()
+{
+	return Decoder_Data.Text_Adresse();
+}
+
+CString CDataLok::Text_Hersteller()
+{
+	return Decoder_Data.Text_Decoder_Hersteller();
+}
+
+CString CDataLok::Text_Decoder()
+{
+	return Decoder_Data.Text_Decoder_Type();
+}
+
+CString CDataLok::Text_Decoder_Sub()
+{
+	return Decoder_Data.Text_Decoder_Soft_Version();
+}
+
+
+byte CDataLok::Get_Decoder_Nr()
+{
+	return 0x00;
+}
+
+void CDataLok::Ask_Version()
+{
+}
+
+void CDataLok::Set_Startbedingungen(Zug_Status UserSet_Status)
+{
+	switch (UserSet_Status)
+	{
+	case Zug_Status::Zug_Stopped:
+	case Zug_Status::Zug_faehrt_vor:
+	case Zug_Status::Zug_haelt:
+		FahrRicht = true;
+		break;
+	case Zug_Status::Zug_faehrt_rueck:
+		FahrRicht = false;
+		break;
+	default:
+		FahrRicht = true;
+		break;
+
+	}
+}
+
+void CDataLok::Set_BlickRichtung(bool LokBlick)
+{
+	Blick = LokBlick;
+}
+
+void CDataLok::Set_auf_Gleis(byte BlockNr)
+{
+	Block_ist = BlockNr;
+	Block_soll = BlockNr;
+}
+
+void CDataLok::Set_Lok_Nr(byte Nr_EDV)
+{
+	
+}
+
+void CDataLok::Set_Funktion(byte Nr, bool bit)
+{
+	byte G_Nr = FunNr[Nr];
+
+	bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], bit);
+	// XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]); 
+}
+
+void CDataLok::Set_Funktion(FahrplanPos Befehl)
+{
+	if (Befehl.mache == FahrPlanDo::schalten_Funk)
+	{ 
+		byte G_Nr = FunNr[Befehl.Get_Funtion().GetWert()];
+		
+		bitWrite(FunktionsGruppe[G_Nr], BitNr[Befehl.Get_Funtion().GetWert()], Befehl.Get_Funtion().GetBit());
+		// XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+	}
+	else
+	{
+		TRACE(_T(" ERROR falscher Befehl \n\n"));
+	}
+}
+
+void CDataLok::Set_Funktion_Sound(bool SW)
+{
+	byte Nr = Decoder_Data.Get_Sound_FuntionsTaste();
+	if ((Nr > 0) &&(Nr < 255))
+	{
+		byte G_Nr = FunNr[Nr];
+
+		bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], SW);
+		// XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+	}
+}
+
+void CDataLok::Set_Funktion_Rangieren(bool SW)
+{
+	byte Nr = Decoder_Data.Get_Rangier_FunktionTaste();
+	if (Nr > 0)
+	{
+		byte G_Nr = FunNr[Nr];
+
+		bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], SW);
+		// XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+	}
+}
+
+void CDataLok::Set_Funktion_VerzögerungsZeit(bool SW)
+{
+	byte Nr = Decoder_Data.Get_VerzögZ_FunktionTaste();
+	if (Nr > 0)
+	{
+		byte G_Nr = FunNr[Nr];
+
+		bitWrite(FunktionsGruppe[G_Nr], BitNr[Nr], SW);
+		// XpressNet->SendeZugDaten((XpNSendwas)G_Nr, Adresse, FunktionsGruppe[G_Nr]);
+	}
+
+}
+
+bool CDataLok::Get_Funktion(byte Nr)
+{
+	byte G_Nr = 0;
+	if (Nr > 28) Nr = 0;
+	
+	G_Nr = FunNr[Nr];
+	return bitRead(FunktionsGruppe[G_Nr], BitNr[Nr]);
+}
+
+void CDataLok::Set_Geschwindigkeit(byte Geschwindigkeit, bool FahrtRichtung)
+{
+ 	FahrRicht = FahrtRichtung;
+	FahrGesch = Geschwindigkeit;
+	
+	FunktionsGruppe[0] = DCC_SPEED_coded[FahrGesch];
+	if (FahrRicht)
+	{
+		bitSet(FunktionsGruppe[0], 7);
+		Status = Zug_Status::Zug_faehrt_vor;
+	}
+	else 
+		Status = Zug_Status::Zug_faehrt_rueck;
+   // F0 Byte = |R00V VVVV|
+	// XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
+}
+
+void CDataLok::Set_Geschwindigkeit(FahrplanPos Befehl)
+{
+	if (Befehl.isGeschwindigkeit())
+	{
+		if (Befehl.mache == FahrPlanDo::stoppen)
+		{
+			FahrGesch = 0;
+			Status = Zug_Status::Zug_Stopped;
+		}
+		else
+		{
+			FahrGesch = Befehl.GetGeschwindigkeit();
+			if (Befehl.mache == FahrPlanDo::vorwaerz_fahren) 	FahrRicht = true;
+			if (Befehl.mache == FahrPlanDo::rueckwaerz_fahren) 	FahrRicht = false;
+		}
+		FunktionsGruppe[0] = FahrGesch;
+		if (FahrRicht)
+		{
+			FunktionsGruppe[0] = bitSet(FahrGesch, 7);
+			Status = Zug_Status::Zug_faehrt_vor;
+		}
+		else Status = Zug_Status::Zug_faehrt_rueck;
+
+		//XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
+	}
+	else
+	{
+		TRACE(_T(" ERROR falscher Befehl \n\n"));
+	}
+}
+
+void CDataLok::ReSet_Geschwindigkeit()
+{
+	FunktionsGruppe[0] = FahrGesch;
+	if (FahrRicht) FunktionsGruppe[0] = bitSet(FahrGesch, 7);
+
+	//XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
+	if (FahrRicht) 			Status = Zug_Status::Zug_faehrt_vor;
+	else Status = Zug_Status::Zug_faehrt_rueck;
+}
+
+void CDataLok::Set_Stop()
+{
+	byte Data = 0;
+	if (FahrRicht) FunktionsGruppe[0] = bitSet(Data, 7);
+	//XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
+	Status = Zug_Status::Zug_Stopped;
+}
+
+void CDataLok::Set_Halt()
+{
+	byte Data = 0;
+	if (FahrRicht) FunktionsGruppe[0] = bitSet(Data, 7);
+	
+	// XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
+	Status = Zug_Status::Zug_haelt;
+}
+
+void CDataLok::Set_Halt(FahrplanPos Befehl)
+{
+	if (Befehl.isGeschwindigkeit())
+	{
+		if (Befehl.mache == FahrPlanDo::vorwaerz_fahren) 	FahrRicht = true;
+		if (Befehl.mache == FahrPlanDo::rueckwaerz_fahren) 	FahrRicht = false;
+		FahrGesch = Befehl.GetGeschwindigkeit();
+		byte Data = 0;
+		if (FahrRicht) FunktionsGruppe[0] = bitSet(Data, 7);
+		// XpressNet->SendeZugDaten(XpNSendwas::FGruppe0, Adresse, FunktionsGruppe[0]);
+		Status = Zug_Status::Zug_haelt;
+	}
+	else
+	{
+		TRACE(_T(" ERROR falscher Befehl \n\n"));
+	}
+}
+
+
+bool CDataLok::isNext_Melder(byte Melder)
+{
+	return (Melder_next == Melder);
+}
+
+bool CDataLok::isHalt()
+{
+	return (Status == Zug_Status::Zug_haelt);
+}
+
+bool CDataLok::isVorwärtz()
+{
+	return FahrRicht;
+}
+
+bool CDataLok::isOnGleis()
+{
+	if (Block_ist == 0x00)
+	{
+		Betriebs_Modus = Zug_Steuerung::nicht_Betriebs_bereit;
+		return false;
+	}
+	return true;
+}
+
+bool CDataLok::isActive()
+{
+	return (!(Betriebs_Modus == Zug_Steuerung::nicht_Betriebs_bereit));
+}
+
+bool CDataLok::isAutomaticOn()
+{
+	return ((Betriebs_Modus == Zug_Steuerung::Automatik_Betrieb)&&(Zug_active));
+}
+
+bool CDataLok::isHand()
+{
+	return (Betriebs_Modus == Zug_Steuerung::Hand_Betrieb);
+}
+
+bool CDataLok::Prüfrichtung()
+{
+	if (Blick)
+		return(FahrRicht);
+	else
+		return(!FahrRicht);
+}
+
+Zug_Status CDataLok::Get_Status()
+{
+	return Status;
+}
+
+byte CDataLok::Progmmiere_RW_CV(bool RW, byte CV, byte* Wert)
+{
+	byte result = 0;
+	if (RW)  // true dann schreiben
+	{
+		//XpressNet->Sende_Write_CV(CV, *Wert);
+		result = 0;
+	}
+	else			// false weil nur lesen
+	{
+		// XpressNet->Sende_Read_CV(CV, *Wert);
+		// result = XpressNet->Hole_Zug_CV(CV, Wert);
+	}
+	return result;
+}
+ 

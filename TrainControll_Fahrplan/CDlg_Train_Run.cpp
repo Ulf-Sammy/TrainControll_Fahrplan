@@ -21,10 +21,21 @@ BEGIN_MESSAGE_MAP(CDlg_Run_Train, CDialog)
 	ON_CONTROL_RANGE(BN_CLICKED, IDC_BUTTON_VOR4, IDC_BUTTON_ZUR4, &CDlg_Run_Train::OnBnClickedSpeed)
 	ON_WM_CLOSE()
 	ON_WM_PAINT()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 CDlg_Run_Train::CDlg_Run_Train(CWnd* pParent, byte ID)
 	: CDialog(CDlg_Run_Train::IDD, pParent)
+	, Lok_Name(L""), 
+	Anlagen_Daten(NULL), 
+	Lok_Nr_act(0), 
+	Lok_Bild(NULL), 
+	Lok_Tacho(NULL),
+	Lok_Park_Block(0), 
+	Lok_Pfeil_vor(0), 
+	Lok_Pfeil_zur(0), 
+	Dlg_Richtung(true),
+	Dlg_Geschwindigkeit(0)
 {
 	ASSERT(pParent != NULL);
 	
@@ -60,7 +71,7 @@ void CDlg_Run_Train::SetInfo(CString Text)
 	if (m_nID == CDlg_Run_Train::IDD8) { SetDlgItemTextW(IDC_ZUG_ADRESSE_8, Text); }
 }
 
-BOOL CDlg_Run_Train::isCamera()
+BOOL CDlg_Run_Train::isCamera() const
 {
 	return Lok_Name == L"grüne Stainz";
 }
@@ -81,15 +92,14 @@ void CDlg_Run_Train::Set_Daten(byte Block)
 	APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 	CString Text;
 
-	Zug_Data = &APP->meineLoks;
-	Track_Data = &APP->Gleis_Data;
-	Track_Data->GetStatus_Block(Block, &Lok_Name);
-	Lok_Nr_act = Zug_Data->Get_Pos_LokName(Lok_Name); // ist die Nummer aus der aktive List von Zügen
-	Lok_Bild = Zug_Data->Get_Lok_Image(Lok_Nr_act);
+	Anlagen_Daten = &APP->Anlagen_Daten;
+	
+	Anlagen_Daten->Gleis_Data.GetStatus_Block(Block, &Lok_Name);
+	Anlagen_Daten->meineLoks.ASK_LokData(Lok_Nr_act);
 
-	Zug_Data->Verbinde_Zug_zu_XpNet(Lok_Nr_act);
-
-	Zug_Data->Ask_for_Lok_Data(Lok_Nr_act);
+	Lok_Nr_act = Anlagen_Daten->meineLoks.Get_Pos_LokName(Lok_Name); // ist die Nummer aus der aktive List von Zügen
+	Lok_Bild = Anlagen_Daten->meineLoks.Get_Lok_Image(Lok_Nr_act);
+		
 	SetTasten();
 	Text.Format(L"bediene Lok : %s", (LPCTSTR)Lok_Name);
 	this->SetWindowTextW(Text);
@@ -153,9 +163,9 @@ void CDlg_Run_Train::SetTasten(void)
 	if (m_nID == CDlg_Run_Train::IDD6) { Item_Nr = IDC_FUNK_0_6; }
 	if (m_nID == CDlg_Run_Train::IDD7) { Item_Nr = IDC_FUNK_0_7; }
 	if (m_nID == CDlg_Run_Train::IDD8) { Item_Nr = IDC_FUNK_0_8; }
-	if (Zug_Data->is_Lok_Sound(Lok_Nr_act))
+	if (Anlagen_Daten->meineLoks.is_Lok_Sound(Lok_Nr_act))
 	{
-		bit = Zug_Data->Get_Lok_FunktionSound(Lok_Nr_act);
+		bit = Anlagen_Daten->meineLoks.Get_Lok_FunktionSound(Lok_Nr_act);
 		static_cast<CButton*>(GetDlgItem(Item_Nr + 14))->ShowWindow(SW_SHOW);
 		SetButtom(bit, (Item_Nr + 14), IDB_F14_I, IDB_F14_O);
 	}
@@ -163,19 +173,19 @@ void CDlg_Run_Train::SetTasten(void)
 	{
 		static_cast<CButton*>(GetDlgItem(Item_Nr + 14))->ShowWindow(SW_HIDE);
 	}
-	bit = Zug_Data->Get_Lok_FunktionRangier(Lok_Nr_act);
+	bit = Anlagen_Daten->meineLoks.Get_Lok_FunktionRangier(Lok_Nr_act);
 	SetButtom(bit, (Item_Nr + 15), IDB_F15_I, IDB_F15_O);
 
-	bit = Zug_Data->Get_Lok_FunktionZeit(Lok_Nr_act);
+	bit = Anlagen_Daten->meineLoks.Get_Lok_FunktionZeit(Lok_Nr_act);
 	SetButtom(bit, (Item_Nr + 16), IDB_F16_I, IDB_F16_O);
 
 	i = 0;
-	for(Function_A Funktion : Zug_Data->Get_Zug_ActivFunktion_Pointer(Lok_Nr_act))
+	for(Function_A Funktion : Anlagen_Daten->meineLoks.Get_Zug_ActivFunktion_Pointer(Lok_Nr_act))
 	{
 		// Hole Funktions Bit und Name vom der aktiven Lok
 		if (i < (MAX_MASSOTH_FUNKTION - 3))
 		{
-			bit = Zug_Data->Get_Lok_FunktionBit(Lok_Nr_act,Funktion.Get_Taste());
+			bit = Anlagen_Daten->meineLoks.Get_Lok_FunktionBit(Lok_Nr_act,Funktion.Get_Taste());
 			Text = Funktion.Text_Taste() + " |  " + Funktion.Text_Beschreibung();
 			static_cast<CButton*>(GetDlgItem(Item_Nr + i))->ShowWindow(SW_SHOW);
 			static_cast<CButton*>(GetDlgItem(Item_Nr + i))->SetCheck(bit);
@@ -187,7 +197,7 @@ void CDlg_Run_Train::SetTasten(void)
 	{
 		static_cast<CButton*>(GetDlgItem(Item_Nr + i))->ShowWindow(SW_HIDE);
 	}
-	if (Zug_Data->Get_Lok_Status(Lok_Nr_act) == Zug_Status::Zug_Stopped) Text.Format(_T(" Zug stopped "));
+	if (Anlagen_Daten->meineLoks.Get_Lok_Status(Lok_Nr_act) == Zug_Status::Zug_Stopped) Text.Format(_T(" Zug stopped "));
 	if (m_nID == CDlg_Run_Train::IDD)  { SetDlgItemTextW(IDC_ZUG_ADRESSE ,  Text);}
 	if (m_nID == CDlg_Run_Train::IDD1) { SetDlgItemTextW(IDC_ZUG_ADRESSE_1, Text);}
 	if (m_nID == CDlg_Run_Train::IDD2) { SetDlgItemTextW(IDC_ZUG_ADRESSE_2, Text);}
@@ -232,24 +242,24 @@ void CDlg_Run_Train::OnBnClickedFunktion(UINT nID)
 	switch (index)
 	{
 	case 14:
-		bit = !Zug_Data->Get_Lok_FunktionSound(Lok_Nr_act);
-		Zug_Data->Set_Lok_FunktionSound(Lok_Nr_act, bit);
+		bit = !Anlagen_Daten->meineLoks.Get_Lok_FunktionSound(Lok_Nr_act);
+		Anlagen_Daten->meineLoks.Set_Lok_FunktionSound(Lok_Nr_act, bit);
 		SetButtom(bit, (nID), IDB_F14_I, IDB_F14_O);
 		break;
 	case 15:
-		bit = !Zug_Data->Get_Lok_FunktionRangier(Lok_Nr_act);
-		Zug_Data->Set_Lok_FunktionRangier(Lok_Nr_act, bit);
+		bit = !Anlagen_Daten->meineLoks.Get_Lok_FunktionRangier(Lok_Nr_act);
+		Anlagen_Daten->meineLoks.Set_Lok_FunktionRangier(Lok_Nr_act, bit);
 		SetButtom(bit, (nID), IDB_F15_I, IDB_F15_O);
 		break;
 	case 16:
-		bit = !Zug_Data->Get_Lok_FunktionZeit(Lok_Nr_act);
-		Zug_Data->Set_Lok_FunktionZeit(Lok_Nr_act, bit);
+		bit = !Anlagen_Daten->meineLoks.Get_Lok_FunktionZeit(Lok_Nr_act);
+		Anlagen_Daten->meineLoks.Set_Lok_FunktionZeit(Lok_Nr_act, bit);
 		SetButtom(bit, (nID), IDB_F16_I, IDB_F16_O);
 		break;
 	default:
-		FunkNr = Zug_Data->Get_Zug_ActivFunktion_Pointer(Lok_Nr_act)[index].Get_Taste();
-		bit = !Zug_Data->Get_Lok_FunktionBit(Lok_Nr_act, FunkNr);
-		Zug_Data->Set_Funktion(Lok_Nr_act, FahrplanPos(0, FahrPlanDo::schalten_Funk, FunkNr, bit));
+		FunkNr = Anlagen_Daten->meineLoks.Get_Zug_ActivFunktion_Pointer(Lok_Nr_act)[index].Get_Taste();
+		bit = !Anlagen_Daten->meineLoks.Get_Lok_FunktionBit(Lok_Nr_act, FunkNr);
+		Anlagen_Daten->meineLoks.Set_Funktion(Lok_Nr_act, FahrplanPos(0, FahrPlanDo::schalten_Funk, FunkNr, bit));
 
 		break;
 	}
@@ -259,11 +269,12 @@ void CDlg_Run_Train::OnBnClickedFunktion(UINT nID)
 
 void CDlg_Run_Train::OnBnClickedSpeed(UINT nID)
 {
-	#define Speed_N 8;
-	#define Speed_M 12;
-	#define Speed_F 18;
-	#define Speed_T 21;
+	constexpr int Speed_N = 8;
+	constexpr int Speed_M = 12;
+	constexpr int Speed_F = 18;
+	constexpr int Speed_T = 21;
 	static byte G;
+	static bool D;
 	Zug_Status NeuerZug_Status;
 	BlockRueckmeldung PrZug;
 	CString Text;
@@ -273,62 +284,69 @@ void CDlg_Run_Train::OnBnClickedSpeed(UINT nID)
 	case IDC_BUTTON_VOR4:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_vor;
 		G = Speed_T;
+		D = true;
 		break;
 	case IDC_BUTTON_VOR3:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_vor;
 		G = Speed_F;
+		D = true;
 		break;
 	case IDC_BUTTON_VOR2:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_vor;
 		G = Speed_M;
+		D = true;
 		break;
 	case IDC_BUTTON_VOR1:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_vor;
 		G = Speed_N;
+		D = true;
 		break;
 	case IDC_BUTTON_STOP:
 		NeuerZug_Status = Zug_Status::Zug_Stopped;
+		D = true;
 		G = 0;
 		break;
 	case IDC_BUTTON_ZUR1:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_rueck;
+		D = false;
 		G = Speed_N;
 		break;
 	case IDC_BUTTON_ZUR2:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_rueck;
 		G = Speed_M;
+		D = true;
 		break;
 	case IDC_BUTTON_ZUR3:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_rueck;
 		G = Speed_F;
+		D = true;
 		break;
 	case IDC_BUTTON_ZUR4:
 		NeuerZug_Status = Zug_Status::Zug_faehrt_rueck;
 		G = Speed_T;
+		D = true;
 		break;
-
 	}
 
-	switch (Zug_Data->Get_Lok_Status(Lok_Nr_act))
+	switch (Anlagen_Daten->meineLoks.Get_Lok_Status(Lok_Nr_act))
 	{ 
 	case Zug_Status::Zug_Stopped:
-		Zug_Data->Set_Lok_Startbedingung(Lok_Nr_act, NeuerZug_Status); 
-		[[fallthrough]];
+		Anlagen_Daten->meineLoks.Set_Lok_Startbedingung(Lok_Nr_act, NeuerZug_Status);
 	case Zug_Status::Zug_haelt:
 		PrZug = BlockRueckmeldung::Frei_Fahrt;
 		switch (PrZug)
 		{
 		case BlockRueckmeldung::Frei_Fahrt:
-			Track_Data->Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G);
+			Anlagen_Daten->meineLoks.Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G, D);
 			if (NeuerZug_Status == Zug_Status::Zug_faehrt_vor)
 			{
 				Text.Format(_T("Zug fährt vorwärtz mit : %2i"), G);
-				Dlg_Richtung = true;
+				Dlg_Richtung = D;
 			}
 			if (NeuerZug_Status == Zug_Status::Zug_faehrt_rueck)
 			{
 				Text.Format(_T("Zug fährt rückwärtz mit : %2i"), G);
-				Dlg_Richtung = false;
+				Dlg_Richtung = D;
 			}
 			Dlg_Geschwindigkeit = G;
 			break;
@@ -336,7 +354,7 @@ void CDlg_Run_Train::OnBnClickedSpeed(UINT nID)
 			Text.Format(_T("Der Weichenweg ist nicht frei !"));
 			if (NeuerZug_Status == Zug_Status::Zug_Stopped)
 			{
-				Track_Data->Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G);
+				Anlagen_Daten->meineLoks.Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, 0, D);
 				Dlg_Geschwindigkeit = 0;
 			}
 			break;
@@ -344,7 +362,7 @@ void CDlg_Run_Train::OnBnClickedSpeed(UINT nID)
 			Text.Format(_T("Der Block ist besetzt !"));
 			if (NeuerZug_Status == Zug_Status::Zug_Stopped)
 			{
-				Track_Data->Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G);
+				Anlagen_Daten->meineLoks.Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, 0, D);
 				Dlg_Geschwindigkeit = 0;
 			}
 			break;
@@ -355,14 +373,14 @@ void CDlg_Run_Train::OnBnClickedSpeed(UINT nID)
 	case Zug_Status::Zug_faehrt_vor:
 		if (NeuerZug_Status == Zug_Status::Zug_faehrt_vor)
 		{
-			Track_Data->Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G);
+			Anlagen_Daten->meineLoks.Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G, D);
 			Text.Format(_T("Zug fährt vorwärtz mit : %2i"), G);
 			Dlg_Geschwindigkeit = G;
 			Dlg_Richtung = true;
 		}
 		if (NeuerZug_Status == Zug_Status::Zug_Stopped)
 		{
-			Track_Data->Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G);
+			Anlagen_Daten->meineLoks.Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, 0, D);
 			Text.Format(_T("Zug hat gestopped !         "));
 			Dlg_Geschwindigkeit = 0;
 		}
@@ -370,14 +388,14 @@ void CDlg_Run_Train::OnBnClickedSpeed(UINT nID)
 	case Zug_Status::Zug_faehrt_rueck:
 		if (NeuerZug_Status == Zug_Status::Zug_faehrt_rueck)
 		{
-			Track_Data->Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G);
+			Anlagen_Daten->meineLoks.Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G, D);
 			Text.Format(_T("Zug fährt rückwärtz mit : %2i"), G);
 			Dlg_Geschwindigkeit = G;
-			Dlg_Richtung = false;
+			Dlg_Richtung = D;
 		}
 		if (NeuerZug_Status == Zug_Status::Zug_Stopped)
 		{
-			Track_Data->Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, G);
+			Anlagen_Daten->meineLoks.Set_Lok_Geschwindigkeit(Lok_Nr_act, NeuerZug_Status, 0, D);
 			Text.Format(_T("Zug hat gestopped !         "));
 			Dlg_Geschwindigkeit = 0;
 		}
@@ -433,4 +451,11 @@ void CDlg_Run_Train::OnPaint()
 		dc.LineTo(Zeiger[Dlg_Geschwindigkeit]);
 		memDC.SelectObject(pOldBitmap);
 	}
+}
+
+void CDlg_Run_Train::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: Fügen Sie hier Ihren Meldungshandlercode ein, und/oder benutzen Sie den Standard.
+
+	CDialog::OnTimer(nIDEvent);
 }

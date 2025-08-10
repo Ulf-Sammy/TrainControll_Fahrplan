@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "CGleisPlan.h"
+#include "C_Anlagen_Data.h"
 #include "CStatic_GleisBild.h"
 #include "CStatic_DrawBMP.h"
 #include "CStaticDraw.h"
@@ -14,10 +15,6 @@
 #include "afxwin.h"
 #include "Resource.h"
 
-
-UINT Thread_Update_LZV(LPVOID pParam);
-UINT Thread_Update_MEGA(LPVOID pParam);
-UINT Thread_Update_Time(LPVOID pParam);
 
 
 // CTrainControll_FahrplanDlg-Dialogfeld
@@ -41,10 +38,12 @@ public:
 	CStaticText        InfoMelder;
 	CStaticText        InfoWeiche;
 	CStatic_GleisBild  InfoGleisBild;
-	CStatic_DrawBMP	   InfoMega;
+	CStatic_DrawBMP	   InfoGiga;
 	CStatic_DrawBMP	   InfoLVZ200;
+	CStatic_DrawBMP    InfoWifi;
 	CStatic_DrawBMP	   InfoModus;
 	CStatic_DrawBMP	   InfoPower;
+
 
 protected:
 	
@@ -60,21 +59,14 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
-	void InitDlg();
 
 public:
 	
+	CAnlagen_Data Anlagen_Daten;
 	
-	CDatenBankLok		meineLoks;
-	CCom_LZV200			XpressNet;
-	CCom_BlockMelderNet	BlockMelder;
-	CGleisPlan			Gleis_Data;
-
-
-	COM_Info COM_LZV_Data;
-	COM_Info COM_MEGA_Data;
 	COM_Info COM_DEBUG_Data;
 
+	void DoUpdate();
 	void EnumSerialPortFriendlyName();
 	void Get_Com_Handel();
 	void Set_Train_Run_DLG();
@@ -88,6 +80,7 @@ public:
 	afx_msg void OnSetupMeinezugliste();
 	afx_msg void OnSetupTestedieweiche();
 	afx_msg void OnBnClickedButtonTest();
+	afx_msg void OnBnClickedButtonPower();
 	afx_msg void OnBnClickedButtonWeiche();
 	afx_msg void OnBnClickedButtonZug(UINT nID);
 	afx_msg void OnClose();

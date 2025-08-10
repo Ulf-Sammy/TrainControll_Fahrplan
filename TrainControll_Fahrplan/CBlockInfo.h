@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "CDataXpressNet.h"
-#include "COM_BlockMelderNet.h"
 #include <vector>
 
 

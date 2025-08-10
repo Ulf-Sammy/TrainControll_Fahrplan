@@ -11,6 +11,13 @@ CDatenBankLok::~CDatenBankLok()
 {
 }
 
+void CDatenBankLok::Init(C_UDP_Client* Client)
+{
+	Load_Zug_Data();
+	Load_acktiv_Zug_Data();
+	Wifi_Client = Client;
+}
+
 void CDatenBankLok::Load_Zug_Data()
 {
 	LPCTSTR			pszPathName;
@@ -173,10 +180,6 @@ void CDatenBankLok::Save_acktiv_Zug_Data()
 	}
 }
 
-void CDatenBankLok::Verbinde_Zug_zu_XpNet(byte Nr)
-{
-	MeineZüge[Nr].ConecttoXpressNet();
-}
 
 void CDatenBankLok::Sound_acktive_Zug(bool SW)
 {
@@ -192,34 +195,13 @@ byte CDatenBankLok::Get_max_Aktiv_Loks()
 	return (byte) Loks_in_Schuppen.size();
 }
 
-void CDatenBankLok::Ask_for_Lok_Data(byte Lok_Nr)
-{
-	MeineZüge[Lok_Nr].ASK_LokData();
-}
+
+
 
 void CDatenBankLok::Set_Zug_CV_Wert(byte CV, byte CV_Wert)
 {
 	MeineZüge[Selected_Prog_Lok].Decoder_Data.Set_CV_Wert(CV, CV_Wert);
 	Do_Save_Data = true;
-}
-
-
-CDataXpressNet& CDatenBankLok::Get_Lok_Pointer(CString LName)
-{
-	for (auto& Zug : MeineZüge)
-	{
-		if (LName == Zug.Name)
-		{
-			return Zug;
-		}
-	}
-	
-	return MeineZüge[0]; // nullptr;
-}
-
-CDataXpressNet & CDatenBankLok::Get_aktiveLok_Pointer(byte Lok_Nr)
-{
-	return MeineZüge[Loks_in_Schuppen[Lok_Nr]];
 }
 
 void CDatenBankLok::Fill_Liste_Zug(CComboBox * Data, DecoderTypen Decoder_Type)
@@ -237,6 +219,7 @@ void CDatenBankLok::Fill_Liste_Zug(CComboBox * Data, DecoderTypen Decoder_Type)
 	}
 	
 }
+
 void CDatenBankLok::Fill_Liste_Zug(CComboBox * Data)
 {
 	for (int i = 0; i < Data->GetCount(); i++)
@@ -250,6 +233,7 @@ void CDatenBankLok::Fill_Liste_Zug(CComboBox * Data)
 	Data->SetCurSel(0);
 	Selected_Prog_Lok = 0;
 }
+
 void CDatenBankLok::Fill_Liste_Zug(CComboBox* Data, CString Name)
 {
 	byte Pos = 0;
@@ -266,6 +250,7 @@ void CDatenBankLok::Fill_Liste_Zug(CComboBox* Data, CString Name)
 	Data->SetCurSel(Pos);
 	Selected_Prog_Lok = 0;
 }
+
 void CDatenBankLok::Fill_Act_Liste_Zug(CComboBox * Data)
 {
 	for (int i = 0; i < Data->GetCount(); i++)
@@ -305,6 +290,19 @@ byte CDatenBankLok::Get_Pos_LokName(CString LName)
 	return 0xFF;
 }
 
+CDataXpressNet* CDatenBankLok::Get_Lok_Data(CString LName)
+{
+	for (CDataXpressNet& Z : MeineZüge)
+	{
+		if (Z.Name == LName)
+		{
+			Selected_Prog_Lok = (byte)(&Z - &MeineZüge[0]);
+			return &Z;
+		}
+	}
+	return nullptr;
+}
+
 std::vector<Function_A> CDatenBankLok::Get_Zug_ActivFunktion_Pointer(byte Nr)
 {
 	return MeineZüge[Nr].Decoder_Data.Get_Aktive_Funktion();
@@ -319,6 +317,12 @@ void CDatenBankLok::Set_Lok_Startbedingung(byte Nr, Zug_Status Status)
 Zug_Status CDatenBankLok::Get_Lok_Status(byte Nr)
 {
 	return MeineZüge[Nr].Get_Status();
+}
+
+void CDatenBankLok::ASK_LokData(byte Nr)
+{
+	MeineZüge[Nr].ASK_LokData(0, Send_Data);       //Fragen_Lok_Daten(sende_Daten);
+	//Wifi_Client->Send_Data(Send_Data);
 }
 
 
@@ -382,20 +386,28 @@ void CDatenBankLok::Set_Lok_FunktionZeit(byte Nr, bool bit)
 	MeineZüge[Nr].Set_Funktion_VerzögerungsZeit(bit);
 }
 
+void CDatenBankLok::Set_Lok_Geschwindigkeit(byte Nr, Zug_Status Status, byte Speed,bool Dir)
+{
+	MeineZüge[Nr].Set_Status(Status);
+	MeineZüge[Nr].Set_Geschwindigkeit(Speed, Dir,Send_Data);
+	Wifi_Client->Send_Data(Send_Data);
+}
+
 void CDatenBankLok::Set_Lok_Geschwindigkeit(byte Nr, byte Speed, bool Dir, bool Stop)
 {
-	if (Stop)	MeineZüge[Nr].Set_Stop();
+	if (Stop)	MeineZüge[Nr].Set_Stop(Send_Data);
 	else
 	{
 		if(Speed == 0 )
 		{
-			MeineZüge[Nr].Set_Halt();
+			MeineZüge[Nr].Set_Halt(Send_Data);
 		}
 		else
 		{
-			MeineZüge[Nr].Set_Geschwindigkeit(Speed, Dir);
+			MeineZüge[Nr].Set_Geschwindigkeit(Speed, Dir, Send_Data);
 		}
 	}
+	Wifi_Client->Send_Data(Send_Data);
 }
 
 CString CDatenBankLok::Get_Lok_Name(byte Nr)
@@ -458,7 +470,7 @@ void CDatenBankLok::Sort_Sel_Zug_FunktionsTasten()
 
 byte CDatenBankLok::PRG_Lok_CV(bool ReadWrite, byte CV, byte Wert) // true dann schreiben
 {
- return	MeineZüge[Selected_Prog_Lok].Progmmiere_RW_CV(ReadWrite, CV, Wert);
+ return	MeineZüge[Selected_Prog_Lok].Progmmiere_RW_CV(ReadWrite, CV, Wert,Send_Data);
 }
 
 

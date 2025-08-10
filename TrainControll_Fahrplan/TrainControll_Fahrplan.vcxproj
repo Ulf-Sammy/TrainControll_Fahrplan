@@ -197,14 +197,14 @@
     <ClInclude Include="CDlg_Lok_Schuppen.h" />
     <ClInclude Include="CDlg_RunCam_Train.h" />
     <ClInclude Include="CStaticDraw.h" />
-    <ClInclude Include="COM_BlockMelderNet.h" />
     <ClInclude Include="CGleisPlan.h" />
     <ClInclude Include="CBlockInfo.h" />
-    <ClInclude Include="COM_LZV200.h" />
     <ClInclude Include="CStaticText.h" />
     <ClInclude Include="CustomTrace.h" />
     <ClInclude Include="CBlock.h" />
     <ClInclude Include="CDlg_Train_Run.h" />
+    <ClInclude Include="C_Anlagen_Data.h" />
+    <ClInclude Include="C_UDP_Client.h" />
     <ClInclude Include="Dlg_CV_Action.h" />
     <ClInclude Include="Dlg_Liste_Funktion.h" />
     <ClInclude Include="Dlg_Liste_Train.h" />
@@ -238,10 +238,8 @@
     <ClCompile Include="CDlg_Lok_Schuppen.cpp" />
     <ClCompile Include="CDlg_RunCam_Train.cpp" />
     <ClCompile Include="CStaticDraw.cpp" />
-    <ClCompile Include="COM_BlockMelderNet.cpp" />
     <ClCompile Include="CGleisPlan.cpp" />
     <ClCompile Include="CBlockInfo.cpp" />
-    <ClCompile Include="COM_LZV200.cpp" />
     <ClCompile Include="CTextStatic.cpp" />
     <ClCompile Include="CustomTrace.cpp" />
     <ClCompile Include="CBlock.cpp" />
@@ -253,6 +251,8 @@
     <ClCompile Include="CDlg_Plan_Liste_Train.cpp" />
     <ClCompile Include="CDlg_Setup_Train.cpp" />
     <ClCompile Include="CDlg_Test_Weiche.cpp" />
+    <ClCompile Include="C_Anlagen_Data.cpp" />
+    <ClCompile Include="C_UDP_Client.cpp" />
     <ClCompile Include="EditableListCtrl.cpp" />
     <ClCompile Include="InPlaceEdit.cpp" />
     <ClCompile Include="MaskedBitmap.cpp" />

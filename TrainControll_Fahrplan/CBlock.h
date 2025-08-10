@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "CBlockInfo.h"
-#include "Com_BlockMelderNet.h"
 
 class CBlock
 {
@@ -38,7 +37,7 @@ public:
 
 protected:
 	CDataXpressNet* LokData = NULL;
-	CCom_BlockMelderNet* MelderNet = NULL;
+	
 	bool Block_gemeldet = false;// Melder gemeldet
 	// Strecke 
 	CBlock_Strecke GleisStrecke;

@@ -1,4 +1,6 @@
-#ifndef _MEMDC_H_
+
+
+  #ifndef _MEMDC_H_
 #define _MEMDC_H_
 #pragma once
 //////////////////////////////////////////////////

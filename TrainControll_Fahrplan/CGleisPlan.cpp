@@ -16,44 +16,29 @@ CGleisPlan::~CGleisPlan()
 
 void CGleisPlan::Init()
 {
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	Züge = &APP->meineLoks;
-	XpressNet = &APP->XpressNet;
-	BlockMelder = &APP->BlockMelder;
-
 	for (int i = 0; i <= MAX_WEICHEN_MOTOR; i++)
 	{
 		WeichenAntrieb.push_back(TrainCon_Paar(i, false));
 	}
 	Lade_Daten();
-
+	Set_Taster_Farbe();
 }
 
-void CGleisPlan::GetNextMessage_Mega()
-{
-	BlockMelder->verarbeite_Meldung_Zentrale();
-}
-
-void CGleisPlan::GetNextMessage_LZV()
-{
-	XpressNet->verarbeite_Meldung_Zentrale();
-}
-
-void CGleisPlan::DoCheckIt(byte Lok_Nr, clock_t Zeit)
-{
-	if (Züge->Get_aktiveLok_Pointer(Lok_Nr).Plan_Warten)
-	{
-		if (Züge->Get_aktiveLok_Pointer(Lok_Nr).WarteZeit < Zeit)
-		{
-		}
-	}
-	if ((Züge->Get_aktiveLok_Pointer(Lok_Nr).Get_Status() == Zug_Status::Zug_haelt) && (Züge->Get_aktiveLok_Pointer(Lok_Nr).Betriebs_Modus == Zug_Steuerung::Hand_Betrieb))
-	{ // Dies nur für den Handbetreib 
-	}
-	if ((Züge->Get_aktiveLok_Pointer(Lok_Nr).Get_Status() == Zug_Status::Zug_haelt) && (Züge->Get_aktiveLok_Pointer(Lok_Nr).Betriebs_Modus == Zug_Steuerung::Automatik_Betrieb))
-	{ // Dies nur für den Automaticbetreib 
-	}
-}
+//void CGleisPlan::DoCheckIt(byte Lok_Nr, clock_t Zeit)
+//{
+//	if (Züge->Get_aktiveLok_Pointer(Lok_Nr).Plan_Warten)
+//	{
+//		if (Züge->Get_aktiveLok_Pointer(Lok_Nr).WarteZeit < Zeit)
+//		{
+//		}
+//	}
+//	if ((Züge->Get_aktiveLok_Pointer(Lok_Nr).Get_Status() == Zug_Status::Zug_haelt) && (Züge->Get_aktiveLok_Pointer(Lok_Nr).Betriebs_Modus == Zug_Steuerung::Hand_Betrieb))
+//	{ // Dies nur für den Handbetreib 
+//	}
+//	if ((Züge->Get_aktiveLok_Pointer(Lok_Nr).Get_Status() == Zug_Status::Zug_haelt) && (Züge->Get_aktiveLok_Pointer(Lok_Nr).Betriebs_Modus == Zug_Steuerung::Automatik_Betrieb))
+//	{ // Dies nur für den Automaticbetreib 
+//	}
+//}
 
 void CGleisPlan::showInfo_Dlg(byte LokNr, CString Info)
 {
@@ -68,60 +53,9 @@ bool CGleisPlan::isNewUpdate_Taster()
 	return false;
 }
 
-
-
-void CGleisPlan::NewTimeZug(clock_t Zeit)
-{
-	static byte Lok_Nr = 0;
-	byte		max_active_Loks = Züge->Get_max_Aktiv_Loks();;
-
-	if (Lok_Nr >= max_active_Loks)
-	{
-		Lok_Nr = 0;
-	}
-	else
-	{ 
-		DoCheckIt(Lok_Nr, Zeit);
-		Lok_Nr = (Lok_Nr + 1) % (max_active_Loks);
-	}
-}
-
-
-
-
-
-void CGleisPlan::Set_Lok_Geschwindigkeit(byte Lok_Nr, Zug_Status SetTo, byte Geschwindigkeit)
-{
-	switch (SetTo)
-	{
-	case Zug_Status::Zug_Stopped:
-		//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Stop();
-		Züge->Set_Lok_Geschwindigkeit(Lok_Nr, 0, false, true);
-		break;
-	case Zug_Status::Zug_faehrt_vor:
-		//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Geschwindigkeit(Geschwindigkeit, true);
-		Züge->Set_Lok_Geschwindigkeit(Lok_Nr, Geschwindigkeit, true, false);
-		break;
-	case Zug_Status::Zug_faehrt_rueck:
-		//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Geschwindigkeit(Geschwindigkeit, false);
-		Züge->Set_Lok_Geschwindigkeit(Lok_Nr, Geschwindigkeit, false, false);
-		break;
-	case Zug_Status::Zug_haelt:
-		if (Züge->Get_aktiveLok_Pointer(Lok_Nr).Get_Status() != Zug_Status::Zug_haelt)
-		{
-			//Züge->Get_aktiveLok_Pointer(Lok_Nr).Set_Halt();
-			Züge->Set_Lok_Geschwindigkeit(Lok_Nr, 0, false, false);
-		}
-		break;
-	default:
-		break;
-	}
-}
-
-
 bool CGleisPlan::isPower_onGleis()
 {
-	return (XpressNet->Get_Power_onGleis());
+	return true; // (XpressNet->Get_Power_onGleis());
 }
 
 bool CGleisPlan::isPower_onBlock(byte Nr)
@@ -228,26 +162,26 @@ bool CGleisPlan::Klick_Block(CPoint Klick)
 		if (Ergebnis == 1)
 		{
 			Data = WeichenAntrieb[Wert].GetInvBit();
-			if (BlockMelder->NoComToBlockNet())
-			{
-				Set_Weiche(Data);
-				TRACE1(" Weiche Nr: %i \n",Data.GetWert());
-				Set_Taster_Farbe();
-				return(true);
-			}
-			else
-				BlockMelder->Send_WeichenData(Data);
+			//if (BlockMelder->NoComToBlockNet())
+			//{
+			//	Set_Weiche(Data);
+			//	TRACE1(" Weiche Nr: %i \n",Data.GetWert());
+			//	Set_Taster_Farbe();
+			//	return(true);
+			//}
+			//else
+			//	BlockMelder->Send_WeichenData(Data);
 			Set_Taster_Farbe();
-		return false;
+		    return false;
 		}
 		if (Ergebnis == 2)
 		{
 			Data = B.Get_Relais_Data();
-			if (BlockMelder->NoComToBlockNet())
-				Set_Relais(Data);
-			else
-				BlockMelder->Send_BlockPower(Data);
-			return false;
+			//if (BlockMelder->NoComToBlockNet())
+			//	Set_Relais(Data);
+			//else
+			//	BlockMelder->Send_BlockPower(Data);
+			//return false;
 		}
 	}
 	return (false);
@@ -287,6 +221,18 @@ bool CGleisPlan::Set_Block(byte* Data)
 	}
 	return false;
 }
+
+void CGleisPlan::Set_Block_free(byte BlockNr)
+{
+	Block[BlockNr].freimachen();
+}
+
+void CGleisPlan::Set_Block_Lok(byte BlockNr, CDataXpressNet *Lok)
+{
+	Block[BlockNr].bestetzen(Lok);
+}
+
+
 
 bool CGleisPlan::Set_Weiche(byte* Data)
 {
@@ -338,7 +284,7 @@ void CGleisPlan::Set_Door( byte* Data)
 
 void CGleisPlan::Ask_Door_Status()
 {
-	BlockMelder->Send_Door_Status();
+	//BlockMelder->Send_Door_Status();
 }
 
 
@@ -359,12 +305,17 @@ void CGleisPlan::Schalte_Relais(byte Nr, bool Bit)
 		TrainCon_Paar Relais;
 		Relais = Block[Nr].Get_Relais_Data();
 		Relais.SetBit(Bit);
-		BlockMelder->Send_BlockPower(Relais);
-		if (BlockMelder->NoComToBlockNet())
-		{
-			Block[Nr].set_Relais(Relais);
-		}
+		//BlockMelder->Send_BlockPower(Relais);
+		//if (BlockMelder->NoComToBlockNet())
+		//{
+		//	Block[Nr].set_Relais(Relais);
+		//}
 	}
+}
+
+Start_Lok_Block CGleisPlan::Get_StartLokInfo(byte Nr)
+{
+	return Block[Nr].Get_StartLokInfo();
 }
 
 void CGleisPlan::GetAnschlussBlocks(byte Nr, std::vector<byte>* EinBlocks, std::vector<byte>* AusBlocks)
@@ -405,46 +356,6 @@ bool CGleisPlan::Besetze_Weg_mit_Lok(CDataXpressNet* Lok, std::vector<byte> Wege
 	return false;
 }
 
-void CGleisPlan::Besetze_AbstellGleise_mit_Loks()
-{
-	for (auto& LB : Züge->HomeZüge)
-	{
-		Setze_Lok_aufGleis(LB);
-	}
-}
-
-void CGleisPlan::Setze_Lok_aufGleis(Start_Lok_Block Data)
-{
-	if (Data.Lok_Name.IsEmpty())
-	{
-		Block[Data.Block].freimachen();
-	}
-	else
-	{
-		CDataXpressNet* XpressNet_Lok;
-
-		XpressNet_Lok = &Züge->Get_Lok_Pointer(Data.Lok_Name);
-		XpressNet_Lok->Set_BlickRichtung(Data.Blick);
-		XpressNet_Lok->Set_auf_Gleis(Data.Block);
-
-		Block[Data.Block].bestetzen(XpressNet_Lok);
-	}
-}
-
-void CGleisPlan::Update_Lok_Abstellgleis()
-{
-	Start_Lok_Block Data;
-	Züge->HomeZüge.clear();
-	for (size_t i = 33; i < 41; i++)
-	{
-		Data = Block[i].Get_StartLokInfo();
-		if (!Data.Lok_Name.IsEmpty())
-		{
-			Züge->HomeZüge.push_back(Data);
-		}
-	}
-}
-
 bool CGleisPlan::Hole_Lok_Blick_vonGleis(byte Nr)
 {
 	return Block[Nr].Get_Lok_onBlock()->Blick;
@@ -476,42 +387,6 @@ BlockDebugData CGleisPlan::Get_DebugData(byte Nr)
 	return Block[0].Get_Debug();;
 }
 
-void CGleisPlan::TestBlock_mitZug(byte Nr, bool Bit, bool leeren)
-{
-	CDataXpressNet *Zug_L, *Zug_R;
-	Zug_L = &Züge->Get_aktiveLok_Pointer(1);
-	Zug_R = &Züge->Get_aktiveLok_Pointer(2);
-	if(leeren)
-	{
-		Block[Nr].freimachen();
-		Block[Nr].bestetzen(false);
-	}
-	else
-	{
-		if (Bit)
-		{
-			Block[Nr].bestetzen(Zug_L);
-			Block[Nr].bestetzen(true);
-		}
-		else
-		{
-			Block[Nr].bestetzen(Zug_R);
-			Block[Nr].bestetzen(true);
-		}
-	}
-}
-
-CDataXpressNet* CGleisPlan::TestZug(bool Bit)
-{
-	if(Bit)
-	{ 
-		return &Züge->Get_aktiveLok_Pointer(1);
-	}
-	else
-	{
-		return &Züge->Get_aktiveLok_Pointer(2);
-	}
-}
 
 CDataXpressNet* CGleisPlan::Get_Zug_Point(byte BlockNr)
 {

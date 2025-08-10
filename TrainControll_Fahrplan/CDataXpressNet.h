@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include "COM_LZV200.h"
 #include "CDataFahrplan.h"
+#include"C_UDP_Client.h"
 #include "VC_TableInfo.h"
 #include <vector>
 
@@ -13,18 +13,15 @@ public:
 	CDataXpressNet();
 	CDataXpressNet(CString LokName);
 	~CDataXpressNet();
-
-	void ConecttoXpressNet();
-
 	bool Prüfe_Plan_im_Block();
 	void Set_Block(byte Ist, byte Soll, byte Best, byte Melder);
 	void Set_Besetzt_Block(byte Best);
 	void Set_Block_Pause(bool Stop);
-	byte Get_Soll_Block();
+	byte Get_Soll_Block() const;
 	void Lade_Fahrplan();
-	void ASK_LokData();
+	
 	void Set_Adresse();
-	CString Text_Block();
+	CString Text_Block() const;
 	CString Text_Betrieb();
 	CString Text_Adresse();
 	CString Text_Hersteller();
@@ -33,6 +30,7 @@ public:
 	
 	byte Get_Decoder_Nr();
 	void Set_Startbedingungen(Zug_Status UserSet_Status);
+	void Set_Status(Zug_Status UserSet_Status);
 	void Set_BlickRichtung(bool LokBlick);
 	void Set_auf_Gleis(byte BlockNr);
 	void Set_Lok_Nr(byte Nr_EDV);
@@ -42,23 +40,24 @@ public:
 	void Set_Funktion_Rangieren(bool SW);
 	void Set_Funktion_VerzögerungsZeit(bool SW);
 	bool Get_Funktion(byte Nr);
-	void Set_Geschwindigkeit(byte Geschwindigkeit, bool FahrtRichtung);
-	void Set_Geschwindigkeit(FahrplanPos Befehl);
-	void ReSet_Geschwindigkeit();
-	void Set_Stop();
-	void Set_Halt();
-	void Set_Halt(FahrplanPos Befehl);
-	bool isNext_Melder(byte Melder);
-	bool isHalt();
-	bool isVorwärtz();
+	bool isNext_Melder(byte Melder) const;
+	bool isHalt() const;
+	bool isVorwärtz() const;
 	bool isOnGleis();
-	bool isActive();
-	bool isAutomaticOn();
+	bool isActive() const;
+	bool isAutomaticOn() const;
 	bool isHand();
 	bool Prüfrichtung();
 	Zug_Status Get_Status();
 
-	byte Progmmiere_RW_CV(bool RW, byte CV, byte Wert);
+	// Daten Austausch mit XpressNet
+	void ASK_LokData(byte Info,byte *Data);
+	void Set_Stop(byte* Data);
+	void Set_Halt(byte* Data);
+	void Set_Halt(FahrplanPos Befehl,byte* Data);
+	void Set_Geschwindigkeit(byte Geschwindigkeit, bool FahrtRichtung, byte* Data);
+	void Set_Geschwindigkeit(FahrplanPos F_Befehl, byte* Data);
+	byte Progmmiere_RW_CV(bool RW, byte CV, byte Wert, byte* Data);
 
 	CDecoderInfo  Decoder_Data;
 	HBITMAP		  Bild = 0x00 ;			// Bild der Lok
@@ -88,15 +87,13 @@ protected:                        //0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 	
 
 	// alles zum Fahren
-	CCom_LZV200 *XpressNet = NULL;
 	bool ProgMode;
-
+	const byte  WifiKennung = 0xC0; 
 	Zug_Status  Status = Zug_Status::Zug_Stopped;       // Der Status vom Zug stop,fähr, hält
 	bool		Zug_active			= false; // ist Zug active
 	byte		FahrPlan_Nr			= 0;     // Nr des Fahrplans
-	Lok_Adresse		Adresse				= 0;     // Adresse Lok
-	byte		FahrGesch			= 0;     // diese Werte werden genommen um zuübertragen
-	bool		FahrRicht			= false; // diese Werte werden genommen um zuübertragen
-	std::vector<byte>	FunktionsGruppe{ 0x00,0x00,0x00,0x00,0x00 };
-
+	Lok_Adresse		Adresse			= 0;     // Adresse Lok
+	byte		FahrGesch			= 0;     // diese Werte werden genommen zum übertragen
+	bool		FahrRicht			= false; // diese Werte werden genommen zum übertragen
+	std::vector<byte>	FunktionsGruppe{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 };

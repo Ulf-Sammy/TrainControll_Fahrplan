@@ -47,9 +47,9 @@ BOOL CDlg_Lok_Schuppen::Init()
 	POINT P;
 
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	BlockNet = &APP->BlockMelder;
-	Gleise = &APP->Gleis_Data;
-	Loks = &APP->meineLoks;
+	//BlockNet = &APP->BlockMelder;
+	Gleise = &APP->Anlagen_Daten.Gleis_Data;
+	Loks = &APP->Anlagen_Daten.meineLoks;
 
 	SetWindowPos(NULL, 10, 300, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 
@@ -57,7 +57,7 @@ BOOL CDlg_Lok_Schuppen::Init()
 	CString LName[MaxAbstellGleise];
 	bool   LBlick[MaxAbstellGleise] = {true,true,true,true,true,true,true,true };
 
-	for (auto& Lok : APP->meineLoks.HomeZüge)
+	for (auto& Lok : APP->Anlagen_Daten.meineLoks.HomeZüge)
 	{
 		Gleis_Block_On[Lok.Block - 33] = true;
 		LName[Lok.Block - 33] = Lok.Lok_Name;
@@ -70,7 +70,7 @@ BOOL CDlg_Lok_Schuppen::Init()
 		Lok_Gleis[i].SetWindowPos(NULL, Gleis_Platz[i].left, Gleis_Platz[i].top, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 		Lok_Gleis[i].ShowWindow(SW_HIDE);
 		
-		APP->meineLoks.Fill_Liste_Zug(&Lok_Gleis[i],LName[i]);
+		APP->Anlagen_Daten.meineLoks.Fill_Liste_Zug(&Lok_Gleis[i],LName[i]);
 		if(LBlick[i])
 			P = POINT(Gleis_Platz[i].TopLeft() + CPoint(+180, -28));
 		else 
@@ -421,7 +421,7 @@ void CDlg_Lok_Schuppen::OnLButtonDown(UINT nFlags, CPoint point)
 	if (SchuppenTor.PtInRect(point))
 	{
 		bool SchuppenTor_auf = !Gleise->Get_Door_open();
-		BlockNet->Send_Door_open(SchuppenTor_auf);
+		//BlockNet->Send_Door_open(SchuppenTor_auf);
 		Invalidate();
 		return;
 	}
@@ -498,8 +498,8 @@ void CDlg_Lok_Schuppen::OnBnClickedButton1()
 			Lok_Gleis[i].ShowWindow(SW_HIDE);
 		}
 		Invalidate();
-		APP->Gleis_Data.Update_Lok_Abstellgleis();
-		APP->meineLoks.Save_acktiv_Zug_Data();
+		APP->Anlagen_Daten.Update_Lok_Abstellgleis();
+		APP->Anlagen_Daten.meineLoks.Save_acktiv_Zug_Data();
 		APP->Set_Train_Run_DLG();
 	}
 }
@@ -551,10 +551,10 @@ void CDlg_Lok_Schuppen::ChangeCombox(byte Nr)
 	}
 	else
 	{
-		Data.Lok_Name = APP->meineLoks.Get_Lok_Name(Data.LokNr - 1);
+		Data.Lok_Name = APP->Anlagen_Daten.meineLoks.Get_Lok_Name(Data.LokNr - 1);
 		Data.Blick = true;
 	}
 
-	APP->Gleis_Data.Setze_Lok_aufGleis(Data);
+	APP->Anlagen_Daten.Setze_Lok_aufGleis(Data);
 	Invalidate();
 }

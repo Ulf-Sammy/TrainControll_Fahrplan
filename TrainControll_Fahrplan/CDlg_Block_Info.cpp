@@ -41,7 +41,7 @@ void CDlg_Block_Info::Zeige_Daten()
 
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
 	
-	Gleise = &APP->Gleis_Data;
+	Gleise = &APP->Anlagen_Daten.Gleis_Data;
 	BlockData = Gleise->Get_DebugData(Block_Nr);
 
 	str.Format(_T("%d"), Block_Nr);
@@ -165,45 +165,42 @@ void CDlg_Block_Info::NeueDaten()
 void CDlg_Block_Info::OnBnClickedButton1()
 { // Links
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	APP->Gleis_Data.TestBlock_mitZug(Block_Nr, true,false);
+	
 	NeueDaten();
 	APP->Invalidate();
-	BlickLok = true;
+
 }
 
 
 void CDlg_Block_Info::OnBnClickedButton2()
 { // Rechts
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	APP->Gleis_Data.TestBlock_mitZug(Block_Nr, false,false);
 	NeueDaten();
 	APP->Invalidate();
-	BlickLok = false;
 }
 
 
 void CDlg_Block_Info::OnBnClickedButton3()
 { // Block Leeren
 	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	APP->Gleis_Data.TestBlock_mitZug(Block_Nr, false,true);
 	NeueDaten();
 	APP->Invalidate();
 }
 
 void CDlg_Block_Info::OnBnClickedButton4()
 {// Block bezetzen
-	CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
-	CDataXpressNet* Lok_Block;
-	Lok_Block = APP->Gleis_Data.TestZug(BlickLok);
-	if (BlickLok)
-	{
-		APP->Gleis_Data.Besetze_Weg_mit_Lok(Lok_Block, BlockData.Block_Wege_nach);
-	}
-	else
-	{
-		APP->Gleis_Data.Besetze_Weg_mit_Lok(Lok_Block, BlockData.Block_Wege_von);
-	}
-	APP->Invalidate();
+	//CTrainControll_FahrplanDlg* APP = (CTrainControll_FahrplanDlg*)AfxGetApp()->m_pMainWnd;
+	//CDataXpressNet* Lok_Block;
+	//
+	//if (BlickLok)
+	//{
+	//	APP->Gleis_Data.Besetze_Weg_mit_Lok(Lok_Block, BlockData.Block_Wege_nach);
+	//}
+	//else
+	//{
+	//	APP->Gleis_Data.Besetze_Weg_mit_Lok(Lok_Block, BlockData.Block_Wege_von);
+	//}
+	//APP->Invalidate();
 }
 
 

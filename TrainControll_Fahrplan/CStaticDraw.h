@@ -28,6 +28,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnPaint();
+	afx_msg void OnBnClick();
 
 	void Init();
 	void Set_Strom_Wert(byte* Data);

@@ -43,12 +43,22 @@ bool CameraBild::SucheKamera(CString Cam_Name)
 
 	while (pEnum->Next(1, &pmVideo, NULL) == S_OK)
 	{
-		hr = pmVideo->BindToStorage(NULL, NULL , IID_IPropertyBag, (void **)&pPropBag);
-		if (FAILED(hr))
+		if (pmVideo == NULL) // Ensure pmVideo is not NULL
 		{
-			pmVideo->Release();
 			continue;
 		}
+
+		// Check if pmVideo is valid before calling BindToObject
+		if (pmVideo)
+		{
+			hr = pmVideo->BindToStorage(NULL, NULL, IID_IPropertyBag, (void**)&pPropBag);
+			if (FAILED(hr))
+			{
+				pmVideo->Release();
+				continue;
+			}
+		}
+
 		VariantInit(&var);
 		hr = pPropBag->Read(L"Description", &var, 0);
 		if (FAILED(hr))
@@ -62,6 +72,9 @@ bool CameraBild::SucheKamera(CString Cam_Name)
 			{
 				DeviceName = var.bstrVal;
 				Cam_found = true;
+				VariantClear(&var);
+				pPropBag->Release();
+				pmVideo->Release();
 				break;
 			}
 			VariantClear(&var);
@@ -69,11 +82,16 @@ bool CameraBild::SucheKamera(CString Cam_Name)
 		pPropBag->Release();
 		pmVideo->Release();
 	}
+	while (pEnum->Next(1, &pmVideo, NULL) == S_OK)
+	{
+		// ...
+		pmVideo->Release();
+	}
 	pEnum->Release();
 	pDevEnum->Release();
 	return Cam_found;
 }
-
+	
 void CameraBild::StarteKamera()
 {
 	pmVideo->AddRef();

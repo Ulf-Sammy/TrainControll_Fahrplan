@@ -36,6 +36,8 @@ protected:
 	//{{AFX_MSG(C3DMeterGleis)
 	afx_msg void OnPaint();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnBnClick();
+
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

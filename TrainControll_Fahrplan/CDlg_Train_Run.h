@@ -3,6 +3,7 @@
 #include "VC_TableInfo.h"
 #include "CDatenBankLok.h"
 #include "CGleisPlan.h"
+#include "C_Anlagen_Data.h"
 #include "afxwin.h"
 #include "Resource.h"
 #include "CaptureGraph.h"
@@ -22,7 +23,7 @@ public:
 	BOOL Create();
 	void Set_Daten(byte Block);
 	void SetInfo(CString Text);
-	BOOL isCamera();
+	BOOL isCamera() const;
 	
 	virtual BOOL OnInitDialog();
 	virtual void OnCancel();
@@ -48,8 +49,7 @@ protected:
 	CWnd* m_pParent;
 	int m_nID;
 	CameraBild		LokFenster;
-	CDatenBankLok   *Zug_Data;
-	CGleisPlan      *Track_Data;
+	CAnlagen_Data   *Anlagen_Daten;
 	CDecoderInfo	*CV_Table;
 	CString			Lok_Name;
 	byte			Lok_Park_Block;
@@ -61,4 +61,6 @@ protected:
 	bool			Dlg_Richtung;
 	byte			Dlg_Geschwindigkeit;
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };

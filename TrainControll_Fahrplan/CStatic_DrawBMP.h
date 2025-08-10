@@ -13,6 +13,7 @@ public:
 	CStatic_DrawBMP();
 	virtual ~CStatic_DrawBMP();
 
+	
 protected:
 	CRect m_rectCtrl;
 	CDC* pDC = NULL;

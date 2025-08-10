@@ -52,30 +52,6 @@
 #define highByte(w) ((WORD) ((w) >> 8))
 
 
-#define COM_LEN(L)          (L & 0x07)     //                       Setup - Test - Auto - Program
-#define COM_SEND_MOD          0x08+0x02  // 1 MOD-status			    | 
-#define COM_SEND_GLPOWER      0x18+0x03  // 2 Power on Gleis  over I2C  | 
-#define COM_SEND_RELAIS       0x20+0x03  // 3 Relais Nr + Bit			| New
-#define COM_SEND_DOOR         0x28+0x04  // 4 fahern					|
-#define COM_SEND_DOOR_STAT    0x30+0x04  // 5 offen + belegt			| 
-#define COM_SEND_WEICHE       0x38+0x03  // 6 Weiche + Wert			    |
-#define COM_TC_WIRTE_BLOCK	  0x40+0x03  // 7 BLOCK + Wert			    | New											
-#define COM_XPNET_POWER       0x48+0x02  // 8 Power on/off
-#define COM_XPNET_ON		  0x50+0x02  // 9 XpressNet on 
-
-#define COM_I2C_DEV1		  0x60+0x03  // 8 Melder Info
-#define COM_I2C_DEV2		  0x68+0x03  // 9 Gleis Power Info
-#define COM_I2C_DEV3          0x70+0x03  //10 Gleis Position Info
-
-
-#define COM_TC_WRITE_CUR1     0xB0+0x02  //11 Strom abfragen | A.A in Ampere
-#define COM_TC_WRITE_CUR2     0xB8+0x02  //12 Strom abfragen | 
-
-
-#define COM_PC_ASK_VERSION    0xD0+0x03  //13 Frage SoftwareVersion 3 - 0 |
-#define COM_PC_WRITE_WEICHE   0xE0+0x02  //14 setze WeichenAnzahl		  |
-#define COM_PC_WRITE_BC_ALL   0xE8+0x02  //15 NotAus LED / Normal LED     | LED Rot und Grün
-#define COM_PC_WRITE_DISPLAY  0xF0+0x07  //16 Test 1H2o3l4l5o			  |
 
 #define WM_NOTIFY_DESCRIPTION_EDITED             WM_APP + 1
 //#define TESTSTRECKE 
@@ -231,7 +207,7 @@ struct COM_Info
 	bool COM_Active = false;
 	bool COM_Error = false;
 	HANDLE COM_Handel = NULL;
-	DWORD BaudRate;
+	DWORD BaudRate = 0;
 	void Com_off()
 	{
 		;
@@ -253,7 +229,7 @@ class Start_Lok_Block
 			Blick = true;
 			Betriebs_Modus = Zug_Steuerung::Hand_Betrieb;
 		};
-		Start_Lok_Block(CString InText)
+		Start_Lok_Block(CString InText) : LokNr(0), Betriebs_Modus(Zug_Steuerung::Hand_Betrieb)
 		{
 			Lok_Name = InText.Mid(0, 16);
 			Lok_Name.Trim();
@@ -460,38 +436,49 @@ struct BlockDebugData
 	};
 };
 
-#define BUFFER 16
+constexpr int BUFFER = 16;
+
 struct RingBuffer
 {
-	byte ClearBlock[BUFFER];
-	byte ClearMelder[BUFFER];
-	int head = 0;
-	int tail = 0;
-	void clearBuffer()
-	{
-		head = 0;
-		tail = 0;
-	}
-	bool isnextMelder(byte Ml)
-	{
-		return (Ml == ClearMelder[tail]);
-	}
-	byte GetBlock()
-	{
-		if (head != tail)
-		{
-			byte Bl = ClearBlock[tail];
-			tail = (tail + 1) % BUFFER;
-			return Bl;
-		}
-		return 0;
-	}
-	void SetBlock(byte Ml, byte Bl)
-	{
-		ClearMelder[head] = Ml;
-		ClearBlock[head] = Bl;
-		head = (head + 1) % BUFFER;
-	}
+    byte ClearBlock[BUFFER] = { 0 }; // Initialisierung mit 0
+    byte ClearMelder[BUFFER] = { 0 }; // Initialisierung mit 0
+    int head = 0;
+    int tail = 0;
+
+    RingBuffer() // Konstruktor zur Initialisierung
+    {
+        std::fill(std::begin(ClearBlock), std::end(ClearBlock), 0);
+        std::fill(std::begin(ClearMelder), std::end(ClearMelder), 0);
+    }
+
+    void clearBuffer()
+    {
+        head = 0;
+        tail = 0;
+    }
+
+    bool isnextMelder(byte Ml)
+    {
+        return (Ml == ClearMelder[tail]);
+    }
+
+    byte GetBlock()
+    {
+        if (head != tail)
+        {
+            byte Bl = ClearBlock[tail];
+            tail = (tail + 1) % BUFFER;
+            return Bl;
+        }
+        return 0;
+    }
+
+    void SetBlock(byte Ml, byte Bl)
+    {
+        ClearMelder[head] = Ml;
+        ClearBlock[head] = Bl;
+        head = (head + 1) % BUFFER;
+    }
 };
 
 struct RingbufferM
