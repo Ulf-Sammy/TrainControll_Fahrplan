@@ -15,6 +15,7 @@
 #include "afxwin.h"
 #include "Resource.h"
 
+//static UINT Thread_Update_Wifi(LPVOID pParam);
 
 
 // CTrainControll_FahrplanDlg-Dialogfeld
@@ -89,5 +90,5 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnSetupMegadebugdata();
 	afx_msg void OnSetupComlisteInfo();
-	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedButtonSound();
 };

@@ -3,7 +3,6 @@
 #include "CDatenBankLok.h"
 #include "C_UDP_Client.h"
 
-static UINT Thread_Update_Wifi(LPVOID pParam);
 
 class CAnlagen_Data
 {
@@ -24,18 +23,22 @@ public:
 
 	bool Server_da = false;
 	bool LZV_da = false;
+	bool No_Socket = true;
 	bool LisentoServer = false;
 	bool DoUpdateWifi = false;
 	bool DoUpdatePower = false;
 	bool DoUpdateLZV = false;
 	bool DoUpdateGiga = false;
 	bool Gleispower = false;
+	bool ProgMode = false; // Programmiermodus an oder aus
+	bool Tor_offen = false; 
 
 	unsigned int Max_Weichen = 0;// Maximale Anzahl Weichen
 
 
-	CAnlagen_Data() : Send_Data{0} {}
+	CAnlagen_Data() : Send_Data{0} 	{	}
 	~CAnlagen_Data() = default;
+	void Start_Socket();
 	void Init();
 	void close_Comunikation();
 	void Do_incoming_Data();
@@ -61,4 +64,5 @@ public:
 	void Set_LokFuntion(byte Lok_Nr, Zug_Status SetTo, byte Funktion, bool Status);
 protected:
 	byte Send_Data[255]; // Puffer für die Daten die an den XpressNet gesendet werden
+	void Debug_Data();
 };

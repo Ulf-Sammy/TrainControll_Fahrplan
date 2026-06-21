@@ -13,6 +13,13 @@ C_UDP_Client::~C_UDP_Client()
     WSACleanup();
 }
 
+bool C_UDP_Client::isClientSocket()
+{
+    if (client_socket != 0)
+		return true;
+    return false;
+}
+
 bool C_UDP_Client::Begin_Winsock()
 {
     WSADATA ws;
@@ -68,13 +75,19 @@ byte C_UDP_Client::get_Kennung()
     return Get_Data[0];
 }
 
+void C_UDP_Client::get_Wifi_RSSI()
+{
+    byte send_Data[255] = { 0 };
+    make_Message(0x0C, "", send_Data);
+	Send_Data(send_Data);
+}
+
 void C_UDP_Client::connect_Server()
 {
 	byte send_Data[255] = { 0 };
 	make_Message(0x0E, "Desktop", send_Data); 
 	Send_Data(send_Data);
-    make_Message(0x0C, "", send_Data);
-	Send_Data(send_Data);
+    
 }
 
 void C_UDP_Client::disconnect_Server()
@@ -105,7 +118,7 @@ void C_UDP_Client::make_Message(byte Kennung, byte Data1, byte* Data)
 void C_UDP_Client::make_Message(byte Kennung, byte Data1, byte Data2, byte* Data)
 {
     Data[0] = Kennung; // Kennung
-    Data[1] = static_cast<byte> (0x03);
+    Data[1] = static_cast<byte> (0x04);
     Data[2] = static_cast<byte>(Data1);
     Data[3] = static_cast<byte>(Data2);
 }
@@ -129,6 +142,20 @@ CString C_UDP_Client::Get_Data_String() const
         strData.AppendChar(static_cast<TCHAR>(Get_Data[i]));
     }
     return strData;
+}
+
+
+void C_UDP_Client::Trace_Data() const
+{
+    CString Trace;
+    
+    for (int i = 0; i < Get_Data[1]; ++i)
+    {
+        CString byteStr;
+        byteStr.Format(_T("%02X "), Get_Data[i]);
+        Trace.Append(byteStr);
+    }
+    TRACE1(" in Data: %s \n ",Trace ); // Replace TRACE0 with TRACE                                                                                                                                                                                                                                                                                                                                                                       
 }
 
 byte C_UDP_Client::Get_Data_Byte(int index) const

@@ -12,6 +12,7 @@
 
 #define NUI32_TEXTLAENGE_SERPORTENUM_FRIENDLYNAME  255
 
+
 // CTrainControll_FahrplanApp:
 // Siehe TrainControll_Fahrplan.cpp für die Implementierung dieser Klasse
 //

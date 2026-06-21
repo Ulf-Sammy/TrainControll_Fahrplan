@@ -22,10 +22,12 @@ private:
 public:
 	C_UDP_Client();
 	~C_UDP_Client();
+	bool isClientSocket();
 	bool Begin_Winsock();
 	void Send_Data(byte* message);
 	bool Listen_to_Data();
 	byte get_Kennung();
+	void get_Wifi_RSSI();
 	void connect_Server();
 	void disconnect_Server();
 	void make_Message(byte Kennung, char* Text, byte* Data);
@@ -35,6 +37,7 @@ public:
 	CString Get_Error_Info() const { return Error_Info; }
 	CString Get_WifiStatus() const { return WifiStatus; }
 	CString Get_Data_String() const;
+	void Trace_Data() const;
 	byte Get_Data_Byte1() const { return Get_Data[2]; }
 	byte Get_Data_Byte(int index) const;
 };

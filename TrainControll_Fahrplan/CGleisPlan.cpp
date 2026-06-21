@@ -494,10 +494,10 @@ void CGleisPlan::Lade_Daten()
 		}
 	}
 	*/
-	TRACE(_T("-------- Alle Wege --------------\n"));
+	//TRACE(_T("-------- Alle Wege --------------\n"));
 	for (auto& Weg : alle_Wege)
 	{
-		TRACE(_T("Von %i --- %i ---- %i nach \n"), Weg.VonBlock(),Weg.ZwiBlock(),Weg.NachBlock());
+		//TRACE(_T("Von %i --- %i ---- %i nach \n"), Weg.VonBlock(),Weg.ZwiBlock(),Weg.NachBlock());
 		Block[Weg.VonBlock()].AddWeg(true,Weg);
 		Block[Weg.NachBlock()].AddWeg(false,Weg);
 	}

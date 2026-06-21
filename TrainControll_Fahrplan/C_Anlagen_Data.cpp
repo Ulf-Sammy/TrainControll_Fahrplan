@@ -1,27 +1,29 @@
 #include "pch.h"
 #include "C_Anlagen_Data.h"
 
-static UINT Thread_Update_Wifi(LPVOID pParam)
-{
-	CAnlagen_Data* Info = (CAnlagen_Data*)pParam;
-	do
-	{
-		Info->Do_incoming_Data();
-	} while (Info->LisentoServer);
-	TRACE(_T("ende update Thread Wifi.....\n"));
 
-	return 0;
+
+void CAnlagen_Data::Start_Socket()
+{
+	if (Wifi_Client.Begin_Winsock())
+	{
+		LisentoServer = true;
+		No_Socket = false;
+	}
+	else LisentoServer = false;
 }
 
 void CAnlagen_Data::Init()
 {                                  // Desktop
-	unsigned long timeout = 50;
-	if (Wifi_Client.Begin_Winsock())
+	unsigned long timeout = 200;
+
+	
+	TRACE(_T("Verbinden zum Server\n"));
+	if (LisentoServer)
 	{
-		LisentoServer = true;
-		AfxBeginThread(Thread_Update_Wifi, this);
+		
 		Wifi_Client.connect_Server();
-		Connect_LZV200(); // LZV200 verbinden
+		
 		while(!Server_da)
 		{
 			timeout--;
@@ -33,6 +35,8 @@ void CAnlagen_Data::Init()
 				break;
 			}
 		}
+		Wifi_Client.get_Wifi_RSSI(); // Feldstärke abfragen
+		Connect_LZV200(); // LZV200 verbinden
 	}
 	Gleis_Data.Init();
 	meineLoks.Init(&Wifi_Client);
@@ -41,10 +45,11 @@ void CAnlagen_Data::Init()
 
 void CAnlagen_Data::close_Comunikation()
 {
-		LisentoServer = false;
-		Server_da = false;
-		Sleep(500);
 		Wifi_Client.disconnect_Server();
+
+		while(Server_da){ }
+		
+		
 }
 
 
@@ -52,6 +57,8 @@ void CAnlagen_Data::Do_incoming_Data()
 {
 	if (Wifi_Client.Listen_to_Data())
 	{
+		Wifi_Client.Trace_Data();
+
 		switch (Wifi_Client.get_Kennung())
 		{
 		case 0x00: // Anlagen Daten
@@ -73,7 +80,12 @@ void CAnlagen_Data::Do_incoming_Data()
 			break;
 		case 0x06: // Lok Funktionen Status Daten
 			break;
-		case 0x07: //
+		case 0x07: // Tor auf zu
+			if (Wifi_Client.Get_Data_Byte1() == 0x01)
+				Tor_offen = true;
+			else
+				Tor_offen = false;
+			DoUpdatePower = true;
 			break;
 		case 0x08: //
 			break;
@@ -100,6 +112,9 @@ void CAnlagen_Data::Do_incoming_Data()
 			DoUpdateGiga = true;
 			break;
 		case 0x0F: //
+			LisentoServer = false;
+		    Server_da = false;
+			TRACE(_T("vom Server abgemeldet /n"));
 			break;
 
 		case 0xA0: // 
@@ -108,11 +123,9 @@ void CAnlagen_Data::Do_incoming_Data()
 		case 0xB0: // Daten von Mobile
 
 			break;
-		case 0xC0: // Daten von LZV200 = XpressNet
+		case 0xC0:
 		{
-			byte A = Wifi_Client.Get_Data_Byte(6);
-			A = A >> 4;
-			byte B = Wifi_Client.Get_Data_Byte(7);
+			Do_XpressNet_Data();			
 		}
 			break;
 		case 0xD0: // 
@@ -131,7 +144,34 @@ void CAnlagen_Data::Do_incoming_Data()
 }
 
 void CAnlagen_Data::Do_XpressNet_Data()
-{
+{// Daten von XpressNet verarbeiten
+
+
+
+	if (LZV_da)
+	{
+		byte A = Wifi_Client.Get_Data_Byte(4);
+		byte B = Wifi_Client.Get_Data_Byte(5);
+		byte C = Wifi_Client.Get_Data_Byte(6);
+
+		switch (Wifi_Client.Get_Data_Byte(4))
+		{
+		case 0x61: // Software Version LZV200
+			if (B == 0) { Gleispower = false; } // Gleis Aus
+			if (B == 1) 
+			{
+				Gleispower = true;  
+				ProgMode = false;
+			}// Gleis An
+			if (B == 2) { ProgMode = true; }
+			DoUpdatePower = true;
+			break;
+		case 0x63: // Softwarw Version LZV200
+			break;
+		case 0x6E: // Lok Status Meldung
+				break;
+		}
+	}
 
 
 }
@@ -188,6 +228,10 @@ void CAnlagen_Data::Send_XpressNet_Power(bool Power)
 	Wifi_Client.Send_Data(Send_Data);
 }
 void CAnlagen_Data::Set_LokFuntion(byte Lok_Nr, Zug_Status SetTo, byte Funktion, bool Status)
+{
+
+}
+void CAnlagen_Data::Debug_Data()
 {
 
 }

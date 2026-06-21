@@ -17,7 +17,24 @@
 #endif
 
 
+static UINT Thread_Update_Wifi(LPVOID pParam)
+{
+	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
 
+	TRACE(_T("start update Thread Wifi.....\n"));
+	do
+	{
+	} while (Info->Anlagen_Daten.No_Socket );
+	TRACE(_T("start Lisiening to Wifi.....\n"));
+	do
+	{
+		Info->DoUpdate();
+	   	Info->Anlagen_Daten.Do_incoming_Data();
+	} while (Info->Anlagen_Daten.LisentoServer);
+	TRACE(_T("ende update Thread Wifi.....\n"));
+
+	return 0;
+}
 
 
 static UINT Thread_Update_Debug(LPVOID pParam)
@@ -35,16 +52,6 @@ static UINT Thread_Update_Debug(LPVOID pParam)
 }
 
 
-static UINT Thread_Prozess(LPVOID pParam)
-{
-	CTrainControll_FahrplanDlg* Info = (CTrainControll_FahrplanDlg*)pParam;
-	while (Info->Anlagen_Daten.LisentoServer)
-	{
-		Info->DoUpdate();
-	}
-	TRACE(_T("ende update Thread Prozess.....\n"));
-	return 0;
-}
 
 
 // CAboutDlg-Dialogfeld für Anwendungsbefehl "Info"
@@ -108,9 +115,11 @@ CTrainControll_FahrplanDlg::CTrainControll_FahrplanDlg(CWnd* pParent /*=NULL*/)
 	pDlgSchuppen->Create();
 	pDlgBlockInfo->Create();
 	pDlgComListe->Create(ComListe);
-
+	
 	//XpressNet.Set_Com(&COM_LZV_Data);
 	//BlockMelder.Set_Com(&COM_MEGA_Data);
+	AfxBeginThread(Thread_Update_Wifi, this);
+	Anlagen_Daten.Start_Socket();
 }
 
 void CTrainControll_FahrplanDlg::DoDataExchange(CDataExchange* pDX)
@@ -146,7 +155,7 @@ BEGIN_MESSAGE_MAP(CTrainControll_FahrplanDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_WEICHE, &CTrainControll_FahrplanDlg::OnBnClickedButtonWeiche)
 	ON_WM_CLOSE()
 	ON_WM_LBUTTONDOWN()
-	ON_BN_CLICKED(IDC_BUTTON1, &CTrainControll_FahrplanDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON1, &CTrainControll_FahrplanDlg::OnBnClickedButtonSound)
 END_MESSAGE_MAP()
 
 
@@ -188,7 +197,7 @@ BOOL CTrainControll_FahrplanDlg::OnInitDialog()
 	// BlockMelder.Init(&InfoMega,&InfoModus,Gleis_Data.Get_Weichen_Anzahl());
 	Set_Train_Run_DLG();
 	pDlgSchuppen->Init();
-	AfxBeginThread(Thread_Prozess, this);
+	
 	return TRUE; 
 }
 
@@ -392,8 +401,7 @@ void CTrainControll_FahrplanDlg::OnLButtonDown(UINT nFlags, CPoint point)
 					switch (i)
 					{
 					case 0:
-						Anlagen_Daten.Gleispower = !Anlagen_Daten.Gleispower;
-						InfoPower.Set_Status(Anlagen_Daten.Gleispower);
+						Anlagen_Daten.Send_XpressNet_Power(!Anlagen_Daten.Gleispower);
 						Anlagen_Daten.DoUpdatePower = true;
 						break;
 					case 1:
@@ -474,10 +482,10 @@ void CTrainControll_FahrplanDlg::OnSetupFahrplanEdit()
 	Dlg.DoModal();
 }
 
-void CTrainControll_FahrplanDlg::OnBnClickedButton1()
+void CTrainControll_FahrplanDlg::OnBnClickedButtonSound()
 {	//Sound
 	Anlagen_Daten.Get_SoftVersion_LZV();
-
+	//Anlagen_Daten.Wifi_Client.connect_Server();
 }
 void CTrainControll_FahrplanDlg::OnBnClickedButtonTest()
 {
@@ -486,6 +494,11 @@ void CTrainControll_FahrplanDlg::OnBnClickedButtonTest()
 		pDlgBlockInfo->ShowWindow(SW_HIDE);
 	else
 		pDlgBlockInfo->ShowWindow(SW_SHOW);
+}
+
+void CTrainControll_FahrplanDlg::OnBnClickedButtonPower()
+{
+
 }
 
 

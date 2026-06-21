@@ -13,7 +13,7 @@ CBlock::CBlock(CString InText, CPoint Step)
 	
 	int L = InText.GetLength();
 	LokData = NULL;
-	TRACE1("Block= %s \n", InText.Mid(0, 3));
+	// TRACE1("Block= %s \n", InText.Mid(0, 3));
 	BlockNr = _ttoi(InText.Mid(0,3));
 	if (InText.GetLength() > 17)
 	{
